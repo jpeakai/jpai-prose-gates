@@ -43,8 +43,8 @@ Each meta repo declares this package and runs it through a `docs-ci` target.
 { "devDependencies": { "jpai-prose-gates": "git+https://github.com/jpeakai/jpai-prose-gates.git" } }
 ```
 
-Generated markdown is deliberately not gated.
-Its prose lives in the source that renders it, so a fix applied to the output would be overwritten.
+Generated markdown is gated too.
+A finding there is traced back to the source that rendered it, either the record or the template, and never fixed in the output.
 
 ## Development
 

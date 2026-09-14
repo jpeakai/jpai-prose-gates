@@ -1,12 +1,15 @@
 # jpai-prose-gates
 
-Deterministic prose gates for markdown documentation.
-Extracted from the `gooddocs` agent skill so the same rules run in CI, not only when an agent is asked.
-Incubated in the [`jpai-library`](https://github.com/jpeakai/jpai-library) domain.
+Reading markdown should not be hard.
+Keep AI accountable one anti-slop rule at a time.
+
+**[Rules](RULES.md)** | **[GitHub](https://github.com/jpeakai/jpai-prose-gates)** | **[npm](https://www.npmjs.com/package/@jpeakai/prose-gates)**
+
+| Package Index | Published Version | Downloads | Node | CI | License |
+|---|---|---|---|---|---|
+| npm | [![npm](https://img.shields.io/npm/v/@jpeakai/prose-gates.svg)](https://www.npmjs.com/package/@jpeakai/prose-gates) | [![npm Downloads](https://img.shields.io/npm/dm/@jpeakai/prose-gates.svg)](https://www.npmjs.com/package/@jpeakai/prose-gates) | [![Node](https://img.shields.io/node/v/@jpeakai/prose-gates.svg)](package.json) | [![CI](https://github.com/jpeakai/jpai-prose-gates/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jpeakai/jpai-prose-gates/actions/workflows/ci.yml) | [![License](https://img.shields.io/npm/l/@jpeakai/prose-gates.svg)](LICENSE) |
 
 ## Usage
-
-It runs under Bun or Node 20 and later, from the npm registry.
 
 ```sh
 bunx @jpeakai/prose-gates README.md docs/*.md     # report findings, exit 1 if any

@@ -3,8 +3,9 @@
 // rewrite, and a rewrite needs discretion. The message estimates the clauses
 // in the sentence so the rewrite splits it rather than compressing it.
 
-import { sentences, words } from "../model.ts";
-import { type Finding, RULE, type Rule } from "./types.ts";
+import { words } from "../model.ts";
+import { RULE, type Rule } from "./types.ts";
+import { proseSentences } from "./utils.ts";
 
 // A clause boundary is a semicolon or colon with text after it, a comma
 // before a coordinating conjunction, or a subordinating or relative word.
@@ -25,18 +26,15 @@ export const lengthMessage = (sentence: string, maxWords: number): string => {
   return `sentence has ${count} words (budget ${maxWords}) and ${clauseNote}; split it into about ${target} shorter sentences, one idea each, rather than compressing the wording: "${excerpt(sentence)}"`;
 };
 
-const check: Rule["check"] = ({ doc, file, maxWords }) => {
-  const findings: Finding[] = [];
-  for (const view of doc.paragraphs) {
-    if (view.inTable) continue;
-    for (const sentence of sentences(view.prose)) {
-      if (words(sentence) > maxWords) {
-        findings.push({ file, line: view.line, rule: RULE.LENGTH, message: lengthMessage(sentence, maxWords) });
-      }
-    }
-  }
-  return findings;
-};
+const check: Rule["check"] = ({ doc, file, maxWords }) =>
+  proseSentences(doc)
+    .filter(({ sentence }) => words(sentence) > maxWords)
+    .map(({ view, sentence }) => ({
+      file,
+      line: view.line,
+      rule: RULE.LENGTH,
+      message: lengthMessage(sentence, maxWords),
+    }));
 
 // No fixer: shortening a sentence changes its words, per PRS-0006.
 export const pg002: Rule = {

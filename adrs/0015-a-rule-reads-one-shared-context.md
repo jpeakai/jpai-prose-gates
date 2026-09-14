@@ -23,6 +23,7 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 
 - Depends on [PRS-0008](0008-one-file-per-rule.md) (the context is the argument the one-file-per-rule contract passes to both halves)
 - Depends on [PRS-0001](0001-parse-once-to-mdast.md) (the shared data is derived from the model parsed once)
+- Depended on by [PRS-0016](0016-a-shared-helper-sits-on-its-own-side.md) (where the code that reads the context lives)
 
 ## Problem
 

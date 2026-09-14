@@ -26,6 +26,9 @@ relates_to:
   - relation: depends_on
     target: PRS-0001
     note: the shared data is derived from the model parsed once
+  - relation: depended_on_by
+    target: PRS-0016
+    note: where the code that reads the context lives
 
 problem:
   symptom: check received a context carrying the interpunct runs, while fix received only the document model.

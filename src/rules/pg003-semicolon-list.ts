@@ -5,39 +5,35 @@
 import { first } from "../fix/ends.ts";
 import { cleanLeadIn, itemsBetween, promote } from "../fix/promote.ts";
 import { matchesInAll, sentenceSpans, within } from "../fix/spans.ts";
-import { sentences } from "../model.ts";
-import { type Edit, type Finding, RULE, type Rule } from "./types.ts";
+import { type Edit, RULE, type Rule } from "./types.ts";
+import { colonsBefore, colonsIn, countOf, proseSentences } from "./utils.ts";
 
-const check: Rule["check"] = ({ doc, file }) => {
-  const findings: Finding[] = [];
-  for (const view of doc.paragraphs) {
-    if (view.inTable) continue;
-    for (const sentence of sentences(view.prose)) {
-      const semicolons = (sentence.match(/;/g) ?? []).length;
-      if (semicolons < 2) continue;
-      findings.push({
-        file,
-        line: view.line,
-        rule: RULE.SEMICOLON_LIST,
-        message: `semicolon-delimited list (${semicolons} ';'); promote to a bullet list`,
-      });
-    }
-  }
-  return findings;
-};
+const SEMICOLON = /;/g;
+
+const check: Rule["check"] = ({ doc, file }) =>
+  proseSentences(doc)
+    .map(({ view, sentence }) => ({ view, semicolons: countOf(sentence, SEMICOLON) }))
+    .filter(({ semicolons }) => semicolons >= 2)
+    .map(({ view, semicolons }) => ({
+      file,
+      line: view.line,
+      rule: RULE.SEMICOLON_LIST,
+      message: `semicolon-delimited list (${semicolons} ';'); promote to a bullet list`,
+    }));
 
 const fix: Rule["fix"] = ({ doc }) => {
   const { src } = doc;
   const edits: Edit[] = [];
   for (const view of doc.paragraphs) {
-    const semicolons = matchesInAll(src, view.directTexts, /;/);
-    const colons = matchesInAll(src, view.directTexts, /:/);
+    const semicolons = matchesInAll(src, view.directTexts, SEMICOLON);
+    const colons = colonsIn(src, view);
     if (semicolons === null || colons === null) continue;
     for (const span of sentenceSpans(src, view)) {
       const inside = semicolons.filter((semicolon) => within(semicolon, span));
       if (inside.length < 2) continue;
-      // The lead-in ends at the last colon before the first item.
-      const colon = colons.find((c) => within(c, span) && c[1] <= first(inside)[0]);
+      // The outermost colon before the first item opens the lead-in, so a
+      // "Note: the rules: a; b; c" keeps the whole of "Note: the rules".
+      const colon = colonsBefore(colons, span, first(inside)[0])[0];
       if (!colon) continue;
 
       const edit = promote({

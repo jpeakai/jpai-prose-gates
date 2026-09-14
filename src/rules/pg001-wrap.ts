@@ -4,8 +4,9 @@
 
 import { collapse } from "../fix/spans.ts";
 import { inRanges, type ParagraphView } from "../model.ts";
-import { isStacked } from "./interpunct.ts";
-import { type Edit, type Finding, RULE, type Rule } from "./types.ts";
+import { isStacked, paragraphsOf } from "./interpunct.ts";
+import { type Edit, RULE, type Rule } from "./types.ts";
+import { proseParagraphs } from "./utils.ts";
 
 // A line break after one of these ends a sentence, so it is authored layout.
 const TERMINALS = new Set([".", "!", "?", ":", ";"]);
@@ -54,33 +55,27 @@ const reflow = (view: ParagraphView): string => {
   return lines.map((line, i) => (i === 0 ? line.trim() : indent + line.trim())).join(eol);
 };
 
-const check: Rule["check"] = ({ doc, file }) => {
-  const findings: Finding[] = [];
-  for (const view of doc.paragraphs) {
-    if (view.inTable) continue;
-    for (const at of wrapsIn(view)) {
-      findings.push({
-        file,
-        line: view.line + view.raw.slice(0, at).split("\n").length - 1,
-        rule: RULE.WRAP,
-        message: "mid-sentence line wrap; write one sentence per line",
-      });
-    }
-  }
-  return findings;
-};
+const check: Rule["check"] = ({ doc, file }) =>
+  proseParagraphs(doc).flatMap((view) =>
+    wrapsIn(view).map((at) => ({
+      file,
+      line: view.line + view.raw.slice(0, at).split("\n").length - 1,
+      rule: RULE.WRAP,
+      message: "mid-sentence line wrap; write one sentence per line",
+    })),
+  );
 
 const fix: Rule["fix"] = ({ doc, runs }) => {
   const edits: Edit[] = [];
   // Interpunct runs stacked on several lines are a nested list PG009 either
   // promotes or leaves for a human. Joining the lines would destroy the
   // structure and hand PG006 a flat run it would merge wrongly.
-  const stacked = runs.filter(isStacked).map((run) => run.range[0]);
-  for (const view of doc.paragraphs) {
+  const stacked = new Set(paragraphsOf(doc, runs.filter(isStacked)));
+  for (const view of proseParagraphs(doc)) {
     // A hard break is structure the author chose, so the paragraph is left
     // exactly as written.
-    if (view.inTable || view.inBlockquote || view.hasBreak) continue;
-    if (stacked.includes(view.startOffset)) continue;
+    if (view.inBlockquote || view.hasBreak) continue;
+    if (stacked.has(view)) continue;
 
     const text = reflow(view);
     if (text === view.raw) continue;

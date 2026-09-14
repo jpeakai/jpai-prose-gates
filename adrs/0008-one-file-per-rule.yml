@@ -25,6 +25,9 @@ relates_to:
   - relation: depended_on_by
     target: PRS-0015
     note: the context is what a rule module receives in both halves
+  - relation: depended_on_by
+    target: PRS-0016
+    note: a helper leaves a rule module only once a second rule needs it
 
 problem:
   symptom: All nine rules and the CLI shared one file, so any change touched everything.

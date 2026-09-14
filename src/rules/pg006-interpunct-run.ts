@@ -5,13 +5,11 @@
 
 import { first, last } from "../fix/ends.ts";
 import { cleanLeadIn, itemsBetween, promote } from "../fix/promote.ts";
-import { matchesInAll, sentenceSpan, splittableSeparators, within } from "../fix/spans.ts";
+import { sentenceSpan, splittableSeparators } from "../fix/spans.ts";
 import { type Range, words } from "../model.ts";
-import { isFlat } from "./interpunct.ts";
+import { GLYPH, isFlat, paragraphsOf, RUN_SEPARATOR } from "./interpunct.ts";
 import { type Edit, RULE, type Rule } from "./types.ts";
-
-const SEPARATOR = /[ \t]*·[ \t]*/;
-const GLYPH = /·/g;
+import { colonsBefore, colonsIn } from "./utils.ts";
 
 // A last item this much longer than every other is a sentence that happens
 // to follow the list, not a member of it.
@@ -33,15 +31,15 @@ const check: Rule["check"] = ({ file, runs }) =>
 const fix: Rule["fix"] = ({ doc, runs }) => {
   const { src } = doc;
   const edits: Edit[] = [];
-  const flat = runs.filter(isFlat);
-  for (const view of doc.paragraphs) {
-    if (!flat.some((run) => run.range[0] === view.startOffset)) continue;
-    const separators = splittableSeparators(src, view, SEPARATOR, GLYPH);
-    const colons = matchesInAll(src, view.directTexts, /:/);
+  for (const view of paragraphsOf(doc, runs.filter(isFlat))) {
+    const separators = splittableSeparators(src, view, RUN_SEPARATOR, GLYPH);
+    const colons = colonsIn(src, view);
     if (separators === null || colons === null) continue;
 
     const span = sentenceSpan(src, view, first(separators)[0], last(separators)[1]);
-    const colon = colons.filter((c) => within(c, span) && c[1] <= first(separators)[0]).pop();
+    // The innermost colon before the first item, so a lead-in that itself
+    // contains a colon keeps only its final clause.
+    const colon = colonsBefore(colons, span, first(separators)[0]).pop();
     // With no colon to announce it, the run has to be the whole paragraph.
     if (!colon && (span[0] !== view.startOffset || span[1] !== view.endOffset)) continue;
 

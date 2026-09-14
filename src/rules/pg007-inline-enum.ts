@@ -7,7 +7,8 @@ import { first, last } from "../fix/ends.ts";
 import { cleanLeadIn, itemsBetween, promote } from "../fix/promote.ts";
 import { sentenceSpan } from "../fix/spans.ts";
 import type { DirectText, Range } from "../model.ts";
-import { type Edit, type Finding, RULE, type Rule } from "./types.ts";
+import { type Edit, RULE, type Rule } from "./types.ts";
+import { proseParagraphs } from "./utils.ts";
 
 const ENUM_FAMILIES: Array<[string, string]> = [
   ["(a)", "(b)"],
@@ -52,23 +53,25 @@ const markersIn = (src: string, texts: DirectText[]): Marker[] | null => {
   return markers;
 };
 
-const check: Rule["check"] = ({ doc, file }) => {
-  const findings: Finding[] = [];
-  for (const view of doc.paragraphs) {
-    if (view.inTable) continue;
-    for (const [opener, second] of ENUM_FAMILIES) {
-      if (!view.prose.includes(opener) || !view.prose.includes(second)) continue;
-      findings.push({
+// The first family whose opening two markers both appear, or undefined. One
+// family per paragraph is enough to report it.
+const familyIn = (prose: string): [string, string] | undefined =>
+  ENUM_FAMILIES.find(([opener, second]) => prose.includes(opener) && prose.includes(second));
+
+const check: Rule["check"] = ({ doc, file }) =>
+  proseParagraphs(doc).flatMap((view) => {
+    const family = familyIn(view.prose);
+    if (!family) return [];
+    const [opener, second] = family;
+    return [
+      {
         file,
         line: view.line,
         rule: RULE.INLINE_ENUM,
         message: `enumeration ${opener} ${second} ... inlined in prose; promote to a bullet list`,
-      });
-      break; // one family per paragraph is enough to report it
-    }
-  }
-  return findings;
-};
+      },
+    ];
+  });
 
 const fix: Rule["fix"] = ({ doc }) => {
   const { src } = doc;
@@ -89,10 +92,14 @@ const fix: Rule["fix"] = ({ doc }) => {
 
     const span = sentenceSpan(src, view, opener.range[0], closer.range[1]);
     // Two markers joined only by a conjunction, with no colon to announce
-    // them, read as cross-references ("see (a) above and (b) below").
-    const announced = /:\s*$/.test(src.slice(span[0], opener.range[0]));
-    const separated = /[,;]\s*$/.test(src.slice(opener.range[1], first(markers.slice(1)).range[0]));
-    if (markers.length === 2 && !announced && !separated) continue;
+    // them, read as cross-references ("see (a) above and (b) below"). With
+    // exactly two markers the closer is also the second, so the text between
+    // them is the whole of the first item.
+    if (markers.length === 2) {
+      const announced = /:\s*$/.test(src.slice(span[0], opener.range[0]));
+      const separated = /[,;]\s*$/.test(src.slice(opener.range[1], closer.range[0]));
+      if (!announced && !separated) continue;
+    }
 
     const edit = promote({
       rule: RULE.INLINE_ENUM,

@@ -22,6 +22,7 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 
 - Extended by [PRS-0011](0011-rules-carry-a-category.md) (rules also carry a category, as a field rather than a folder)
 - Depended on by [PRS-0015](0015-a-rule-reads-one-shared-context.md) (the context is what a rule module receives in both halves)
+- Depended on by [PRS-0016](0016-a-shared-helper-sits-on-its-own-side.md) (a helper leaves a rule module only once a second rule needs it)
 
 ## Problem
 

@@ -5,13 +5,11 @@
 
 import { first } from "../fix/ends.ts";
 import { itemsBetween, type PromotedItem, promote } from "../fix/promote.ts";
-import { collapse, matchesInAll, splittableSeparators, within } from "../fix/spans.ts";
+import { collapse, splittableSeparators, within } from "../fix/spans.ts";
 import type { ParagraphView, Range } from "../model.ts";
-import { isStacked } from "./interpunct.ts";
+import { GLYPH, isStacked, paragraphsOf, RUN_SEPARATOR } from "./interpunct.ts";
 import { type Edit, RULE, type Rule } from "./types.ts";
-
-const SEPARATOR = /[ \t]*·[ \t]*/;
-const GLYPH = /·/g;
+import { colonsBefore, colonsIn } from "./utils.ts";
 
 // The source lines of a paragraph, as absolute ranges.
 const linesOf = (view: ParagraphView): Range[] => {
@@ -22,6 +20,20 @@ const linesOf = (view: ParagraphView): Range[] => {
     at += line.length + 1;
   }
   return lines;
+};
+
+// One line read as `Label: a · b · c`, or null when it is not that shape.
+// Every line of the paragraph has to parse, or the fix has no nested list to
+// build and leaves the whole paragraph reported.
+const parentOf = (src: string, line: Range, separators: Range[], colons: Range[]): PromotedItem | null => {
+  const inside = separators.filter((separator) => within(separator, line));
+  if (inside.length === 0) return null;
+  const colon = colonsBefore(colons, line, first(inside)[0])[0];
+  if (!colon) return null;
+  return {
+    text: collapse(src.slice(line[0], colon[0])).trim(),
+    children: itemsBetween(src, [colon, ...inside], line[1]),
+  };
 };
 
 const check: Rule["check"] = ({ file, runs }) =>
@@ -35,26 +47,15 @@ const check: Rule["check"] = ({ file, runs }) =>
 const fix: Rule["fix"] = ({ doc, runs }) => {
   const { src } = doc;
   const edits: Edit[] = [];
-  const stacked = runs.filter(isStacked);
-  for (const view of doc.paragraphs) {
-    if (!stacked.some((run) => run.range[0] === view.startOffset)) continue;
-    const separators = splittableSeparators(src, view, SEPARATOR, GLYPH);
-    const colons = matchesInAll(src, view.directTexts, /:/);
+  for (const view of paragraphsOf(doc, runs.filter(isStacked))) {
+    const separators = splittableSeparators(src, view, RUN_SEPARATOR, GLYPH);
+    const colons = colonsIn(src, view);
     if (separators === null || colons === null) continue;
 
-    // Every line must read `Label: a · b · c`, or the paragraph is not the
-    // two-level structure the fix knows how to build.
     const lines = linesOf(view);
-    const parents: PromotedItem[] = [];
-    for (const line of lines) {
-      const inside = separators.filter((separator) => within(separator, line));
-      const colon = colons.find((c) => within(c, line));
-      if (inside.length === 0 || !colon || colon[1] > first(inside)[0]) break;
-      parents.push({
-        text: collapse(src.slice(line[0], colon[0])).trim(),
-        children: itemsBetween(src, [colon, ...inside], line[1]),
-      });
-    }
+    const parents = lines
+      .map((line) => parentOf(src, line, separators, colons))
+      .filter((parent): parent is PromotedItem => parent !== null);
     if (parents.length !== lines.length) continue;
 
     const edit = promote({

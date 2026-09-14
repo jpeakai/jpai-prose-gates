@@ -15,6 +15,7 @@ make install   # uv sync, then bun install
 
 ```sh
 make fix       # biome autofix, then regenerate the ADR bundle
+make check     # typecheck, coverage, docs-ci and lint, with Bun alone, as GitHub Actions runs it
 make build     # bundle src into dist for Node, which git ignores
 make test      # build, then run the test suite once
 make ci        # fix, typecheck, coverage gate, then assert the tree is clean
@@ -48,16 +49,8 @@ A record that fails the schema stops the build, which is deliberate.
 
 ## Publishing a release
 
-The package is published to npm by a maintainer who is logged in with `npm login`.
-
-```sh
-npm version patch   # bump the version and tag the commit
-npm publish         # runs make ci, builds dist, then uploads
-```
-
-`prepublishOnly` runs `make ci`, so a dirty tree or a failing gate stops the release.
-`prepack` runs `make build`, so the tarball always carries a bundle built from the tagged source.
-Check the tarball first with `npm pack --dry-run`.
+Releases go through the Publish workflow in GitHub Actions.
+[docs/PUBLISHING.md](docs/PUBLISHING.md) has the speed run, the one-time setup and the failure table.
 
 ## Commit messages
 

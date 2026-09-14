@@ -207,6 +207,19 @@
     },
     {
       "data": {
+        "id": "PRS-0013",
+        "label": "0013",
+        "parent": "group-packaging",
+        "colour": "#d97706",
+        "file": "0013-releases-publish-from-github-actions.md",
+        "title": "Releases publish to npm from GitHub Actions through trusted publishing",
+        "description": "The Publish workflow releases @jpeakai/prose-gates to npm with provenance and no stored token",
+        "status": "accepted",
+        "tags": "packaging, release"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0001-depended_on_by-PRS-0012",
         "source": "PRS-0001",
         "target": "PRS-0012",
@@ -403,6 +416,26 @@
         "label": "depends on",
         "relation": "depends_on",
         "note": "the bundle inlines the mdast parser, so Node needs no dependency install"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0012-depended_on_by-PRS-0013",
+        "source": "PRS-0012",
+        "target": "PRS-0013",
+        "label": "depended on by",
+        "relation": "depended_on_by",
+        "note": "the publish workflow ships this bundle"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0013-depends_on-PRS-0012",
+        "source": "PRS-0013",
+        "target": "PRS-0012",
+        "label": "depends on",
+        "relation": "depends_on",
+        "note": "the workflow publishes the bundle that PRS-0012 builds at pack time"
       }
     }
   ],

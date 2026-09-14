@@ -22,6 +22,7 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 ## Relates to
 
 - Depends on [PRS-0001](0001-parse-once-to-mdast.md) (the bundle inlines the mdast parser, so Node needs no dependency install)
+- Depended on by [PRS-0013](0013-releases-publish-from-github-actions.md) (the publish workflow ships this bundle)
 
 ## Problem
 

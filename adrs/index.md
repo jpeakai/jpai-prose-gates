@@ -16,6 +16,7 @@
 | [PRS-0010](0010-length-findings-guide-a-split.md) | A sentence length finding estimates clauses to guide a split | accepted |
 | [PRS-0011](0011-rules-carry-a-category.md) | Each rule carries a category, and RULES.md is held true by a test | accepted |
 | [PRS-0012](0012-node-runs-a-published-bundle.md) | Node runs a bundle built at publish time, and Bun runs the source | accepted |
+| [PRS-0013](0013-releases-publish-from-github-actions.md) | Releases publish to npm from GitHub Actions through trusted publishing | accepted |
 # By group
 
 ## architecture
@@ -32,6 +33,7 @@
 ## packaging
 
 * [PRS-0012](0012-node-runs-a-published-bundle.md) - The npm package ships Node bundles of the CLI and library that are built when it is packed, and git never tracks them
+* [PRS-0013](0013-releases-publish-from-github-actions.md) - The Publish workflow releases @jpeakai/prose-gates to npm with provenance and no stored token
 ## parsing
 
 * [PRS-0001](0001-parse-once-to-mdast.md) - Rules query a shared syntax tree instead of scanning raw lines with their own regexes
@@ -69,3 +71,5 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0010 --extends--> PRS-0006
 * PRS-0011 --extends--> PRS-0008
 * PRS-0012 --depends_on--> PRS-0001
+* PRS-0012 --depended_on_by--> PRS-0013
+* PRS-0013 --depends_on--> PRS-0012

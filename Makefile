@@ -1,4 +1,4 @@
-.PHONY: install build fix ci typecheck test test-cov-ts docs-ci
+.PHONY: install build fix check ci typecheck test test-cov-ts docs-ci
 
 install:
 	uv sync
@@ -16,6 +16,12 @@ build:
 fix:
 	bunx --bun @biomejs/biome check --write src tests
 	uv run meta adr render
+
+# The package gates, with no autofix and no private tooling, so GitHub Actions
+# and npm prepublishOnly can run them with Bun alone. make ci adds the
+# decision bundle render, whose meta CLI lives in a private repo.
+check: typecheck test-cov-ts docs-ci
+	bunx --bun @biomejs/biome check src tests
 
 typecheck:
 	bunx --bun tsc --project tsconfig.json --noEmit

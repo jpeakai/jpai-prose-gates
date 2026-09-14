@@ -26,3 +26,5 @@ When a new domain term enters the code or the conversation, add it here in the s
 | Record | One decision, authored as YAML in `adrs/`. Its markdown is generated and never edited. |
 | Bundle | The `adrs/` directory as a whole, including the records and everything generated from them. |
 | Dialect | This repo's declared documentation conventions, in `docs/CONVENTIONS.md`. |
+| Release | One version published to npm by the Publish workflow, with a matching tag and GitHub release. |
+| Trusted publishing | npm accepting an upload from a named GitHub workflow in place of a stored token. |

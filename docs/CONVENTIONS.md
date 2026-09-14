@@ -29,13 +29,17 @@ Agents and humans: consult this before creating, moving or renaming any doc.
 | `adrs/*.yml` | Immutable accepted decisions about how the tool works, authored as data | Both | A binding decision is made |
 | `adrs/*.md` | Generated reading surface for those records | Both | Never edited, only regenerated |
 | `docs/CONVENTIONS.md` | This dialect declaration | Both | A documentation convention changes |
+| `docs/PUBLISHING.md` | The release speed run, the one-time npm setup and the failure table | Maintainers | The release workflow or npm setup changes |
+| `.github/workflows/` | CI on every push, and the manually triggered Publish workflow | Maintainers | The gate or the release process changes |
+| `LICENSE` | The MIT license | Consumers | Never, short of relicensing |
 | `dist/` | Generated Node bundles of the CLI and library, ignored by git and shipped in the npm package | Consumers | Never edited, only rebuilt |
 | `tests/fixtures/` | Test inputs, not documentation, and never gated | Contributors | A rule's fix behaviour changes |
 
 ## Naming
 
 - Root meta-files are UPPERCASE.
-- Files inside `docs/` are lowercase kebab-case.
+- Runbook and dialect files inside `docs/` are UPPERCASE, like `CONVENTIONS.md` and `PUBLISHING.md`.
+- Every other file inside `docs/` is lowercase kebab-case.
 - Records are `NNNN-slug.yml`, and a number is never reused.
 - Rule modules are `src/rules/pgNNN-slug.ts`, and fixture directories start with the rule id.
 

@@ -23,6 +23,9 @@ relates_to:
   - relation: depends_on
     target: PRS-0001
     note: the bundle inlines the mdast parser, so Node needs no dependency install
+  - relation: depended_on_by
+    target: PRS-0013
+    note: the publish workflow ships this bundle
 
 problem:
   symptom: The bin pointed at TypeScript with a Bun shebang, and the CLI read files through Bun globals.

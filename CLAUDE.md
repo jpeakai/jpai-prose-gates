@@ -9,6 +9,7 @@ It is the declared dialect and it outranks any general convention.
 
 ```sh
 make fix       # biome autofix, then regenerate the ADR bundle
+make check     # the gate GitHub Actions and npm publish run, with no private tooling
 make ci        # fix, typecheck, tests at 90% coverage, then assert the tree is clean
 make docs-ci   # run this repo's own gates over every markdown file
 ```
@@ -38,6 +39,8 @@ When a new domain term enters the code or the conversation, add it to the glossa
 - Never fix a fix bug without first adding the adversarial test that reproduces it.
 - Never use a Bun global in `src/`.
   The Node bundle must run without Bun, and a test checks it.
+- Never publish from a laptop, except the first version of a new package.
+  Releases run through the Publish workflow, per [PRS-0013](adrs/0013-releases-publish-from-github-actions.md).
 - Never use mocks in tests.
   Tests run the real parser over real strings and files.
 

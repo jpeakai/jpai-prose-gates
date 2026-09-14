@@ -17,6 +17,7 @@
 | [PRS-0011](0011-rules-carry-a-category.md) | Each rule carries a category, and RULES.md is held true by a test | accepted |
 | [PRS-0012](0012-node-runs-a-published-bundle.md) | Node runs a bundle built at publish time, and Bun runs the source | accepted |
 | [PRS-0013](0013-releases-publish-from-github-actions.md) | Releases publish to npm from GitHub Actions through trusted publishing | accepted |
+| [PRS-0014](0014-main-changes-only-through-pull-requests.md) | Main changes only through pull requests, and releases run only from main | accepted |
 # By group
 
 ## architecture
@@ -37,6 +38,9 @@
 ## parsing
 
 * [PRS-0001](0001-parse-once-to-mdast.md) - Rules query a shared syntax tree instead of scanning raw lines with their own regexes
+## release
+
+* [PRS-0014](0014-main-changes-only-through-pull-requests.md) - Main is protected so every change lands by a pull request that passes CI, and only main can publish
 ## rules
 
 * [PRS-0006](0006-sentence-length-is-never-autofixed.md) - PG002 has no fixer, because shortening a sentence is a decision about what it means
@@ -73,3 +77,5 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0012 --depends_on--> PRS-0001
 * PRS-0012 --depended_on_by--> PRS-0013
 * PRS-0013 --depends_on--> PRS-0012
+* PRS-0013 --extended_by--> PRS-0014
+* PRS-0014 --extends--> PRS-0013

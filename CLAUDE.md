@@ -39,8 +39,10 @@ When a new domain term enters the code or the conversation, add it to the glossa
 - Never fix a fix bug without first adding the adversarial test that reproduces it.
 - Never use a Bun global in `src/`.
   The Node bundle must run without Bun, and a test checks it.
-- Never publish from a laptop, except the first version of a new package.
-  Releases run through the Publish workflow, per [PRS-0013](adrs/0013-releases-publish-from-github-actions.md).
+- Never push to main.
+  Every change lands through a pull request that passes CI, per [PRS-0014](adrs/0014-main-changes-only-through-pull-requests.md).
+- Never publish from a laptop or from a branch, except the first version of a new package.
+  Releases run through the Publish workflow on main, per [PRS-0013](adrs/0013-releases-publish-from-github-actions.md).
 - Never use mocks in tests.
   Tests run the real parser over real strings and files.
 

@@ -1,4 +1,4 @@
-id: PRS-0017
+id: PRS-0016
 slug: modules-group-by-what-a-function-takes
 plan_id: null
 title: A module groups functions by what they take, not by who calls them
@@ -12,7 +12,7 @@ lens: |-
   A folder name is a claim about what is inside it.
   The claim has to survive someone reading the imports.
 
-provenance: Raised when PRS-0016 was tested against the import graph and failed, one commit after it was accepted
+provenance: Raised when the first attempt at this, grouping helpers by which half of a rule called them, was tested against the import graph and did not hold
 enforced_in:
   - src/text.ts, which takes strings and ranges and imports nothing
   - src/model.ts, which takes source and returns the views
@@ -22,16 +22,16 @@ enforced_in:
   - docs/DATA_MODEL.md, whose helper table names the layer for every shared helper
 
 relates_to:
-  - relation: supersedes
-    target: PRS-0016
-    note: the same question answered by the data a function takes rather than the half that calls it
+  - relation: depends_on
+    target: PRS-0015
+    note: the context says what a rule is handed, and this says where the code that reads it lives
   - relation: depends_on
     target: PRS-0008
     note: a helper leaves its rule module only once a second rule needs it
 
 problem:
-  symptom: rules/utils.ts imported from fix/spans.ts, so the side a helper was said to serve did not match the side it lived on.
-  pain_point: fix/ held six helpers that no fixer used. first and last were imported by six rules and no fix module, and every list rule needed four import lines to say what it wanted.
+  symptom: fix/spans.ts held matchesIn, sentenceSpans, within, collapse and escaped, which every check reads, so the folder name did not describe what was in it.
+  pain_point: model.ts also owned words, sentences and inRanges, which need no markdown at all. A helper had no predictable home, so a rule kept a private copy. Four rules wrote out the same colon lookup and five the same table filter.
 
 decision:
   given: shared code has to live somewhere a reader can predict
@@ -48,6 +48,7 @@ decision:
 consequences:
   pros:
     - src/rules/ holds the contract, the catalogue and the nine gates, and nothing else.
-    - A rule imports three modules where it imported four, and each name says what it is.
+    - A module name is checkable, because a reader confirms it from the signatures inside rather than by finding the callers.
   cons:
     - The move rewrote every import in the package at once.
+    - Sharing a helper costs an import edge where duplication cost none, so a rule now names more modules than it did.

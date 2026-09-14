@@ -2,7 +2,7 @@
 
 # Decision relationship graph
 
-17 decision records, 36 typed edges, in 8 groups.
+16 decision records, 32 typed edges, in 8 groups.
 Every edge comes from a record's `relates_to` block, so this view cannot drift from the records.
 
 For an interactive view of the same graph, open [graph.html](graph.html).

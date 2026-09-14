@@ -5,7 +5,7 @@ description: Shared code sits in the layer whose data it reads, and the layers i
 tags: [architecture]
 status: accepted
 accepted_on: 2026-09-14
-provenance: Raised when PRS-0016 was tested against the import graph and failed, one commit after it was accepted
+provenance: Raised when the first attempt at this, grouping helpers by which half of a rule called them, was tested against the import graph and did not hold
 enforced_in:
   - src/text.ts, which takes strings and ranges and imports nothing
   - src/model.ts, which takes source and returns the views
@@ -16,25 +16,25 @@ enforced_in:
 generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 ---
 
-<!-- GENERATED from PRS-0017 by okf_render.py. Do not edit; edit the .yml and regenerate. -->
+<!-- GENERATED from PRS-0016 by okf_render.py. Do not edit; edit the .yml and regenerate. -->
 
 > **Lens**: A folder name is a claim about what is inside it.
 > The claim has to survive someone reading the imports.
 
 ## Relates to
 
-- Supersedes [PRS-0016](0016-a-shared-helper-sits-on-its-own-side.md) (the same question answered by the data a function takes rather than the half that calls it)
+- Depends on [PRS-0015](0015-a-rule-reads-one-shared-context.md) (the context says what a rule is handed, and this says where the code that reads it lives)
 - Depends on [PRS-0008](0008-one-file-per-rule.md) (a helper leaves its rule module only once a second rule needs it)
 
 ## Problem
 
 ### Symptom
 
-rules/utils.ts imported from fix/spans.ts, so the side a helper was said to serve did not match the side it lived on.
+fix/spans.ts held matchesIn, sentenceSpans, within, collapse and escaped, which every check reads, so the folder name did not describe what was in it.
 
 ### Pain point
 
-fix/ held six helpers that no fixer used. first and last were imported by six rules and no fix module, and every list rule needed four import lines to say what it wanted.
+model.ts also owned words, sentences and inRanges, which need no markdown at all. A helper had no predictable home, so a rule kept a private copy. Four rules wrote out the same colon lookup and five the same table filter.
 
 ## Decision
 
@@ -58,8 +58,9 @@ fix/ held six helpers that no fixer used. first and last were imported by six ru
 ### Pros
 
 - src/rules/ holds the contract, the catalogue and the nine gates, and nothing else.
-- A rule imports three modules where it imported four, and each name says what it is.
+- A module name is checkable, because a reader confirms it from the signatures inside rather than by finding the callers.
 
 ### Cons
 
 - The move rewrote every import in the package at once.
+- Sharing a helper costs an import edge where duplication cost none, so a rule now names more modules than it did.

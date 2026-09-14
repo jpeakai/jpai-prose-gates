@@ -1,6 +1,6 @@
 {
   "name": "@jpeakai/prose-gates",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "Deterministic prose gates for markdown documentation",
   "license": "MIT",

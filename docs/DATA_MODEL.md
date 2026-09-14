@@ -119,8 +119,9 @@ The catalogue in `src/rules/index.ts` is the only registry.
 erDiagram
     RULE ||--o{ FINDING : "check emits"
     RULE ||--o{ EDIT : "fix proposes"
-    CHECK_CONTEXT ||--|{ RULE : "every check reads"
-    CHECK_CONTEXT ||--o{ INTERPUNCT_RUN : "runs"
+    RULE_CONTEXT ||--|{ RULE : "both halves read"
+    RULE_CONTEXT ||--o{ INTERPUNCT_RUN : "runs"
+    RULE_CONTEXT ||--|| CHECK_CONTEXT : "a check adds"
     EDIT ||--|| EXPECTATION : "declares"
     PROMOTION ||--|{ PROMOTED_ITEM : "items"
     PROMOTION ||--o| EDIT : "promote returns"
@@ -132,11 +133,13 @@ erDiagram
         function check "required"
         function fix "absent for PG002"
     }
-    CHECK_CONTEXT {
+    RULE_CONTEXT {
         DocModel doc "the document model"
+        InterpunctRun runs "computed once, shared"
+    }
+    CHECK_CONTEXT {
         string file "reported path"
         number maxWords "PG002 budget, default 25"
-        InterpunctRun runs "computed once, shared"
     }
     INTERPUNCT_RUN {
         Range range "paragraph bounds"
@@ -179,13 +182,15 @@ erDiagram
 
     class RULE,PROMOTION,PROMOTED_ITEM contract
     class FINDING,EDIT,EXPECTATION output
-    class CHECK_CONTEXT,INTERPUNCT_RUN shared
+    class RULE_CONTEXT,CHECK_CONTEXT,INTERPUNCT_RUN shared
 ```
 
-*The rule contract and what it produces.* | 8 entities, VCS 11.5
+*The rule contract and what it produces.* | 9 entities, VCS 12.5
 
+`ruleContext` builds the shared half once per document, and both halves of every rule read it.
+A check adds the file it reports against and the sentence budget; a fix needs nothing more, so `FixContext` is `RuleContext`.
 An interpunct run is the one piece of derived data shared between rules.
-It is computed once in `checkModel` and passed to every check, so PG005 can stay quiet inside a run that PG006 or PG009 already reports.
+It is what lets PG005 stay quiet inside a run that PG006 or PG009 already reports.
 
 ## Check pipeline
 
@@ -270,7 +275,7 @@ flowchart TB
 
 </details>
 
-Every gate reads the same `CheckContext` and returns findings.
+Every gate reads the same `CheckContext`, which is the shared `RuleContext` plus the file it reports against and the sentence budget.
 A gate never writes a file, never mutates the model and never sees another gate's output.
 
 ## Fix pipeline
@@ -281,7 +286,7 @@ Offsets are only valid for the source they were computed from, so every accepted
 ```mermaid
 flowchart TB
     START(["fixMarkdownReport(src)"]):::source
-    BUILD["buildDocModel on the current source"]:::build
+    BUILD["ruleContext over the current source<br/>model and runs, rebuilt each pass"]:::build
     ASK["ask the next rule in FIX_ORDER for edits"]:::build
     FILTER["drop no-op edits and edits already refused"]:::build
     BATCH{"batchable?<br/>no overlap, no paragraph replacement"}:::decide
@@ -437,11 +442,29 @@ flowchart LR
 
 One rule is one file, named `src/rules/pgNNN-slug.ts`, exporting one `Rule`.
 
+Every rule module has the same shape, so a reader who has read one has read them all.
+
+```ts
+// What the rule guards, and what the fix will and will not do.
+
+import ...
+
+// Rule-local constants and helpers, each with the reason it exists.
+
+const check: Rule["check"] = (ctx) => { ... };
+
+const fix: Rule["fix"] = (ctx) => { ... };
+
+export const pgNNN: Rule = { id: RULE.NAME, category: "...", summary: "...", check, fix };
+```
+
 1. Pick the next free id and add it to the `RULE` map in `src/rules/types.ts`.
 2. Choose a category from `CATEGORIES`, which is what groups the rule in help and in `RULES.md`.
 3. Write `check`, reading only `CheckContext`.
    Skip `inTable` paragraphs unless the rule is about a glyph.
 4. Write `fix` if the rule can be fixed without discretion, and leave it out if it cannot.
+   A fix reads `FixContext`, which is the same shared data the check read.
+   Data derived from the whole document belongs in `ruleContext`, never recomputed inside the rule.
 5. Register the rule in `RULES` in `src/rules/index.ts`, in id order.
 6. Place it in `FIX_ORDER` if it has a fixer, respecting the structure before glyphs before layout sequence.
 7. Add a section to `RULES.md` under the rule's category heading.
@@ -467,16 +490,24 @@ That is why the fingerprint check runs first, and runs unconditionally.
 
 | Helper | Module | Use it for |
 |---|---|---|
+| `words` | `model.ts` | Counting the words of a sentence or an item, the one way every rule counts them |
 | `matchesIn` | `fix/spans.ts` | Absolute offsets of a pattern inside one text node, or null when source and value disagree |
 | `matchesInAll` | `fix/spans.ts` | The same across every direct text of a paragraph |
+| `splittableSeparators` | `fix/spans.ts` | Every separator a fixer may split on, or null when one of them cannot be trusted |
 | `sentenceSpan` | `fix/spans.ts` | The sentence bounds covering a range a fixer found |
 | `sentenceSpans` | `fix/spans.ts` | Every sentence of a paragraph, in order |
+| `spansBetween` | `fix/spans.ts` | The spans a run of cut points carves out, with the fencepost written once |
 | `escaped` | `fix/spans.ts` | Refusing a glyph the author escaped |
 | `collapse` | `fix/spans.ts` | Folding soft line breaks into single spaces |
+| `first`, `last` | `fix/ends.ts` | The ends of a list a rule has already proved non-empty, without a cast per rule |
 | `promote` | `fix/promote.ts` | Turning a span into a lead-in and a real markdown list |
 | `cleanItem` | `fix/promote.ts` | Trimming a trailing separator or a joining conjunction off one item |
+| `itemsOf` | `fix/promote.ts` | A run of source spans as cleaned item text, in document order |
+| `itemsBetween` | `fix/promote.ts` | The same from cut points: the shared body of every hidden-list fixer |
 | `cleanLeadIn` | `fix/promote.ts` | Normalising the text before a promoted list to end in a colon |
+| `ruleContext` | `rules/index.ts` | Building the shared half of the context once per document |
 | `interpunctRuns` | `rules/interpunct.ts` | The shared run data behind PG005, PG006 and PG009 |
+| `isFlat`, `isStacked` | `rules/interpunct.ts` | Partitioning runs into the flat ones PG006 owns and the stacked ones PG009 owns |
 
 ### Rules the extension must not break
 

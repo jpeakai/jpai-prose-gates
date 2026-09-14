@@ -22,6 +22,9 @@ relates_to:
   - relation: extended_by
     target: PRS-0011
     note: rules also carry a category, as a field rather than a folder
+  - relation: depended_on_by
+    target: PRS-0015
+    note: the context is what a rule module receives in both halves
 
 problem:
   symptom: All nine rules and the CLI shared one file, so any change touched everything.

@@ -5,7 +5,7 @@
 
 import type { ParagraphView, Range } from "../model.ts";
 import type { Edit, RuleId } from "../rules/types.ts";
-import { collapse } from "./spans.ts";
+import { collapse, spansBetween } from "./spans.ts";
 
 export interface PromotedItem {
   text: string;
@@ -45,6 +45,18 @@ export const cleanItem = (raw: string, { last }: { last: boolean }): string => {
   if (last) s = s.replace(/(?<!\.)\.$/, "").trim();
   return s;
 };
+
+// A run of source spans as cleaned item text, ready to promote. Only the
+// last item may shed a joining conjunction or a trailing full stop, so the
+// spans must arrive in document order.
+export const itemsOf = (src: string, spans: Range[]): string[] =>
+  spans.map((span, i) => cleanItem(src.slice(span[0], span[1]), { last: i + 1 === spans.length }));
+
+// The spans between a run of cut points, as cleaned item text. This is the
+// shared body of every hidden-list fixer: the rule decides where the cuts
+// are, and this decides what each item says.
+export const itemsBetween = (src: string, cuts: Range[], end: number): string[] =>
+  itemsOf(src, spansBetween(cuts, end));
 
 export const cleanLeadIn = (raw: string): string | null => {
   const s = collapse(raw)

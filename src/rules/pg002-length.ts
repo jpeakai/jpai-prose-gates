@@ -3,7 +3,7 @@
 // rewrite, and a rewrite needs discretion. The message estimates the clauses
 // in the sentence so the rewrite splits it rather than compressing it.
 
-import { sentences } from "../model.ts";
+import { sentences, words } from "../model.ts";
 import { type Finding, RULE, type Rule } from "./types.ts";
 
 // A clause boundary is a semicolon or colon with text after it, a comma
@@ -15,30 +15,33 @@ const CLAUSE_BOUNDARY =
 
 export const countClauses = (sentence: string): number => 1 + [...sentence.matchAll(CLAUSE_BOUNDARY)].length;
 
-const excerpt = (s: string): string => (s.length > 60 ? `${s.slice(0, 60)}...` : s);
+const excerpt = (sentence: string): string => (sentence.length > 60 ? `${sentence.slice(0, 60)}...` : sentence);
 
 export const lengthMessage = (sentence: string, maxWords: number): string => {
-  const words = sentence.split(/\s+/).length;
+  const count = words(sentence);
   const clauses = countClauses(sentence);
-  const target = Math.max(2, clauses, Math.ceil(words / maxWords));
+  const target = Math.max(2, clauses, Math.ceil(count / maxWords));
   const clauseNote = `${clauses} potential clause${clauses === 1 ? "" : "s"}`;
-  return `sentence has ${words} words (budget ${maxWords}) and ${clauseNote}; split it into about ${target} shorter sentences, one idea each, rather than compressing the wording: "${excerpt(sentence)}"`;
+  return `sentence has ${count} words (budget ${maxWords}) and ${clauseNote}; split it into about ${target} shorter sentences, one idea each, rather than compressing the wording: "${excerpt(sentence)}"`;
 };
 
+const check: Rule["check"] = ({ doc, file, maxWords }) => {
+  const findings: Finding[] = [];
+  for (const view of doc.paragraphs) {
+    if (view.inTable) continue;
+    for (const sentence of sentences(view.prose)) {
+      if (words(sentence) > maxWords) {
+        findings.push({ file, line: view.line, rule: RULE.LENGTH, message: lengthMessage(sentence, maxWords) });
+      }
+    }
+  }
+  return findings;
+};
+
+// No fixer: shortening a sentence changes its words, per PRS-0006.
 export const pg002: Rule = {
   id: RULE.LENGTH,
   category: "sentence",
   summary: "sentence longer than the word budget (default 25)",
-  check: ({ doc, file, maxWords }) => {
-    const findings: Finding[] = [];
-    for (const p of doc.paragraphs) {
-      if (p.inTable) continue;
-      for (const s of sentences(p.prose)) {
-        if (s.split(/\s+/).length > maxWords) {
-          findings.push({ file, line: p.line, rule: RULE.LENGTH, message: lengthMessage(s, maxWords) });
-        }
-      }
-    }
-    return findings;
-  },
+  check,
 };

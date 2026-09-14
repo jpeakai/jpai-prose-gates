@@ -34,12 +34,23 @@ export interface InterpunctRun {
   lines: number; // source lines of the paragraph that carry a separator
 }
 
-export interface CheckContext {
+// What every rule reads, computed once per document and handed to it. Shared
+// data is passed in rather than recomputed, so a check and a fix can never
+// disagree about what the document holds.
+export interface RuleContext {
   doc: DocModel;
-  file: string;
-  maxWords: number;
   runs: InterpunctRun[];
 }
+
+// A check also names the file it reports against, and the sentence budget.
+export interface CheckContext extends RuleContext {
+  file: string;
+  maxWords: number;
+}
+
+// A fix needs nothing beyond the shared context. It proposes edits, and the
+// engine alone decides which of them survive verification.
+export type FixContext = RuleContext;
 
 // What the engine must be able to prove about the document after an edit.
 export type Expectation =
@@ -73,5 +84,5 @@ export interface Rule {
   summary: string;
   check: (ctx: CheckContext) => Finding[];
   // Absent for rules whose fix needs discretion (PG002).
-  fix?: (doc: DocModel) => Edit[];
+  fix?: (ctx: FixContext) => Edit[];
 }

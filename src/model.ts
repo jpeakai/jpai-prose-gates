@@ -48,7 +48,6 @@ export interface ParagraphView {
 export interface TextView {
   value: string;
   line: number;
-  offset: number | undefined;
   start: number | undefined;
   end: number | undefined;
   block: Node | undefined; // nearest paragraph, heading or table cell
@@ -128,7 +127,6 @@ export const buildDocModel = (src: string): DocModel => {
       texts.push({
         value: t.value,
         line: t.position?.start.line ?? 0,
-        offset: start,
         start,
         end,
         block: ancestors.findLast((a) => a.type === "paragraph" || a.type === "heading" || a.type === "tableCell"),
@@ -163,3 +161,6 @@ export const sentences = (text: string): string[] =>
     .split(/(?<=[.!?])\s+/)
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
+
+// Words of a sentence or an item, counted the one way for every rule.
+export const words = (text: string): number => text.split(/\s+/).filter(Boolean).length;

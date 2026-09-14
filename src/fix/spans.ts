@@ -73,3 +73,32 @@ export const collapse = (s: string): string => s.replace(/[ \t]*\r?\n[ \t]*/g, "
 
 // A glyph the author escaped is literal text, never a separator to rewrite.
 export const escaped = (src: string, offset: number): boolean => src[offset - 1] === "\\";
+
+// Every separator in a paragraph that a fixer may split on, or null when one
+// of them cannot be trusted. A separator is untrustworthy when the parsed
+// value and the source slice disagree (an entity like `&middot;`), when the
+// author escaped it, or when it sits inside a link or emphasis rather than
+// direct text. Splitting on a subset would silently drop an item, so the
+// fixer refuses instead.
+export const splittableSeparators = (
+  src: string,
+  view: ParagraphView,
+  separator: RegExp,
+  glyph: RegExp,
+): Range[] | null => {
+  const found = matchesInAll(src, view.directTexts, separator);
+  if (found === null) return null;
+  if (found.length !== (view.prose.match(glyph) ?? []).length) return null;
+  if (found.some(([start]) => escaped(src, start))) return null;
+  return found;
+};
+
+// The spans a run of cut points carves out of a sentence. Each span runs from
+// the end of its own cut to the start of the next one, and the last runs to
+// `end`. Every hidden-list fixer needs exactly this, so the fencepost is
+// written once here rather than once per rule.
+export const spansBetween = (cuts: Range[], end: number): Range[] =>
+  cuts.map((cut, i) => {
+    const next = cuts[i + 1];
+    return [cut[1], next ? next[0] : end];
+  });

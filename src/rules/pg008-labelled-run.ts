@@ -8,26 +8,56 @@
 // The check counts labelled segments; the fix is stricter and needs every
 // segment of the sentence to be one, so no stray clause becomes a bullet.
 
-import { cleanItem, cleanLeadIn, promote } from "../fix/promote.ts";
-import { collapse, matchesInAll, sentenceSpans, within } from "../fix/spans.ts";
-import { type DocModel, type ParagraphView, type Range, sentences } from "../model.ts";
+import { first } from "../fix/ends.ts";
+import { cleanLeadIn, itemsOf, promote } from "../fix/promote.ts";
+import { collapse, matchesInAll, sentenceSpans, spansBetween, within } from "../fix/spans.ts";
+import { type ParagraphView, type Range, sentences } from "../model.ts";
 import { type Edit, type Finding, RULE, type Rule } from "./types.ts";
 
-const LABELLED_SEGMENT = /^(?:and\s+|or\s+)?(?:[A-Za-z][\w\s-]{0,24}:\s*)?(?:CODE|[A-Z][A-Za-z]*\d[\w/-]*)\s+\S/;
+// A labelled segment, built from its parts so each one can be read on its
+// own: the conjunction that joins the final segment, an optional "Rules: "
+// intro on the first, the label itself, and the content that makes it an
+// item rather than a bare mention.
+const JOINER = "(?:and\\s+|or\\s+)?";
+const INTRO = "(?:[A-Za-z][\\w\\s-]{0,24}:\\s*)?";
+const LABEL = "(?:CODE|[A-Z][A-Za-z]*\\d[\\w/-]*)";
+const CONTENT = "\\s+\\S";
+const LABELLED_SEGMENT = new RegExp(`^${JOINER}${INTRO}${LABEL}${CONTENT}`);
+
+// The intro that may precede the first label, as the lead-in test reads it.
+const INTRO_ONLY = /^[A-Za-z][\w\s-]{0,24}$/;
 
 // A source slice as the check sees it: code spans become one CODE token.
 const asProse = (src: string, view: ParagraphView, range: Range): string => {
   let out = "";
   let at = range[0];
-  for (const [a, b] of view.codeRanges) {
-    if (b <= range[0] || a >= range[1]) continue;
-    out += `${src.slice(at, a)}CODE`;
-    at = b;
+  for (const [start, end] of view.codeRanges) {
+    if (end <= range[0] || start >= range[1]) continue;
+    out += `${src.slice(at, start)}CODE`;
+    at = end;
   }
   return collapse(out + src.slice(at, range[1])).trim();
 };
 
-const fix = (doc: DocModel): Edit[] => {
+const check: Rule["check"] = ({ doc, file }) => {
+  const findings: Finding[] = [];
+  for (const view of doc.paragraphs) {
+    if (view.inTable) continue;
+    for (const sentence of sentences(view.prose)) {
+      const labelled = sentence.split(/,\s+/).filter((segment) => LABELLED_SEGMENT.test(segment)).length;
+      if (labelled < 3) continue;
+      findings.push({
+        file,
+        line: view.line,
+        rule: RULE.LABELLED_RUN,
+        message: `comma-joined run of ${labelled} labelled items; promote to a bullet list`,
+      });
+    }
+  }
+  return findings;
+};
+
+const fix: Rule["fix"] = ({ doc }) => {
   const { src } = doc;
   const edits: Edit[] = [];
   for (const view of doc.paragraphs) {
@@ -35,54 +65,33 @@ const fix = (doc: DocModel): Edit[] => {
     const colons = matchesInAll(src, view.directTexts, /:/);
     if (commas === null || colons === null) continue;
     for (const span of sentenceSpans(src, view)) {
-      const inside = commas.filter((r) => within(r, span));
+      const inside = commas.filter((comma) => within(comma, span));
       if (inside.length < 2) continue;
-      const bounds: Range[] = inside.map((c, i) => [i === 0 ? span[0] : (inside[i - 1] as Range)[1], c[0]]);
-      bounds.push([(inside[inside.length - 1] as Range)[1], span[1]]);
-      if (!bounds.every((b) => LABELLED_SEGMENT.test(asProse(src, view, b)))) continue;
+      // The sentence start is the cut before the first segment, so the spans
+      // between the cuts are exactly the comma-separated segments.
+      const segments = spansBetween([[span[0], span[0]], ...inside], span[1]);
+      if (!segments.every((segment) => LABELLED_SEGMENT.test(asProse(src, view, segment)))) continue;
 
       // An intro colon in the first segment, before its label, is the lead-in.
-      const firstBound = bounds[0] as Range;
-      const colon = colons.find((c) => within(c, firstBound));
-      const intro = colon && /^[A-Za-z][\w\s-]{0,24}$/.test(collapse(src.slice(span[0], colon[0])).trim());
-      if (intro && colon) firstBound[0] = colon[1];
+      const opening = first(segments);
+      const colon = colons.find((c) => within(c, opening));
+      const intro = colon !== undefined && INTRO_ONLY.test(collapse(src.slice(span[0], colon[0])).trim());
+      if (intro && colon) opening[0] = colon[1];
 
-      const items = bounds.map((b, i) => ({
-        text: cleanItem(src.slice(b[0], b[1]), { last: i + 1 === bounds.length }),
-      }));
       const edit = promote({
         rule: RULE.LABELLED_RUN,
         src,
         view,
         span,
         leadIn: intro && colon ? cleanLeadIn(src.slice(span[0], colon[0])) : null,
-        items,
+        items: itemsOf(src, segments).map((text) => ({ text })),
         ordered: false,
       });
       if (edit) edits.push(edit);
-      break;
+      break; // one promotion per paragraph; the engine re-parses and comes back
     }
   }
   return edits;
-};
-
-const check: Rule["check"] = ({ doc, file }) => {
-  const findings: Finding[] = [];
-  for (const p of doc.paragraphs) {
-    if (p.inTable) continue;
-    for (const s of sentences(p.prose)) {
-      const labelled = s.split(/,\s+/).filter((seg) => LABELLED_SEGMENT.test(seg)).length;
-      if (labelled >= 3) {
-        findings.push({
-          file,
-          line: p.line,
-          rule: RULE.LABELLED_RUN,
-          message: `comma-joined run of ${labelled} labelled items; promote to a bullet list`,
-        });
-      }
-    }
-  }
-  return findings;
 };
 
 export const pg008: Rule = {

@@ -240,6 +240,19 @@
     },
     {
       "data": {
+        "id": "PRS-0015",
+        "label": "0015",
+        "parent": "group-architecture",
+        "colour": "#6366f1",
+        "file": "0015-a-rule-reads-one-shared-context.md",
+        "title": "A check and a fix both read one context built once per document",
+        "description": "Both halves of a rule read one RuleContext, so a check and its fix can never disagree about the document",
+        "status": "accepted",
+        "tags": "architecture, rules"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0001-depended_on_by-PRS-0012",
         "source": "PRS-0001",
         "target": "PRS-0012",
@@ -256,6 +269,16 @@
         "label": "depended on by",
         "relation": "depended_on_by",
         "note": "splicing addresses source through the tree offsets"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0001-depended_on_by-PRS-0015",
+        "source": "PRS-0001",
+        "target": "PRS-0015",
+        "label": "depended on by",
+        "relation": "depended_on_by",
+        "note": "the shared rule context derives from the model parsed once"
       }
     },
     {
@@ -390,6 +413,16 @@
     },
     {
       "data": {
+        "id": "PRS-0008-depended_on_by-PRS-0015",
+        "source": "PRS-0008",
+        "target": "PRS-0015",
+        "label": "depended on by",
+        "relation": "depended_on_by",
+        "note": "the context is what a rule module receives in both halves"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0009-tests-PRS-0004",
         "source": "PRS-0009",
         "target": "PRS-0004",
@@ -476,6 +509,26 @@
         "label": "extends",
         "relation": "extends",
         "note": "the Publish workflow stays, and now only main can start it and only main can reach npm"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0015-depends_on-PRS-0008",
+        "source": "PRS-0015",
+        "target": "PRS-0008",
+        "label": "depends on",
+        "relation": "depends_on",
+        "note": "the context is the argument the one-file-per-rule contract passes to both halves"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0015-depends_on-PRS-0001",
+        "source": "PRS-0015",
+        "target": "PRS-0001",
+        "label": "depends on",
+        "relation": "depends_on",
+        "note": "the shared data is derived from the model parsed once"
       }
     }
   ],

@@ -2,54 +2,51 @@
 // list. The fix needs a colon lead-in to know where the list starts, and
 // refuses without one.
 
-import { cleanItem, cleanLeadIn, promote } from "../fix/promote.ts";
+import { first } from "../fix/ends.ts";
+import { cleanLeadIn, itemsBetween, promote } from "../fix/promote.ts";
 import { matchesInAll, sentenceSpans, within } from "../fix/spans.ts";
-import { type DocModel, sentences } from "../model.ts";
+import { sentences } from "../model.ts";
 import { type Edit, type Finding, RULE, type Rule } from "./types.ts";
 
 const check: Rule["check"] = ({ doc, file }) => {
   const findings: Finding[] = [];
-  for (const p of doc.paragraphs) {
-    if (p.inTable) continue;
-    for (const s of sentences(p.prose)) {
-      const semis = (s.match(/;/g) ?? []).length;
-      if (semis >= 2) {
-        findings.push({
-          file,
-          line: p.line,
-          rule: RULE.SEMICOLON_LIST,
-          message: `semicolon-delimited list (${semis} ';'); promote to a bullet list`,
-        });
-      }
+  for (const view of doc.paragraphs) {
+    if (view.inTable) continue;
+    for (const sentence of sentences(view.prose)) {
+      const semicolons = (sentence.match(/;/g) ?? []).length;
+      if (semicolons < 2) continue;
+      findings.push({
+        file,
+        line: view.line,
+        rule: RULE.SEMICOLON_LIST,
+        message: `semicolon-delimited list (${semicolons} ';'); promote to a bullet list`,
+      });
     }
   }
   return findings;
 };
 
-const fix = (doc: DocModel): Edit[] => {
-  const edits: Edit[] = [];
+const fix: Rule["fix"] = ({ doc }) => {
   const { src } = doc;
+  const edits: Edit[] = [];
   for (const view of doc.paragraphs) {
-    const semis = matchesInAll(src, view.directTexts, /;/);
+    const semicolons = matchesInAll(src, view.directTexts, /;/);
     const colons = matchesInAll(src, view.directTexts, /:/);
-    if (semis === null || colons === null) continue;
+    if (semicolons === null || colons === null) continue;
     for (const span of sentenceSpans(src, view)) {
-      const inside = semis.filter((r) => within(r, span));
+      const inside = semicolons.filter((semicolon) => within(semicolon, span));
       if (inside.length < 2) continue;
-      const colon = colons.find((r) => within(r, span) && r[1] <= (inside[0] as [number, number])[0]);
+      // The lead-in ends at the last colon before the first item.
+      const colon = colons.find((c) => within(c, span) && c[1] <= first(inside)[0]);
       if (!colon) continue;
-      const cuts = [colon, ...inside];
-      const items = cuts.map((cut, i) => {
-        const end = i + 1 < cuts.length ? (cuts[i + 1] as [number, number])[0] : span[1];
-        return { text: cleanItem(src.slice(cut[1], end), { last: i + 1 === cuts.length }) };
-      });
+
       const edit = promote({
         rule: RULE.SEMICOLON_LIST,
         src,
         view,
         span,
         leadIn: cleanLeadIn(src.slice(span[0], colon[0])),
-        items,
+        items: itemsBetween(src, [colon, ...inside], span[1]).map((text) => ({ text })),
         ordered: false,
       });
       if (edit) edits.push(edit);

@@ -3,13 +3,12 @@
 // needs every line to read `Label: a · b · c`, and builds one parent bullet
 // per label with the items nested beneath it.
 
-import { first } from "../fix/ends.ts";
 import { itemsBetween, type PromotedItem, promote } from "../fix/promote.ts";
-import { collapse, splittableSeparators, within } from "../fix/spans.ts";
-import type { ParagraphView, Range } from "../model.ts";
-import { GLYPH, isStacked, paragraphsOf, RUN_SEPARATOR } from "./interpunct.ts";
+import { GLYPH, isStacked, paragraphsOf, RUN_SEPARATOR } from "../interpunct.ts";
+import type { ParagraphView } from "../model.ts";
+import { colonsBefore, colonsIn, splittableSeparators } from "../query.ts";
+import { collapse, first, type Range, within } from "../text.ts";
 import { type Edit, RULE, type Rule } from "./types.ts";
-import { colonsBefore, colonsIn } from "./utils.ts";
 
 // The source lines of a paragraph, as absolute ranges.
 const linesOf = (view: ParagraphView): Range[] => {

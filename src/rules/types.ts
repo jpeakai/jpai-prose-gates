@@ -2,7 +2,8 @@
 // optional fixer that proposes edits. The fix engine, not the fixer, decides
 // whether an edit is safe to keep.
 
-import type { DocModel, ParagraphView, Range } from "../model.ts";
+import type { InterpunctRun } from "../interpunct.ts";
+import type { DocModel, ParagraphView } from "../model.ts";
 
 export const RULE = {
   WRAP: "PG001",
@@ -23,15 +24,6 @@ export interface Finding {
   line: number;
   rule: RuleId;
   message: string;
-}
-
-// Paragraphs whose prose joins a run of items with 2+ interpunct separators.
-// Shared by PG005, PG006 and PG009 as an explicit data dependency.
-export interface InterpunctRun {
-  range: Range;
-  line: number;
-  separators: number;
-  lines: number; // source lines of the paragraph that carry a separator
 }
 
 // What every rule reads, computed once per document and handed to it. Shared

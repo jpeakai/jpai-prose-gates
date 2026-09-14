@@ -3,7 +3,7 @@ slug: a-shared-helper-sits-on-its-own-side
 plan_id: null
 title: A helper shared by rules sits on the side of the rule it serves
 description: Helpers that read views and sentences live in rules/utils.ts, and helpers that read source offsets live in fix/
-status: accepted
+status: superseded
 accepted_on: 2026-09-14
 last_changed_on: 2026-09-14
 tags: [architecture, rules]
@@ -20,6 +20,9 @@ enforced_in:
   - docs/DATA_MODEL.md, whose helper table names the module for every shared helper
 
 relates_to:
+  - relation: superseded_by
+    target: PRS-0017
+    note: the axis was tested against the import graph and did not hold
   - relation: depends_on
     target: PRS-0015
     note: the context says what a rule is handed, and this says where the code that reads it lives

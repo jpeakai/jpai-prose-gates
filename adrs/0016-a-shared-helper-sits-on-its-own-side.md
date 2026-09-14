@@ -3,7 +3,7 @@ type: Architecture Decision
 title: A helper shared by rules sits on the side of the rule it serves
 description: Helpers that read views and sentences live in rules/utils.ts, and helpers that read source offsets live in fix/
 tags: [architecture, rules]
-status: accepted
+status: superseded
 accepted_on: 2026-09-14
 provenance: Raised during a second readability pass over the nine rule modules, which found the same paragraph filter and the same colon lookup written out in five and four rules
 enforced_in:
@@ -21,6 +21,7 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 
 ## Relates to
 
+- Superseded by [PRS-0017](0017-modules-group-by-what-a-function-takes.md) (the axis was tested against the import graph and did not hold)
 - Depends on [PRS-0015](0015-a-rule-reads-one-shared-context.md) (the context says what a rule is handed, and this says where the code that reads it lives)
 - Depends on [PRS-0008](0008-one-file-per-rule.md) (a helper leaves its rule module only once a second rule needs it)
 

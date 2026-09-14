@@ -4,11 +4,10 @@
 // anything else stays reported for a human.
 
 import type { Node } from "mdast";
-import { first, last } from "../fix/ends.ts";
-import { matchesIn } from "../fix/spans.ts";
-import type { DirectText, DocModel, Range } from "../model.ts";
+import type { DirectText, DocModel } from "../model.ts";
+import { matchesIn, textsContaining } from "../query.ts";
+import { first, last, type Range } from "../text.ts";
 import { type Edit, RULE, type Rule } from "./types.ts";
-import { textsContaining } from "./utils.ts";
 
 const EM_DASH = "—";
 

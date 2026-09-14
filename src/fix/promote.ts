@@ -3,9 +3,9 @@
 // markdown list. Item text is sliced from the source, never re-serialised,
 // so links, emphasis, escapes and code spans travel unchanged.
 
-import type { ParagraphView, Range } from "../model.ts";
+import type { ParagraphView } from "../model.ts";
 import type { Edit, RuleId } from "../rules/types.ts";
-import { collapse, spansBetween } from "./spans.ts";
+import { collapse, type Range, spansBetween } from "../text.ts";
 
 export interface PromotedItem {
   text: string;

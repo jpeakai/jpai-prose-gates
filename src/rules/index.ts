@@ -2,8 +2,8 @@
 // a Rule with its category, register it here, and add its section and
 // examples to RULES.md, which tests/rules-doc.test.ts holds to the code.
 
+import { interpunctRuns } from "../interpunct.ts";
 import type { DocModel } from "../model.ts";
-import { interpunctRuns } from "./interpunct.ts";
 import { pg001 } from "./pg001-wrap.ts";
 import { pg002 } from "./pg002-length.ts";
 import { pg003 } from "./pg003-semicolon-list.ts";

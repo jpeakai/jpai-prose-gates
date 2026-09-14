@@ -2,11 +2,10 @@
 // PG006 or PG009. The fix swaps a spaced interpunct for a comma; a glyph
 // with no space on either side (a product name, a unit) is left alone.
 
-import { matchesIn } from "../fix/spans.ts";
-import { inRanges } from "../model.ts";
-import { GLYPH, INTERPUNCT } from "./interpunct.ts";
+import { GLYPH, INTERPUNCT } from "../interpunct.ts";
+import { matchesIn, textsContaining } from "../query.ts";
+import { inRanges } from "../text.ts";
 import { type Edit, RULE, type Rule } from "./types.ts";
-import { textsContaining } from "./utils.ts";
 
 // Only a separator reads as a comma: the spaces on both sides are what make
 // the glyph a joiner rather than part of a name. PG006 and PG009 split on a

@@ -8,12 +8,11 @@
 // The check counts labelled segments; the fix is stricter and needs every
 // segment of the sentence to be one, so no stray clause becomes a bullet.
 
-import { first } from "../fix/ends.ts";
 import { cleanLeadIn, itemsOf, promote } from "../fix/promote.ts";
-import { collapse, matchesInAll, sentenceSpans, spansBetween, within } from "../fix/spans.ts";
-import type { ParagraphView, Range } from "../model.ts";
+import type { ParagraphView } from "../model.ts";
+import { colonsIn, matchesInAll, proseSentences, sentenceSpans } from "../query.ts";
+import { collapse, first, type Range, spansBetween, within } from "../text.ts";
 import { type Edit, RULE, type Rule } from "./types.ts";
-import { colonsIn, proseSentences } from "./utils.ts";
 
 // A labelled segment, built from its parts so each one can be read on its
 // own: the conjunction that joins the final segment, an optional "Rules: "

@@ -3,12 +3,11 @@
 // lone "(a)" reference from firing. The fix only trusts a clean sequence:
 // every marker in order, none skipped, none from another family.
 
-import { first, last } from "../fix/ends.ts";
 import { cleanLeadIn, itemsBetween, promote } from "../fix/promote.ts";
-import { sentenceSpan } from "../fix/spans.ts";
-import type { DirectText, Range } from "../model.ts";
+import type { DirectText } from "../model.ts";
+import { proseParagraphs, sentenceSpan } from "../query.ts";
+import { first, last, type Range } from "../text.ts";
 import { type Edit, RULE, type Rule } from "./types.ts";
-import { proseParagraphs } from "./utils.ts";
 
 const ENUM_FAMILIES: Array<[string, string]> = [
   ["(a)", "(b)"],

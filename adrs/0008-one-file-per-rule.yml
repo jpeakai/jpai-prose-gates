@@ -28,6 +28,9 @@ relates_to:
   - relation: depended_on_by
     target: PRS-0016
     note: a helper leaves a rule module only once a second rule needs it
+  - relation: depended_on_by
+    target: PRS-0017
+    note: a helper leaves its rule module for the layer whose data it takes
 
 problem:
   symptom: All nine rules and the CLI shared one file, so any change touched everything.

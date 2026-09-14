@@ -3,9 +3,9 @@
 // rewrite, and a rewrite needs discretion. The message estimates the clauses
 // in the sentence so the rewrite splits it rather than compressing it.
 
-import { words } from "../model.ts";
+import { proseSentences } from "../query.ts";
+import { words } from "../text.ts";
 import { RULE, type Rule } from "./types.ts";
-import { proseSentences } from "./utils.ts";
 
 // A clause boundary is a semicolon or colon with text after it, a comma
 // before a coordinating conjunction, or a subordinating or relative word.

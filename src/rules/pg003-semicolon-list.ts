@@ -2,11 +2,10 @@
 // list. The fix needs a colon lead-in to know where the list starts, and
 // refuses without one.
 
-import { first } from "../fix/ends.ts";
 import { cleanLeadIn, itemsBetween, promote } from "../fix/promote.ts";
-import { matchesInAll, sentenceSpans, within } from "../fix/spans.ts";
+import { colonsBefore, colonsIn, matchesInAll, proseSentences, sentenceSpans } from "../query.ts";
+import { countOf, first, within } from "../text.ts";
 import { type Edit, RULE, type Rule } from "./types.ts";
-import { colonsBefore, colonsIn, countOf, proseSentences } from "./utils.ts";
 
 const SEMICOLON = /;/g;
 

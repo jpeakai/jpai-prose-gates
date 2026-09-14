@@ -9,14 +9,13 @@ import { gfmFromMarkdown } from "mdast-util-gfm";
 import { frontmatter } from "micromark-extension-frontmatter";
 import { gfm } from "micromark-extension-gfm";
 import { visitParents } from "unist-util-visit-parents";
+import type { Range } from "./text.ts";
 
 // Fenced blocks in these languages hold markdown templates (a conventions or
 // skeleton file shown verbatim): their prose is audited as embedded markdown
 // instead of being exempt as code. Check-only, so no fix rewrites through a
 // fence boundary.
 const MARKDOWN_FENCE_LANGS = new Set(["markdown", "md"]);
-
-export type Range = [number, number];
 
 // A text node that is a direct child of its paragraph. Only these carry
 // separators a fixer may split on: text inside a link, emphasis or code is
@@ -152,15 +151,3 @@ export const buildDocModel = (src: string): DocModel => {
   }
   return { src, tree, paragraphs, texts, fences };
 };
-
-export const inRanges = (offset: number, ranges: Range[]): boolean =>
-  ranges.some(([a, b]) => offset >= a && offset < b);
-
-export const sentences = (text: string): string[] =>
-  text
-    .split(/(?<=[.!?])\s+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-
-// Words of a sentence or an item, counted the one way for every rule.
-export const words = (text: string): number => text.split(/\s+/).filter(Boolean).length;

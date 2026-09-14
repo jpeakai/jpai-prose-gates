@@ -2,11 +2,11 @@
 // does not end a sentence is a mid-sentence wrap. The fix reflows the
 // paragraph to one sentence per line.
 
-import { collapse } from "../fix/spans.ts";
-import { inRanges, type ParagraphView } from "../model.ts";
-import { isStacked, paragraphsOf } from "./interpunct.ts";
+import { isStacked, paragraphsOf } from "../interpunct.ts";
+import type { ParagraphView } from "../model.ts";
+import { proseParagraphs } from "../query.ts";
+import { collapse, inRanges } from "../text.ts";
 import { type Edit, RULE, type Rule } from "./types.ts";
-import { proseParagraphs } from "./utils.ts";
 
 // A line break after one of these ends a sentence, so it is authored layout.
 const TERMINALS = new Set([".", "!", "?", ":", ";"]);

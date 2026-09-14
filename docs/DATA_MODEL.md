@@ -3,7 +3,7 @@
 How a markdown file becomes findings and fixes, and what every prose gate reads to do its work.
 
 Read this before writing a new rule or changing a fixer.
-It is the map behind `src/model.ts`, `src/rules/types.ts` and `src/fix/`.
+It is the map behind `src/model.ts`, `src/query.ts`, `src/rules/types.ts` and `src/fix/`.
 
 `RULES.md` shows what each gate catches.
 This document shows the shapes the gates are built from.
@@ -471,7 +471,7 @@ export const pgNNN: Rule = { id: RULE.NAME, category: "...", summary: "...", che
 4. Write `fix` if the rule can be fixed without discretion, and leave it out if it cannot.
    A fix reads `FixContext`, which is the same shared data the check read.
    Data derived from the whole document belongs in `ruleContext`, never recomputed inside the rule.
-   A helper a second rule turns out to need moves to `rules/utils.ts` or `fix/`, whichever side its arguments come from.
+   A helper a second rule turns out to need moves to the module whose data it takes, which the helper table below lists.
 5. Register the rule in `RULES` in `src/rules/index.ts`, in id order.
 6. Place it in `FIX_ORDER` if it has a fixer, respecting the structure before glyphs before layout sequence.
 7. Add a section to `RULES.md` under the rule's category heading.
@@ -495,38 +495,48 @@ That is why the fingerprint check runs first, and runs unconditionally.
 
 ### Reusing the helpers
 
-Shared code sits on the side of the rule it serves.
-`rules/utils.ts` works on the views, sentences and counts a check reasons about, and `fix/` works on source offsets.
-A call therefore says which half of a rule module it belongs to, and a new helper goes wherever its arguments already live.
+Modules are grouped by what a function takes, not by which half of a rule calls it.
+The layers below import strictly downwards, so `text.ts` names no markdown concept and `model.ts` names no rule.
+
+| Module | Takes | Answers |
+|---|---|---|
+| `text.ts` | strings and ranges | arithmetic and splitting, with no document in sight |
+| `model.ts` | source | the views a rule reads |
+| `query.ts` | the model, or a view | what may be read, and where something sits in the source |
+| `interpunct.ts` | the model | the one derivation more than one rule shares |
+| `fix/promote.ts` | a view and a span | the edit that turns a sentence into a list |
 
 | Helper | Module | Use it for |
 |---|---|---|
-| `words` | `model.ts` | Counting the words of a sentence or an item, the one way every rule counts them |
-| `proseParagraphs` | `rules/utils.ts` | The paragraphs a rule may read, with table cells already dropped |
-| `proseSentences` | `rules/utils.ts` | Every sentence of those paragraphs, carrying the view that names the line |
-| `textsContaining` | `rules/utils.ts` | The prose text nodes holding a glyph, which is what a punctuation rule reports |
-| `countOf` | `rules/utils.ts` | Counting matches of a global pattern, so a reported count and a compared one cannot drift |
-| `colonsIn` | `rules/utils.ts` | The colons of a paragraph as ranges, or null when one cannot be trusted |
-| `colonsBefore` | `rules/utils.ts` | The colons that could announce a list, for the rule to take the outermost or the innermost |
-| `matchesIn` | `fix/spans.ts` | Absolute offsets of a pattern inside one text node, or null when source and value disagree |
-| `matchesInAll` | `fix/spans.ts` | The same across every direct text of a paragraph |
-| `splittableSeparators` | `fix/spans.ts` | Every separator a fixer may split on, or null when one of them cannot be trusted |
-| `sentenceSpan` | `fix/spans.ts` | The sentence bounds covering a range a fixer found |
-| `sentenceSpans` | `fix/spans.ts` | Every sentence of a paragraph, in order |
-| `spansBetween` | `fix/spans.ts` | The spans a run of cut points carves out, with the fencepost written once |
-| `escaped` | `fix/spans.ts` | Refusing a glyph the author escaped |
-| `collapse` | `fix/spans.ts` | Folding soft line breaks into single spaces |
-| `first`, `last` | `fix/ends.ts` | The ends of a list a rule has already proved non-empty, without a cast per rule |
+| `first`, `last` | `text.ts` | The ends of a list the caller has proved non-empty, without a cast per rule |
+| `within` | `text.ts` | Testing that one range sits inside another |
+| `collapse` | `text.ts` | Folding soft line breaks into single spaces |
+| `countOf` | `text.ts` | Counting matches of a global pattern, so a reported count and a compared one cannot drift |
+| `spansBetween` | `text.ts` | The spans a run of cut points carves out, with the fencepost written once |
+| `words` | `text.ts` | Counting the words of a sentence or an item, the one way every rule counts them |
+| `sentences` | `text.ts` | Splitting prose on terminals, which is what a check reads |
+| `inRanges` | `text.ts` | Testing whether an offset falls in any range, such as a code span |
+| `proseParagraphs` | `query.ts` | The paragraphs a rule may read, with table cells already dropped |
+| `proseSentences` | `query.ts` | Every sentence of those paragraphs, carrying the view that names the line |
+| `textsContaining` | `query.ts` | The prose text nodes holding a glyph, which is what a punctuation rule reports |
+| `matchesIn` | `query.ts` | Absolute offsets of a pattern inside one text node, or null when source and value disagree |
+| `matchesInAll` | `query.ts` | The same across every direct text of a paragraph |
+| `splittableSeparators` | `query.ts` | Every separator a fixer may split on, or null when one of them cannot be trusted |
+| `escaped` | `query.ts` | Refusing a glyph the author escaped |
+| `sentenceSpan` | `query.ts` | The sentence bounds covering a range a fixer found |
+| `sentenceSpans` | `query.ts` | Every sentence of a paragraph, as source offsets |
+| `colonsIn` | `query.ts` | The colons of a paragraph as ranges, or null when one cannot be trusted |
+| `colonsBefore` | `query.ts` | The colons that could announce a list, for the rule to take the outermost or the innermost |
+| `interpunctRuns` | `interpunct.ts` | The shared run data behind PG005, PG006 and PG009 |
+| `isFlat`, `isStacked` | `interpunct.ts` | Partitioning runs into the flat ones PG006 owns and the stacked ones PG009 owns |
+| `paragraphsOf` | `interpunct.ts` | Getting from the runs a rule was handed back to the views its fixer needs |
+| `RUN_SEPARATOR`, `GLYPH` | `interpunct.ts` | Splitting and counting a run the same way in PG006 and PG009 |
 | `promote` | `fix/promote.ts` | Turning a span into a lead-in and a real markdown list |
 | `cleanItem` | `fix/promote.ts` | Trimming a trailing separator or a joining conjunction off one item |
 | `itemsOf` | `fix/promote.ts` | A run of source spans as cleaned item text, in document order |
 | `itemsBetween` | `fix/promote.ts` | The same from cut points: the shared body of every hidden-list fixer |
 | `cleanLeadIn` | `fix/promote.ts` | Normalising the text before a promoted list to end in a colon |
 | `ruleContext` | `rules/index.ts` | Building the shared half of the context once per document |
-| `interpunctRuns` | `rules/interpunct.ts` | The shared run data behind PG005, PG006 and PG009 |
-| `isFlat`, `isStacked` | `rules/interpunct.ts` | Partitioning runs into the flat ones PG006 owns and the stacked ones PG009 owns |
-| `paragraphsOf` | `rules/interpunct.ts` | Getting from the runs a rule was handed back to the views its fixer needs |
-| `RUN_SEPARATOR`, `GLYPH` | `rules/interpunct.ts` | Splitting and counting a run the same way in PG006 and PG009 |
 
 ### Rules the extension must not break
 

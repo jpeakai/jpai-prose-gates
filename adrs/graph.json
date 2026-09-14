@@ -260,8 +260,21 @@
         "file": "0016-a-shared-helper-sits-on-its-own-side.md",
         "title": "A helper shared by rules sits on the side of the rule it serves",
         "description": "Helpers that read views and sentences live in rules/utils.ts, and helpers that read source offsets live in fix/",
-        "status": "accepted",
+        "status": "superseded",
         "tags": "architecture, rules"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0017",
+        "label": "0017",
+        "parent": "group-architecture",
+        "colour": "#6366f1",
+        "file": "0017-modules-group-by-what-a-function-takes.md",
+        "title": "A module groups functions by what they take, not by who calls them",
+        "description": "Shared code sits in the layer whose data it reads, and the layers import strictly downwards",
+        "status": "accepted",
+        "tags": "architecture"
       }
     },
     {
@@ -446,6 +459,16 @@
     },
     {
       "data": {
+        "id": "PRS-0008-depended_on_by-PRS-0017",
+        "source": "PRS-0008",
+        "target": "PRS-0017",
+        "label": "depended on by",
+        "relation": "depended_on_by",
+        "note": "a helper leaves its rule module for the layer whose data it takes"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0009-tests-PRS-0004",
         "source": "PRS-0009",
         "target": "PRS-0004",
@@ -566,6 +589,16 @@
     },
     {
       "data": {
+        "id": "PRS-0016-superseded_by-PRS-0017",
+        "source": "PRS-0016",
+        "target": "PRS-0017",
+        "label": "superseded by",
+        "relation": "superseded_by",
+        "note": "the axis was tested against the import graph and did not hold"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0016-depends_on-PRS-0015",
         "source": "PRS-0016",
         "target": "PRS-0015",
@@ -578,6 +611,26 @@
       "data": {
         "id": "PRS-0016-depends_on-PRS-0008",
         "source": "PRS-0016",
+        "target": "PRS-0008",
+        "label": "depends on",
+        "relation": "depends_on",
+        "note": "a helper leaves its rule module only once a second rule needs it"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0017-supersedes-PRS-0016",
+        "source": "PRS-0017",
+        "target": "PRS-0016",
+        "label": "supersedes",
+        "relation": "supersedes",
+        "note": "the same question answered by the data a function takes rather than the half that calls it"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0017-depends_on-PRS-0008",
+        "source": "PRS-0017",
         "target": "PRS-0008",
         "label": "depends on",
         "relation": "depends_on",

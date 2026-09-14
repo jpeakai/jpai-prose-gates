@@ -3,13 +3,11 @@
 // Without a colon the run must be the whole paragraph, or there is no way to
 // tell where the first item starts.
 
-import { first, last } from "../fix/ends.ts";
 import { cleanLeadIn, itemsBetween, promote } from "../fix/promote.ts";
-import { sentenceSpan, splittableSeparators } from "../fix/spans.ts";
-import { type Range, words } from "../model.ts";
-import { GLYPH, isFlat, paragraphsOf, RUN_SEPARATOR } from "./interpunct.ts";
+import { GLYPH, isFlat, paragraphsOf, RUN_SEPARATOR } from "../interpunct.ts";
+import { colonsBefore, colonsIn, sentenceSpan, splittableSeparators } from "../query.ts";
+import { first, last, type Range, words } from "../text.ts";
 import { type Edit, RULE, type Rule } from "./types.ts";
-import { colonsBefore, colonsIn } from "./utils.ts";
 
 // A last item this much longer than every other is a sentence that happens
 // to follow the list, not a member of it.

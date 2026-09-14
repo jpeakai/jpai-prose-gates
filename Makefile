@@ -53,3 +53,6 @@ DOCS := $(wildcard *.md) $(wildcard docs/*.md) $(wildcard adrs/*.md)
 
 docs-ci:
 	bun run src/bin.ts $(DOCS)
+
+clean:
+	rm -rf dist tmp node_modules

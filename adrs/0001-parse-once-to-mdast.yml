@@ -1,0 +1,45 @@
+id: PRS-0001
+slug: parse-once-to-mdast
+plan_id: null
+title: Every rule reads one mdast tree parsed once per file
+description: Rules query a shared syntax tree instead of scanning raw lines with their own regexes
+status: accepted
+accepted_on: 2026-09-14
+last_changed_on: 2026-09-14
+tags: [parsing, architecture]
+
+lens: |-
+  Markdown is a grammar, not a line format.
+  A rule that guesses structure from lines disagrees with every renderer sooner or later.
+
+provenance: The original monolith scanned raw lines and tracked fences by hand, and each new rule reimplemented the same fence and code-span skipping
+enforced_in:
+  - src/model.ts, which parses with mdast-util-from-markdown and the GFM and frontmatter extensions
+  - src/rules, where every rule receives the shared DocModel rather than the raw text
+
+relates_to:
+  - relation: depended_on_by
+    target: PRS-0003
+    note: splicing addresses source through the tree offsets
+
+problem:
+  symptom: Each rule decided for itself what counted as code, a table or a list. The answers drifted between rules.
+  pain_point: A finding inside inline code, a link url or a table cell was a false positive that no single fix could remove.
+
+decision:
+  given: several rules need to know which bytes are prose and which are structure
+  we_prefer: parsing each file once with micromark into mdast and handing every rule the same model, over per-rule line scanning
+  because: the parser already implements CommonMark and GFM exactly, so exemptions come from node types rather than heuristics
+  unless: a rule needs something the tree loses, such as the original spacing, in which case it reads the source through node offsets
+  in_practice:
+    - A rule reads text nodes, paragraph views and offsets from DocModel.
+    - Code, inline code, html and link urls are exempt because they are never text nodes.
+    - Source positions come from the tree, so a finding points at the real line.
+
+consequences:
+  pros:
+    - Exemptions are consistent across every rule.
+    - A new rule starts from structure rather than rebuilding it.
+  cons:
+    - The package depends on the unified parser family.
+    - A rule must map tree positions back to source offsets to edit anything.

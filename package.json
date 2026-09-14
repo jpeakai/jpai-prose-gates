@@ -4,8 +4,12 @@
   "private": true,
   "type": "module",
   "description": "Deterministic prose gates for markdown documentation",
-  "bin": { "prose-gates": "./src/prose_gates.ts" },
-  "exports": { ".": "./src/prose_gates.ts" },
+  "bin": {
+    "prose-gates": "./src/bin.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "files": ["src"],
   "dependencies": {
     "mdast-util-from-markdown": "^2.0.3",
@@ -19,6 +23,7 @@
     "@biomejs/biome": "^2",
     "@types/bun": "latest",
     "@types/mdast": "^4",
+    "fast-check": "^4.10.0",
     "typescript": "^5"
   }
 }

@@ -1,0 +1,45 @@
+id: PRS-0007
+slug: em-dash-becomes-parentheses-or-colon
+plan_id: null
+title: An em-dash pair becomes parentheses and a lone em-dash becomes a colon
+description: PG004 rewrites only the two dash patterns whose replacement punctuation is unambiguous
+status: accepted
+accepted_on: 2026-09-14
+last_changed_on: 2026-09-14
+tags: [rules, fixing, punctuation]
+
+lens: |-
+  Two dashes in one sentence almost always bracket an aside.
+  One dash almost always introduces what follows.
+
+provenance: Chosen while adding fixers beyond PG001, and narrowed by adversarial tests on numeric ranges, markers and escaped dashes
+enforced_in:
+  - src/rules/pg004-em-dash.ts
+  - tests/fixtures/fix/pg004-paired-aside and pg004-single-dash
+  - tests/adversarial/glyphs.test.ts
+
+relates_to:
+  - relation: depends_on
+    target: PRS-0004
+    note: every pattern outside the two shapes is refused
+
+problem:
+  symptom: Em-dashes are the most common slop glyph, and reporting each one made fix runs noisy.
+  pain_point: The right replacement depends on how many dashes a sentence holds, which a human decides the same way every time.
+
+decision:
+  given: a sentence in prose contains an em-dash
+  we_prefer: replacing a pair with parentheses and a single dash with a colon, over reporting every dash for a manual rewrite
+  because: those two shapes have one reading each, so the replacement keeps the meaning
+  unless: the dash touches punctuation, sits between digits, shares a sentence with a colon, or brackets a marker
+  in_practice:
+    - '`Bun — the runtime — is fast` becomes `Bun (the runtime) is fast`.'
+    - '`One rule — no dashes` becomes `One rule: no dashes`.'
+    - Three or more dashes in one sentence are refused.
+    - HTML entities are reported but never decoded.
+
+consequences:
+  pros:
+    - The most common glyph finding clears without a human.
+  cons:
+    - The rule carries a growing list of refusal conditions.

@@ -1,0 +1,5 @@
+Stack:
+
+- Bun
+- TypeScript
+- biome

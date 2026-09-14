@@ -1,0 +1,45 @@
+id: PRS-0011
+slug: rules-carry-a-category
+plan_id: null
+title: Each rule carries a category, and RULES.md is held true by a test
+description: Rules are tagged sentence, list or punctuation, and their documented examples run through the real fixer
+status: accepted
+accepted_on: 2026-09-14
+last_changed_on: 2026-09-14
+tags: [rules, docs, layout]
+
+lens: |-
+  Nine rule ids say nothing about which rules share a purpose.
+  Five of them promote a hidden list, and a reader should see that at a glance.
+
+provenance: Raised when extracting concrete rule examples out of the README into their own page
+enforced_in:
+  - src/rules/types.ts, where CATEGORIES and the category field are declared
+  - src/cli.ts, which groups the help output by category
+  - tests/rules-doc.test.ts, which runs every RULES.md example through the fixer
+
+relates_to:
+  - relation: extends
+    target: PRS-0008
+    note: a category is a field on the rule module, never a folder, so files stay named by rule id
+
+problem:
+  symptom: The README listed nine rules in id order with a one-line fix each.
+  pain_point: A one-line summary cannot show what a fix writes, and a hand-written example drifts from the code.
+
+decision:
+  given: rules need grouping and each fix needs a concrete example
+  we_prefer: a category field on every rule and a RULES.md whose examples a test replays, over hand-maintained tables
+  because: a replayed example cannot claim a fix the engine does not make
+  unless: a rule fits no category, which calls for a new category rather than a catch-all
+  in_practice:
+    - Sentence holds PG001 and PG002.
+    - List holds PG003, PG006, PG007, PG008 and PG009.
+    - Punctuation holds PG004 and PG005.
+    - A before block must be followed by its after block, and a reported block must fire and survive a fix run.
+
+consequences:
+  pros:
+    - The documentation fails the build the moment a fixer changes its output.
+  cons:
+    - Examples in RULES.md are limited to a text fence with a label in its info string.

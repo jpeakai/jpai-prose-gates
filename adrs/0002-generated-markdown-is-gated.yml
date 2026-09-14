@@ -1,0 +1,41 @@
+id: PRS-0002
+slug: generated-markdown-is-gated
+plan_id: null
+title: Generated markdown is gated like hand-written markdown
+description: Rendered output passes the same gates, and a finding there is fixed in its source or template
+status: accepted
+accepted_on: 2026-09-14
+last_changed_on: 2026-09-14
+tags: [gates, generation]
+
+lens: |-
+  A reader cannot tell which page was generated.
+  Slop in rendered output reads exactly like slop written by hand.
+
+provenance: Commit 5331208 in this repo removed an exemption for generated files, and the parent dialect gates adrs markdown in docs-ci
+enforced_in:
+  - the docs-ci target in this repo's Makefile, which includes adrs/*.md
+  - the docs-ci target of every consuming meta repo
+
+relates_to: []
+
+problem:
+  symptom: Generated files were excluded from the gates because nobody may edit them.
+  pain_point: The slop moved into records and templates, where the gates never looked.
+
+decision:
+  given: a markdown file is produced by rendering a record or a template
+  we_prefer: gating the rendered output and tracing each finding back to its source, over exempting generated paths
+  because: the reader sees the rendered page, so that page is what must meet the standard
+  unless: the generator's own boilerplate trips a rule, in which case the template is fixed rather than the rule relaxed
+  in_practice:
+    - Consumers pass adrs/*.md to the gates with every other markdown file.
+    - A finding in generated output is fixed in the record or the template.
+    - The fixer is never run over generated files, since the next render would undo it.
+
+consequences:
+  pros:
+    - The standard holds on every page a reader can open.
+    - Template defects surface once and are fixed once.
+  cons:
+    - A finding points at a file the contributor must not edit.

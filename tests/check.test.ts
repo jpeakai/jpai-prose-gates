@@ -1,10 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { checkMarkdown, fixMarkdown, main } from "./prose_gates.ts";
-
-const rules = (src: string, maxWords?: number) => checkMarkdown(src, "doc.md", maxWords).map((f) => f.rule);
+import { checkMarkdown, fixMarkdown } from "../src/index.ts";
+import { countClauses, lengthMessage } from "../src/rules/pg002-length.ts";
+import { rules } from "./helpers.ts";
 
 describe("PG001 mid-sentence line wrap", () => {
   test("flags a sentence wrapped across lines", () => {
@@ -40,6 +37,35 @@ describe("PG002 sentence word budget", () => {
     const words = Array.from({ length: 20 }, (_, i) => `w${i}`).join(" ");
     const found = rules(`${words} \`a very long inline code span with many words inside it\`.\n`);
     expect(found.filter((r) => r === "PG002")).toHaveLength(0);
+  });
+
+  test.each([
+    ["a simple sentence", "The parser reads the file.", 1],
+    ["a semicolon", "The parser reads the file; the rules query it.", 2],
+    ["a colon with text after it", "One rule matters: never guess.", 2],
+    ["a comma before a conjunction", "The parser reads the file, and the rules query it.", 2],
+    ["a relative clause counted once", "The tree, which the parser builds, is shared.", 2],
+    ["a leading subordinator", "Because the tree is shared, every rule agrees if it reads it.", 3],
+    ["subordinators only as whole words", "The iffy whichever widget.", 1],
+  ])("counts clauses in %s", (_, sentence, expected) => {
+    expect(countClauses(sentence)).toBe(expected);
+  });
+
+  test("the message asks for a split into at least as many sentences as clauses", () => {
+    const sentence =
+      "The fixer reads the tree, and it proposes an edit because the rule fired, which the engine verifies when it reparses the document again.";
+    expect(lengthMessage(sentence, 10)).toBe(
+      `sentence has 24 words (budget 10) and 5 potential clauses; split it into about 5 shorter sentences, one idea each, rather than compressing the wording: "${sentence.slice(0, 60)}..."`,
+    );
+  });
+
+  test("a long single clause still asks for at least two sentences, scaled by length", () => {
+    const words = Array.from({ length: 60 }, (_, i) => `w${i}`).join(" ");
+    expect(lengthMessage(words, 25)).toContain("and 1 potential clause; split it into about 3 shorter sentences");
+  });
+
+  test("a short excerpt is not marked as truncated", () => {
+    expect(lengthMessage("One two three four five six.", 5)).toEndWith(': "One two three four five six."');
   });
 });
 
@@ -156,71 +182,6 @@ describe("embedded markdown fences", () => {
   test("--fix never rewrites through a fence boundary", () => {
     const src = "```markdown\nA wrapped sentence goes\nonward here.\n```\n";
     expect(fixMarkdown(src)).toBe(src);
-  });
-});
-
-describe("fixMarkdown sentence-per-line reflow", () => {
-  test("reflows a wrapped paragraph and passes the gate afterwards", () => {
-    const fixed = fixMarkdown("First sentence wraps over\nthis line. Second sentence also\nwraps badly here.\n");
-    expect(fixed).toBe("First sentence wraps over this line.\nSecond sentence also wraps badly here.\n");
-    expect(checkMarkdown(fixed, "doc.md")).toHaveLength(0);
-  });
-
-  test("is idempotent", () => {
-    const content = "One clean sentence.\nAnother clean sentence.\n";
-    expect(fixMarkdown(content)).toBe(content);
-  });
-
-  test("splits a single line holding two sentences", () => {
-    expect(fixMarkdown("Run `tool.exe now` then check. Done here.\n")).toBe(
-      "Run `tool.exe now` then check.\nDone here.\n",
-    );
-  });
-
-  test("keeps list-item indentation", () => {
-    expect(fixMarkdown("- A list item sentence that wraps\n  onto a second line. And more.\n")).toBe(
-      "- A list item sentence that wraps onto a second line.\n  And more.\n",
-    );
-  });
-
-  test("leaves blockquotes alone", () => {
-    const content = "> Quoted text that wraps\n> mid-sentence stays put.\n";
-    expect(fixMarkdown(content)).toBe(content);
-  });
-});
-
-describe("main CLI", () => {
-  const tempFile = (content: string): string => {
-    const dir = mkdtempSync(join(tmpdir(), "prose-gates-"));
-    const file = join(dir, "doc.md");
-    writeFileSync(file, content);
-    return file;
-  };
-
-  test("exits 0 on a clean file and 1 on findings", async () => {
-    expect(await main([tempFile("One clean sentence.\n")])).toBe(0);
-    expect(await main([tempFile("A wrapped sentence goes\nonward here.\n")])).toBe(1);
-  });
-
-  test("--fix rewrites the file in place", async () => {
-    const file = tempFile("A wrapped sentence goes\nonward here.\n");
-    expect(await main([file, "--fix"])).toBe(0);
-    expect(readFileSync(file, "utf8")).toBe("A wrapped sentence goes onward here.\n");
-  });
-
-  test("--json emits parseable findings", async () => {
-    const file = tempFile("A tell — here.\n");
-    expect(await main([file, "--json"])).toBe(1);
-  });
-
-  test("usage errors exit 2", async () => {
-    expect(await main([])).toBe(2);
-    expect(await main(["--nope"])).toBe(2);
-    expect(await main([tempFile("x.\n"), "--max-words", "zero"])).toBe(2);
-  });
-
-  test("--help exits 0", async () => {
-    expect(await main(["--help"])).toBe(0);
   });
 });
 

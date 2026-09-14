@@ -1,0 +1,44 @@
+id: PRS-0008
+slug: one-file-per-rule
+plan_id: null
+title: Each rule lives in its own file with its check and its fix together
+description: A rule module exports its id, summary, check and optional fix, and a registry lists them in order
+status: accepted
+accepted_on: 2026-09-14
+last_changed_on: 2026-09-14
+tags: [architecture, layout]
+
+lens: |-
+  A rule's check and fix must agree on what counts as a finding.
+  Keeping them side by side makes a disagreement visible in one diff.
+
+provenance: The single prose_gates.ts monolith was split, and archived under tmp/_archived/monolith-split
+enforced_in:
+  - src/rules/pg001-wrap.ts through src/rules/pg009-stacked-runs.ts
+  - src/rules/index.ts, the registry
+  - src/fix, which holds only machinery shared by more than one rule
+
+relates_to:
+  - relation: extended_by
+    target: PRS-0011
+    note: rules also carry a category, as a field rather than a folder
+
+problem:
+  symptom: All nine rules and the CLI shared one file, so any change touched everything.
+  pain_point: Adding fixers would have doubled the file, and shared helpers were impossible to test alone.
+
+decision:
+  given: the package holds several independent rules that each gain a fixer
+  we_prefer: one module per rule named by id and slug, with shared machinery in src/fix, over grouping rules by theme in larger files
+  because: the rule id is how findings, tests and fixtures are named, so the file tree mirrors it
+  unless: two rules share a detector, in which case the detector moves to its own module, as interpunct.ts does
+  in_practice:
+    - A rule file is named pgNNN-slug.ts.
+    - A fixture directory is named after the rule id it exercises.
+    - src/bin.ts holds the process glue, so tests import cli.ts without exiting.
+
+consequences:
+  pros:
+    - A rule and its tests can be read without the rest of the package.
+  cons:
+    - Fix ordering lives in the engine, away from the rules it orders.

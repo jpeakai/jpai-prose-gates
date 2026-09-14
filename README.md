@@ -8,7 +8,7 @@ Incubated in the [`jpai-library`](https://github.com/jpeakai/jpai-library) domai
 
 ```sh
 bunx --bun prose-gates README.md docs/*.md     # report findings, exit 1 if any
-bunx --bun prose-gates --fix README.md         # reflow to one sentence per line
+bunx --bun prose-gates --fix README.md         # apply every fix proven safe, report the rest
 bunx --bun prose-gates --json README.md        # machine-readable output
 ```
 
@@ -17,20 +17,19 @@ Exit codes are 0 for clean, 1 for findings, and 2 for a usage error.
 
 ## The rules
 
-| Rule | What it catches |
-|---|---|
-| PG001 | Mid-sentence line wrap, where one sentence per line is wanted |
-| PG002 | A sentence longer than the word budget |
-| PG003 | A semicolon-delimited list |
-| PG004 | An em-dash in prose |
-| PG005 | An interpunct in prose |
-| PG006 | An interpunct-joined inline list |
-| PG007 | Enumeration markers inlined in prose |
-| PG008 | A comma-joined labelled run |
-| PG009 | Interpunct runs stacked across several lines |
+Nine rules in three categories.
+[RULES.md](RULES.md) shows a failing example and the fix for each one.
 
-Only PG001 is autofixable.
-Every other rule reports, because the fix is a judgement about wording.
+| Category | Rules | What it guards |
+|---|---|---|
+| Sentence | PG001, PG002 | How a sentence is laid out and how long it runs |
+| List | PG003, PG006, PG007, PG008, PG009 | A list hidden in running prose, promoted to a real markdown list |
+| Punctuation | PG004, PG005 | A glyph that reads as generated text |
+
+Every fix is verified before it is written.
+A fix that would change a word, url or code value is a bug and fails the run.
+A case the fixer cannot read unambiguously is refused, so the finding stays for a human.
+The reasoning behind each choice is recorded in [`adrs/`](adrs/index.md).
 
 Code blocks are exempt.
 Fences tagged `markdown` or `md` are the exception, since they hold templates whose body is audited recursively.
@@ -48,8 +47,4 @@ A finding there is traced back to the source that rendered it, either the record
 
 ## Development
 
-```sh
-make install
-make fix        # biome format and lint, autofixed
-make ci         # format, lint, typecheck and tests
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, the make targets and how a change is accepted.

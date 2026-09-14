@@ -1,0 +1,49 @@
+id: PRS-0004
+slug: a-fixer-refuses-when-unsure
+plan_id: null
+title: A fixer refuses whenever the input is ambiguous
+description: An unfixable case leaves the source untouched and the finding reported, never a best guess
+status: accepted
+accepted_on: 2026-09-14
+last_changed_on: 2026-09-14
+tags: [fixing, safety]
+
+lens: |-
+  A wrong autofix is worse than no autofix.
+  The finding still asks a human, while a silent rewrite changes meaning nobody reviewed.
+
+provenance: The adversarial suites found eight cases where a confident rewrite changed meaning, including cross-references promoted to lists and numeric ranges turned into colons
+enforced_in:
+  - every fix function in src/rules, which returns no edit for an ambiguous paragraph
+  - tests/adversarial, whose refuses helper asserts the output equals the input
+
+relates_to:
+  - relation: extended_by
+    target: PRS-0005
+    note: the engine refuses on behalf of a fixer that did not
+  - relation: depended_on_by
+    target: PRS-0007
+    note: the em-dash fixer refuses every shape outside two
+  - relation: tested_by
+    target: PRS-0009
+    note: the refuses helper asserts untouched output
+
+problem:
+  symptom: Heuristics that looked right on typical prose rewrote paired cross-references into a numbered list.
+  pain_point: The fix passed every gate, so the changed meaning shipped without anyone reading it.
+
+decision:
+  given: a fixer cannot be sure its rewrite keeps the author's meaning
+  we_prefer: refusing and leaving the finding reported, over applying the most likely rewrite
+  because: the check still fails, so a human sees the case, while a wrong fix hides it permanently
+  unless: never
+  in_practice:
+    - Escapes, hard breaks, tables, blockquotes and mixed marker families make a fixer refuse.
+    - A refusal is a normal outcome, reported as a remaining finding.
+    - Every new refusal condition comes with an adversarial test.
+
+consequences:
+  pros:
+    - An applied fix can be trusted without reading the diff line by line.
+  cons:
+    - Some fixable prose stays reported until a human edits it.

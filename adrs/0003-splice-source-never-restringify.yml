@@ -1,0 +1,49 @@
+id: PRS-0003
+slug: splice-source-never-restringify
+plan_id: null
+title: Fixes splice source slices and never re-stringify the tree
+description: An edit replaces a byte range with text built from source slices, so untouched bytes stay identical
+status: accepted
+accepted_on: 2026-09-14
+last_changed_on: 2026-09-14
+tags: [fixing, architecture]
+
+lens: |-
+  A formatter owns every byte it prints.
+  A gate that fixes one rule has no business changing the author's emphasis markers, escapes or table padding.
+
+provenance: Chosen while splitting the monolith, after weighing mdast-util-to-markdown and remark-stringify as the output path
+enforced_in:
+  - src/fix/engine.ts, which applies edits as start, end and text over the source string
+  - src/fix/promote.ts, which builds list items from sliced source rather than from node values
+  - the property suite, which asserts fenced code stays byte-identical
+
+relates_to:
+  - relation: depends_on
+    target: PRS-0001
+    note: slices are addressed through the offsets the parsed tree supplies
+  - relation: depended_on_by
+    target: PRS-0005
+    note: one spliced range is cheap to verify
+
+problem:
+  symptom: Serialising the tree normalises the whole file, so a one-word fix produced a diff across every line.
+  pain_point: A contributor could not review the fix, and the rewrite fought every other formatter in the repo.
+
+decision:
+  given: a rule wants to change a small part of a document
+  we_prefer: splicing a replacement built from source slices into the original text, over editing the tree and stringifying it
+  because: every byte outside the edit is preserved by construction, so the diff is exactly the fix
+  unless: no source slice can express the change, in which case the rule refuses rather than generating markup
+  in_practice:
+    - An edit carries a start offset, an end offset and replacement text.
+    - Links, emphasis, escapes and code spans travel inside slices unchanged.
+    - The only generated markup is list markers, a lead-in colon and line breaks.
+
+consequences:
+  pros:
+    - Fix diffs are minimal and reviewable.
+    - The fixer coexists with any other markdown formatter.
+  cons:
+    - Each fixer must reason about offsets, escapes and line endings itself.
+    - Overlapping edits cannot be combined and must wait for the next pass.

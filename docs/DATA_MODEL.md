@@ -84,9 +84,12 @@ erDiagram
         number line "opening fence, for line offsetting"
     }
 
-    classDef source   fill:#2563eb,stroke:#bfdbfe,color:#ffffff
-    classDef derived  fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
-    classDef span     fill:#334155,stroke:#cbd5e1,color:#ffffff
+    %% Attribute rows alternate, and only the even ones take a classDef fill.
+    %% The odd ones keep the theme background, so the label colour is left to
+    %% the theme and the fill is translucent enough to read under either one.
+    classDef source   fill:#2563eb66,stroke:#3b82f6,stroke-width:2px
+    classDef derived  fill:#7c3aed66,stroke:#8b5cf6,stroke-width:2px
+    classDef span     fill:#33415566,stroke:#7e8c9e,stroke-width:2px
 
     class DOC_MODEL,MDAST_ROOT source
     class PARAGRAPH_VIEW,TEXT_VIEW,FENCE_VIEW derived
@@ -176,9 +179,12 @@ erDiagram
         string children "nested bullets, PG009 only"
     }
 
-    classDef contract fill:#047857,stroke:#a7f3d0,color:#ffffff
-    classDef output   fill:#fef3c7,stroke:#b45309,color:#1e293b
-    classDef shared   fill:#334155,stroke:#cbd5e1,color:#ffffff
+    %% Attribute rows alternate, and only the even ones take a classDef fill.
+    %% The odd ones keep the theme background, so the label colour is left to
+    %% the theme and the fill is translucent enough to read under either one.
+    classDef contract fill:#04785766,stroke:#059669,stroke-width:2px
+    classDef output   fill:#b4530966,stroke:#d97706,stroke-width:2px
+    classDef shared   fill:#33415566,stroke:#7e8c9e,stroke-width:2px
 
     class RULE,PROMOTION,PROMOTED_ITEM contract
     class FINDING,EDIT,EXPECTATION output

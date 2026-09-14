@@ -37,16 +37,23 @@
     },
     {
       "data": {
+        "id": "group-release",
+        "label": "release",
+        "colour": "#7c3aed"
+      }
+    },
+    {
+      "data": {
         "id": "group-rules",
         "label": "rules",
-        "colour": "#7c3aed"
+        "colour": "#0284c7"
       }
     },
     {
       "data": {
         "id": "group-testing",
         "label": "testing",
-        "colour": "#0284c7"
+        "colour": "#65a30d"
       }
     },
     {
@@ -119,7 +126,7 @@
         "id": "PRS-0006",
         "label": "0006",
         "parent": "group-rules",
-        "colour": "#7c3aed",
+        "colour": "#0284c7",
         "file": "0006-sentence-length-is-never-autofixed.md",
         "title": "Sentence length is reported and never autofixed",
         "description": "PG002 has no fixer, because shortening a sentence is a decision about what it means",
@@ -132,7 +139,7 @@
         "id": "PRS-0007",
         "label": "0007",
         "parent": "group-rules",
-        "colour": "#7c3aed",
+        "colour": "#0284c7",
         "file": "0007-em-dash-becomes-parentheses-or-colon.md",
         "title": "An em-dash pair becomes parentheses and a lone em-dash becomes a colon",
         "description": "PG004 rewrites only the two dash patterns whose replacement punctuation is unambiguous",
@@ -158,7 +165,7 @@
         "id": "PRS-0009",
         "label": "0009",
         "parent": "group-testing",
-        "colour": "#0284c7",
+        "colour": "#65a30d",
         "file": "0009-adversarial-and-property-tests-gate-fixes.md",
         "title": "Adversarial and property tests gate every change to fix behaviour",
         "description": "Fix behaviour is proven by exact fixtures, hostile inputs and generated documents, all without mocks",
@@ -171,7 +178,7 @@
         "id": "PRS-0010",
         "label": "0010",
         "parent": "group-rules",
-        "colour": "#7c3aed",
+        "colour": "#0284c7",
         "file": "0010-length-findings-guide-a-split.md",
         "title": "A sentence length finding estimates clauses to guide a split",
         "description": "PG002 reports potential clauses and a target sentence count, steering a rewrite away from compression",
@@ -184,7 +191,7 @@
         "id": "PRS-0011",
         "label": "0011",
         "parent": "group-rules",
-        "colour": "#7c3aed",
+        "colour": "#0284c7",
         "file": "0011-rules-carry-a-category.md",
         "title": "Each rule carries a category, and RULES.md is held true by a test",
         "description": "Rules are tagged sentence, list or punctuation, and their documented examples run through the real fixer",
@@ -216,6 +223,19 @@
         "description": "The Publish workflow releases @jpeakai/prose-gates to npm with provenance and no stored token",
         "status": "accepted",
         "tags": "packaging, release"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0014",
+        "label": "0014",
+        "parent": "group-release",
+        "colour": "#7c3aed",
+        "file": "0014-main-changes-only-through-pull-requests.md",
+        "title": "Main changes only through pull requests, and releases run only from main",
+        "description": "Main is protected so every change lands by a pull request that passes CI, and only main can publish",
+        "status": "accepted",
+        "tags": "release, workflow"
       }
     },
     {
@@ -436,6 +456,26 @@
         "label": "depends on",
         "relation": "depends_on",
         "note": "the workflow publishes the bundle that PRS-0012 builds at pack time"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0013-extended_by-PRS-0014",
+        "source": "PRS-0013",
+        "target": "PRS-0014",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "only main can start the workflow and only main can reach npm"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0014-extends-PRS-0013",
+        "source": "PRS-0014",
+        "target": "PRS-0013",
+        "label": "extends",
+        "relation": "extends",
+        "note": "the Publish workflow stays, and now only main can start it and only main can reach npm"
       }
     }
   ],

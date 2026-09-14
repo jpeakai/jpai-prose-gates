@@ -23,6 +23,9 @@ relates_to:
   - relation: depends_on
     target: PRS-0012
     note: the workflow publishes the bundle that PRS-0012 builds at pack time
+  - relation: extended_by
+    target: PRS-0014
+    note: only main can start the workflow and only main can reach npm
 
 problem:
   symptom: Publishing needed a maintainer to log in to npm and run every step by hand.

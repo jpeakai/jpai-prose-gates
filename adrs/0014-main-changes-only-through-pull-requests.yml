@@ -1,0 +1,49 @@
+id: PRS-0014
+slug: main-changes-only-through-pull-requests
+plan_id: null
+title: Main changes only through pull requests, and releases run only from main
+description: Main is protected so every change lands by a pull request that passes CI, and only main can publish
+status: accepted
+accepted_on: 2026-09-14
+last_changed_on: 2026-09-14
+tags: [release, workflow]
+
+lens: |-
+  A published package turns every commit on main into something a consumer may install next.
+  A direct push or a release from a side branch skips the gate that makes that safe.
+
+provenance: Raised after the first version reached npm, when main was still unprotected
+enforced_in:
+  - GitHub branch protection on main, which requires a pull request and both CI checks, for admins too
+  - GitHub environment npm, whose deployment branch policy admits only main
+  - .github/workflows/publish.yml, which refuses a run not started from main and publishes inside the npm environment
+  - docs/PUBLISHING.md, whose speed run bumps the version through a pull request
+
+relates_to:
+  - relation: extends
+    target: PRS-0013
+    note: the Publish workflow stays, and now only main can start it and only main can reach npm
+
+problem:
+  symptom: Any push could land on main, and a Publish run could start from any branch.
+  pain_point: A run from a branch executes that branch's copy of the workflow, which could publish code main never had.
+
+decision:
+  given: main is the only source of releases, and the package is public on npm
+  we_prefer: branch protection with required checks, plus a main-only environment, over trusting every push and dispatch
+  because: npm trusted publishing checks the repo and workflow file but never the branch, so GitHub must refuse other branches
+  unless: the repo gains outside maintainers, where a required review is added to the protection
+  in_practice:
+    - Every change, including a version bump, lands on main through a pull request.
+    - A pull request merges only when Check (Node 20) and Check (Node 24) pass on its latest commit.
+    - Protection applies to admins, so no one pushes to main directly.
+    - No approval is required while there is a single maintainer, who cannot approve their own pull request.
+    - The Publish workflow fails loudly when started from any branch but main.
+    - The npm trusted publisher names the npm environment.
+
+consequences:
+  pros:
+    - Every commit on main has passed CI before it can be released.
+    - A branch cannot publish, even with an edited copy of the workflow.
+  cons:
+    - A release takes two steps, a merged version bump and a workflow run.

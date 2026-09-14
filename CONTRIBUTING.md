@@ -28,6 +28,19 @@ The test targets rebuild it first, so the Node tests never run a stale bundle.
 Both `make ci` and `make docs-ci` must pass before a change is accepted.
 The coverage gate fails below 90% aggregate for functions or lines.
 
+## Landing a change
+
+Main is protected, per [PRS-0014](adrs/0014-main-changes-only-through-pull-requests.md).
+Every change lands through a pull request, and nobody pushes to main directly.
+
+```sh
+git switch -c <short-topic>
+git push -u origin <short-topic>
+gh pr create --fill
+```
+
+A pull request merges once Check (Node 20) and Check (Node 24) pass on its latest commit.
+
 ## Changing a fixer
 
 The test suite has four layers, and a fix change touches the ones that apply.

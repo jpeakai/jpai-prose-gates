@@ -22,6 +22,7 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 ## Relates to
 
 - Depends on [PRS-0012](0012-node-runs-a-published-bundle.md) (the workflow publishes the bundle that PRS-0012 builds at pack time)
+- Extended by [PRS-0014](0014-main-changes-only-through-pull-requests.md) (only main can start the workflow and only main can reach npm)
 
 ## Problem
 

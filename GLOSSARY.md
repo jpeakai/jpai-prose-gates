@@ -27,4 +27,7 @@ When a new domain term enters the code or the conversation, add it here in the s
 | Bundle | The `adrs/` directory as a whole, including the records and everything generated from them. |
 | Dialect | This repo's declared documentation conventions, in `docs/CONVENTIONS.md`. |
 | Release | One version published to npm by the Publish workflow, with a matching tag and GitHub release. |
+| Pull request | The only way a change lands on main. It merges once both CI checks pass. |
+| Branch protection | The GitHub rule on main that requires a pull request and passing CI, for admins too. |
+| npm environment | The GitHub environment the publish job runs in. It admits only main. |
 | Trusted publishing | npm accepting an upload from a named GitHub workflow in place of a stored token. |

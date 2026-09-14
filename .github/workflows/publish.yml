@@ -22,6 +22,14 @@ jobs:
       sha: ${{ steps.meta.outputs.sha }}
       npm_tag: ${{ steps.meta.outputs.npm_tag }}
     steps:
+      # A run started from another branch executes that branch's copy of this
+      # file, so refuse it before anything is created.
+      - name: Refuse a run not started from main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Releases run only from main, and this run started from ${{ github.ref }}. Run: gh workflow run publish.yml --ref main"
+          exit 1
+
       - uses: actions/checkout@v6
         with:
           ref: main
@@ -82,11 +90,13 @@ jobs:
 
   # Trusted Publishing: npm trusts this repo and this workflow file, so no npm
   # token is stored. npm publish runs prepublishOnly (make check) and prepack
-  # (make build) before it uploads.
+  # (make build) before it uploads. The npm environment only admits main, so
+  # GitHub itself refuses this job for any other branch.
   publish-npm:
     needs: prepare
     runs-on: ubuntu-latest
     name: Publish to npm
+    environment: npm
     timeout-minutes: 10
     permissions:
       contents: read

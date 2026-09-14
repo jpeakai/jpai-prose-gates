@@ -105,7 +105,13 @@ gh api -X POST repos/jpeakai/jpai-prose-gates/environments/npm/deployment-branch
 
 ### 6. Add the trusted publisher
 
-On npmjs.com, open the package, then Settings, then Trusted Publisher, and choose GitHub Actions.
+Trusted publishing is an OIDC relationship between npm and one GitHub workflow.
+It can only be added once the package exists, which is why step 2 publishes by hand.
+
+1. Sign in to npmjs.com as a member of the `jpeakai` org.
+2. Open the package access page: <https://www.npmjs.com/package/@jpeakai/prose-gates/access>.
+3. Under Trusted Publisher, choose GitHub Actions.
+4. Fill in the fields from the table below and save.
 
 | Field | Value |
 |---|---|
@@ -115,10 +121,12 @@ On npmjs.com, open the package, then Settings, then Trusted Publisher, and choos
 | Environment | `npm` |
 
 The workflow filename is only the file name, never the `.github/workflows/` path.
+The environment must match the `environment:` of the `publish-npm` job, or npm rejects the upload.
+For another package, swap `@jpeakai/prose-gates` in the url for its name.
 
 ### 7. Lock publishing to the workflow
 
-In the same package settings, open Publishing access.
+On the same access page, open Publishing access.
 Choose the option that requires two-factor authentication and disallows tokens.
 From then on only the workflow can publish, and a leaked token cannot.
 

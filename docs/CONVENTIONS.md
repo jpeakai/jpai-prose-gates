@@ -29,6 +29,7 @@ Agents and humans: consult this before creating, moving or renaming any doc.
 | `adrs/*.yml` | Immutable accepted decisions about how the tool works, authored as data | Both | A binding decision is made |
 | `adrs/*.md` | Generated reading surface for those records | Both | Never edited, only regenerated |
 | `docs/CONVENTIONS.md` | This dialect declaration | Both | A documentation convention changes |
+| `dist/` | Generated Node bundles of the CLI and library, ignored by git and shipped in the npm package | Consumers | Never edited, only rebuilt |
 | `tests/fixtures/` | Test inputs, not documentation, and never gated | Contributors | A rule's fix behaviour changes |
 
 ## Naming

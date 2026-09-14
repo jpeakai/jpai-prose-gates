@@ -15,6 +15,7 @@
 | [PRS-0009](0009-adversarial-and-property-tests-gate-fixes.md) | Adversarial and property tests gate every change to fix behaviour | accepted |
 | [PRS-0010](0010-length-findings-guide-a-split.md) | A sentence length finding estimates clauses to guide a split | accepted |
 | [PRS-0011](0011-rules-carry-a-category.md) | Each rule carries a category, and RULES.md is held true by a test | accepted |
+| [PRS-0012](0012-node-runs-a-published-bundle.md) | Node runs a bundle built at publish time, and Bun runs the source | accepted |
 # By group
 
 ## architecture
@@ -28,6 +29,9 @@
 ## gates
 
 * [PRS-0002](0002-generated-markdown-is-gated.md) - Rendered output passes the same gates, and a finding there is fixed in its source or template
+## packaging
+
+* [PRS-0012](0012-node-runs-a-published-bundle.md) - The npm package ships Node bundles of the CLI and library that are built when it is packed, and git never tracks them
 ## parsing
 
 * [PRS-0001](0001-parse-once-to-mdast.md) - Rules query a shared syntax tree instead of scanning raw lines with their own regexes
@@ -45,6 +49,7 @@
 Open [graph.html](graph.html) to explore the records visually: click a node to read it, and links between records navigate the graph.
 The same edge set is rendered as prose in [graph.md](graph.md), and as data in [graph.json](graph.json).
 
+* PRS-0001 --depended_on_by--> PRS-0012
 * PRS-0001 --depended_on_by--> PRS-0003
 * PRS-0003 --depends_on--> PRS-0001
 * PRS-0003 --depended_on_by--> PRS-0005
@@ -63,3 +68,4 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0009 --tests--> PRS-0005
 * PRS-0010 --extends--> PRS-0006
 * PRS-0011 --extends--> PRS-0008
+* PRS-0012 --depends_on--> PRS-0001

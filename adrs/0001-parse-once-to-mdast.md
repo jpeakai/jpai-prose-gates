@@ -19,6 +19,7 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 
 ## Relates to
 
+- Depended on by [PRS-0012](0012-node-runs-a-published-bundle.md) (the Node bundle inlines the same parser)
 - Depended on by [PRS-0003](0003-splice-source-never-restringify.md) (splicing addresses source through the tree offsets)
 
 ## Problem

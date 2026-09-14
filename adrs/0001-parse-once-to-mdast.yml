@@ -19,6 +19,9 @@ enforced_in:
 
 relates_to:
   - relation: depended_on_by
+    target: PRS-0012
+    note: the Node bundle inlines the same parser
+  - relation: depended_on_by
     target: PRS-0003
     note: splicing addresses source through the tree offsets
 

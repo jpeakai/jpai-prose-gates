@@ -1,0 +1,47 @@
+id: PRS-0012
+slug: node-runs-a-published-bundle
+plan_id: null
+title: Node runs a bundle built at publish time, and Bun runs the source
+description: The npm package ships Node bundles of the CLI and library that are built when it is packed, and git never tracks them
+status: accepted
+accepted_on: 2026-09-14
+last_changed_on: 2026-09-14
+tags: [packaging, runtime]
+
+lens: |-
+  A public package is installed with whatever runtime the consumer has.
+  Many projects run npx and Node, and never Bun.
+
+provenance: Raised after the repo went public, when npx could only run the CLI on a machine that also had Bun
+enforced_in:
+  - package.json, where bin and the default export point at dist and the bun export points at src
+  - package.json, whose prepack script builds dist and whose prepublishOnly script runs make ci
+  - .gitignore, which keeps dist out of git
+  - tests/cli.test.ts, which runs every bin entry point test under both Bun and Node
+
+relates_to:
+  - relation: depends_on
+    target: PRS-0001
+    note: the bundle inlines the mdast parser, so Node needs no dependency install
+
+problem:
+  symptom: The bin pointed at TypeScript with a Bun shebang, and the CLI read files through Bun globals.
+  pain_point: Node refuses to strip types from a file inside node_modules, so no Node consumer could run it.
+
+decision:
+  given: the package is consumed by both Bun and Node projects
+  we_prefer: publishing to npm with a bundle built at pack time, over committing the bundle for git installs
+  because: a committed bundle adds a regenerated file of about 300 kilobytes to every source change, and a registry install needs no allow-git opt-in
+  unless: the package must be installed from git, where no build step runs and the bundle would have to be committed
+  in_practice:
+    - src uses node APIs only, never a Bun global.
+    - make build writes dist, and the test targets build it first so Node tests never run a stale bundle.
+    - Bun is pinned through packageManager, so every machine builds the same bundle.
+    - A git install no longer runs the CLI, and the README points consumers at the registry.
+
+consequences:
+  pros:
+    - npx, bunx and a dev dependency all run with one runtime installed.
+    - Source changes carry no generated bundle in their diff.
+  cons:
+    - Publishing needs an npm account and a manual release step.

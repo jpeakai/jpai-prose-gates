@@ -1,16 +1,45 @@
 {
   "name": "jpai-prose-gates",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Deterministic prose gates for markdown documentation",
+  "keywords": [
+    "markdown",
+    "prose",
+    "lint",
+    "documentation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jpeakai/jpai-prose-gates.git"
+  },
+  "homepage": "https://github.com/jpeakai/jpai-prose-gates#readme",
+  "bugs": "https://github.com/jpeakai/jpai-prose-gates/issues",
+  "packageManager": "bun@1.3.12",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepublishOnly": "make ci",
+    "prepack": "make build"
+  },
   "bin": {
-    "prose-gates": "./src/bin.ts"
+    "prose-gates": "dist/bin.js"
   },
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
   },
-  "files": ["src"],
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "src",
+    "dist"
+  ],
   "dependencies": {
     "mdast-util-from-markdown": "^2.0.3",
     "mdast-util-frontmatter": "^2.0.1",

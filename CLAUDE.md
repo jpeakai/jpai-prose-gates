@@ -30,11 +30,14 @@ When a new domain term enters the code or the conversation, add it to the glossa
 
 - Never edit a generated file.
   Everything in `adrs/` except the `.yml` records is generated.
+  So is `dist/`, which `make build` bundles from `src/` for Node and git ignores.
 - Never let a fixer guess.
   An ambiguous case refuses and stays reported, per [PRS-0004](adrs/0004-a-fixer-refuses-when-unsure.md).
 - Never add a fixer for PG002.
   Shortening a sentence changes its words, per [PRS-0006](adrs/0006-sentence-length-is-never-autofixed.md).
 - Never fix a fix bug without first adding the adversarial test that reproduces it.
+- Never use a Bun global in `src/`.
+  The Node bundle must run without Bun, and a test checks it.
 - Never use mocks in tests.
   Tests run the real parser over real strings and files.
 

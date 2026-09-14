@@ -1,8 +1,15 @@
-.PHONY: install fix ci typecheck test test-cov-ts docs-ci
+.PHONY: install build fix ci typecheck test test-cov-ts docs-ci
 
 install:
 	uv sync
 	bun install
+
+# Bundle the CLI and the library for Node, which will not strip types from a
+# package inside node_modules. Bun consumers import src directly, and dist is
+# built again when the package is packed, so git never tracks it.
+build:
+	bun build src/bin.ts --target=node --format=esm --outfile dist/bin.js
+	bun build src/index.ts --target=node --format=esm --outfile dist/index.js
 
 # Regenerate and autofix everything that can be: formatting, lint and the
 # decision bundle. Safe to run at any time.
@@ -13,12 +20,13 @@ fix:
 typecheck:
 	bunx --bun tsc --project tsconfig.json --noEmit
 
-test:
+# The Node tests run dist, so every test target builds it first.
+test: build
 	bun test
 
 # Bun's own threshold is per file, so the aggregate gate is enforced here from
 # the "All files" row: both the function and the line column must reach 90.
-test-cov-ts:
+test-cov-ts: build
 	@mkdir -p tmp
 	@bun test --coverage > tmp/coverage.txt 2>&1; status=$$?; cat tmp/coverage.txt; \
 	test "$$status" -eq 0 || exit "$$status"; \

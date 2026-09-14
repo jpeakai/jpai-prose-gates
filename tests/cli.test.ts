@@ -4,18 +4,24 @@ import { join } from "node:path";
 import { main } from "../src/index.ts";
 import { PROJECT_ROOT, tempFile } from "./helpers.ts";
 
-const run = async (args: string[]): Promise<{ code: number; stdout: string; stderr: string }> => {
-  const proc = Bun.spawn(["bun", "run", join(PROJECT_ROOT, "src", "bin.ts"), ...args], {
-    stdout: "pipe",
-    stderr: "pipe",
-  });
-  const [stdout, stderr, code] = await Promise.all([
-    new Response(proc.stdout).text(),
-    new Response(proc.stderr).text(),
-    proc.exited,
-  ]);
-  return { code, stdout, stderr };
-};
+type Runner = (args: string[]) => Promise<{ code: number; stdout: string; stderr: string }>;
+
+// The same entry point two ways: Bun runs the TypeScript source, and Node runs
+// the committed bundle that a git install or npx uses.
+const runner =
+  (command: string[]): Runner =>
+  async (args) => {
+    const proc = Bun.spawn([...command, ...args], {
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    const [stdout, stderr, code] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+      proc.exited,
+    ]);
+    return { code, stdout, stderr };
+  };
 
 describe("main", () => {
   test("exits 0 on a clean file and 1 on findings", async () => {
@@ -52,7 +58,12 @@ describe("main", () => {
   });
 });
 
-describe("bin entry point", () => {
+const RUNTIMES: [string, Runner][] = [
+  ["bun src/bin.ts", runner(["bun", "run", join(PROJECT_ROOT, "src", "bin.ts")])],
+  ["node dist/bin.js", runner(["node", join(PROJECT_ROOT, "dist", "bin.js")])],
+];
+
+describe.each(RUNTIMES)("bin entry point: %s", (_, run) => {
   test("prints findings and a summary line", async () => {
     const file = tempFile("A tell — here.\n");
     const { code, stdout } = await run([file]);
@@ -88,5 +99,21 @@ describe("bin entry point", () => {
     const { code, stderr } = await run([join(PROJECT_ROOT, "tmp", "tests", "does-not-exist.md")]);
     expect(code).toBe(1);
     expect(stderr).toContain("error:");
+  });
+});
+
+describe("node bundle", () => {
+  test("uses no Bun global, so plain Node can run it", () => {
+    for (const file of ["bin.js", "index.js"]) {
+      expect(readFileSync(join(PROJECT_ROOT, "dist", file), "utf8")).not.toMatch(/\bBun\./);
+    }
+  });
+
+  test("the library imports and fixes under Node", async () => {
+    const script = `import("${join(PROJECT_ROOT, "dist", "index.js")}").then((m) => process.stdout.write(m.fixMarkdown("One rule matters — never guess.\\n")))`;
+    const proc = Bun.spawn(["node", "-e", script], { stdout: "pipe", stderr: "pipe" });
+    const [stdout, code] = await Promise.all([new Response(proc.stdout).text(), proc.exited]);
+    expect(code).toBe(0);
+    expect(stdout).toBe("One rule matters: never guess.\n");
   });
 });

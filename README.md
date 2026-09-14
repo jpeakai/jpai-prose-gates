@@ -6,11 +6,14 @@ Incubated in the [`jpai-library`](https://github.com/jpeakai/jpai-library) domai
 
 ## Usage
 
+It runs under Bun or Node 20 and later, from the npm registry.
+
 ```sh
-bunx --bun prose-gates README.md docs/*.md     # report findings, exit 1 if any
-bunx --bun prose-gates --fix README.md         # apply every fix proven safe, report the rest
-bunx --bun prose-gates --json README.md        # machine-readable output
+bunx jpai-prose-gates README.md docs/*.md     # report findings, exit 1 if any
+npx -y jpai-prose-gates --fix README.md        # apply every fix proven safe, report the rest
 ```
+
+Installed as a dev dependency, the command is `prose-gates`, and `--json` gives machine-readable output.
 
 `--max-words N` changes the sentence budget, which defaults to 25.
 Exit codes are 0 for clean, 1 for findings, and 2 for a usage error.
@@ -38,9 +41,13 @@ Fences tagged `markdown` or `md` are the exception, since they hold templates wh
 
 Each meta repo declares this package and runs it through a `docs-ci` target.
 
-```json
-{ "devDependencies": { "jpai-prose-gates": "git+https://github.com/jpeakai/jpai-prose-gates.git" } }
+```sh
+bun add --dev jpai-prose-gates
 ```
+
+npm works the same way, with `npm install --save-dev jpai-prose-gates`.
+The library exports `checkMarkdown` and `fixMarkdown`.
+Bun imports the TypeScript source, and Node imports the bundle in `dist/`.
 
 Generated markdown is gated too.
 A finding there is traced back to the source that rendered it, either the record or the template, and never fixed in the output.

@@ -18,3 +18,6 @@ __pycache__/
 
 # node
 node_modules/
+
+# build output, bundled at publish time
+dist/

@@ -23,23 +23,30 @@
     },
     {
       "data": {
+        "id": "group-packaging",
+        "label": "packaging",
+        "colour": "#d97706"
+      }
+    },
+    {
+      "data": {
         "id": "group-parsing",
         "label": "parsing",
-        "colour": "#d97706"
+        "colour": "#db2777"
       }
     },
     {
       "data": {
         "id": "group-rules",
         "label": "rules",
-        "colour": "#db2777"
+        "colour": "#7c3aed"
       }
     },
     {
       "data": {
         "id": "group-testing",
         "label": "testing",
-        "colour": "#7c3aed"
+        "colour": "#0284c7"
       }
     },
     {
@@ -47,7 +54,7 @@
         "id": "PRS-0001",
         "label": "0001",
         "parent": "group-parsing",
-        "colour": "#d97706",
+        "colour": "#db2777",
         "file": "0001-parse-once-to-mdast.md",
         "title": "Every rule reads one mdast tree parsed once per file",
         "description": "Rules query a shared syntax tree instead of scanning raw lines with their own regexes",
@@ -112,7 +119,7 @@
         "id": "PRS-0006",
         "label": "0006",
         "parent": "group-rules",
-        "colour": "#db2777",
+        "colour": "#7c3aed",
         "file": "0006-sentence-length-is-never-autofixed.md",
         "title": "Sentence length is reported and never autofixed",
         "description": "PG002 has no fixer, because shortening a sentence is a decision about what it means",
@@ -125,7 +132,7 @@
         "id": "PRS-0007",
         "label": "0007",
         "parent": "group-rules",
-        "colour": "#db2777",
+        "colour": "#7c3aed",
         "file": "0007-em-dash-becomes-parentheses-or-colon.md",
         "title": "An em-dash pair becomes parentheses and a lone em-dash becomes a colon",
         "description": "PG004 rewrites only the two dash patterns whose replacement punctuation is unambiguous",
@@ -151,7 +158,7 @@
         "id": "PRS-0009",
         "label": "0009",
         "parent": "group-testing",
-        "colour": "#7c3aed",
+        "colour": "#0284c7",
         "file": "0009-adversarial-and-property-tests-gate-fixes.md",
         "title": "Adversarial and property tests gate every change to fix behaviour",
         "description": "Fix behaviour is proven by exact fixtures, hostile inputs and generated documents, all without mocks",
@@ -164,7 +171,7 @@
         "id": "PRS-0010",
         "label": "0010",
         "parent": "group-rules",
-        "colour": "#db2777",
+        "colour": "#7c3aed",
         "file": "0010-length-findings-guide-a-split.md",
         "title": "A sentence length finding estimates clauses to guide a split",
         "description": "PG002 reports potential clauses and a target sentence count, steering a rewrite away from compression",
@@ -177,12 +184,35 @@
         "id": "PRS-0011",
         "label": "0011",
         "parent": "group-rules",
-        "colour": "#db2777",
+        "colour": "#7c3aed",
         "file": "0011-rules-carry-a-category.md",
         "title": "Each rule carries a category, and RULES.md is held true by a test",
         "description": "Rules are tagged sentence, list or punctuation, and their documented examples run through the real fixer",
         "status": "accepted",
         "tags": "rules, docs, layout"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0012",
+        "label": "0012",
+        "parent": "group-packaging",
+        "colour": "#d97706",
+        "file": "0012-node-runs-a-published-bundle.md",
+        "title": "Node runs a bundle built at publish time, and Bun runs the source",
+        "description": "The npm package ships Node bundles of the CLI and library that are built when it is packed, and git never tracks them",
+        "status": "accepted",
+        "tags": "packaging, runtime"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0001-depended_on_by-PRS-0012",
+        "source": "PRS-0001",
+        "target": "PRS-0012",
+        "label": "depended on by",
+        "relation": "depended_on_by",
+        "note": "the Node bundle inlines the same parser"
       }
     },
     {
@@ -363,6 +393,16 @@
         "label": "extends",
         "relation": "extends",
         "note": "a category is a field on the rule module, never a folder, so files stay named by rule id"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0012-depends_on-PRS-0001",
+        "source": "PRS-0012",
+        "target": "PRS-0001",
+        "label": "depends on",
+        "relation": "depends_on",
+        "note": "the bundle inlines the mdast parser, so Node needs no dependency install"
       }
     }
   ],

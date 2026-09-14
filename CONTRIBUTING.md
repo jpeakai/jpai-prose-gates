@@ -15,10 +15,14 @@ make install   # uv sync, then bun install
 
 ```sh
 make fix       # biome autofix, then regenerate the ADR bundle
-make test      # run the test suite once
+make build     # bundle src into dist for Node, which git ignores
+make test      # build, then run the test suite once
 make ci        # fix, typecheck, coverage gate, then assert the tree is clean
 make docs-ci   # gate every markdown file with this repo's own source
 ```
+
+`dist/` holds the Node bundles and is never committed.
+The test targets rebuild it first, so the Node tests never run a stale bundle.
 
 Both `make ci` and `make docs-ci` must pass before a change is accepted.
 The coverage gate fails below 90% aggregate for functions or lines.
@@ -41,6 +45,19 @@ Copy the shape of an existing record, give it the next number, and keep the `PRS
 Every typed relation needs its back-edge in the target record.
 Run `make fix` to validate the record and regenerate the bundle.
 A record that fails the schema stops the build, which is deliberate.
+
+## Publishing a release
+
+The package is published to npm by a maintainer who is logged in with `npm login`.
+
+```sh
+npm version patch   # bump the version and tag the commit
+npm publish         # runs make ci, builds dist, then uploads
+```
+
+`prepublishOnly` runs `make ci`, so a dirty tree or a failing gate stops the release.
+`prepack` runs `make build`, so the tarball always carries a bundle built from the tagged source.
+Check the tarball first with `npm pack --dry-run`.
 
 ## Commit messages
 

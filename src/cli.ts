@@ -1,6 +1,7 @@
 // The command line: check files, optionally fix them first. The process
 // glue lives in bin.ts so tests can call main() directly.
 
+import { readFile, writeFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
 import { checkModel, DEFAULT_MAX_WORDS } from "./check.ts";
 import { fixMarkdown } from "./fix/engine.ts";
@@ -26,7 +27,7 @@ markdown templates and their body is audited recursively (check-only).
 A fixer that is unsure leaves the text alone and the finding stays.
 Exits 1 when findings remain, 2 on usage error.`;
 
-export const main = async (argv: string[] = Bun.argv.slice(2)): Promise<number> => {
+export const main = async (argv: string[] = process.argv.slice(2)): Promise<number> => {
   let values: { fix?: boolean; json?: boolean; help?: boolean; "max-words"?: string };
   let positionals: string[];
   try {
@@ -58,11 +59,11 @@ export const main = async (argv: string[] = Bun.argv.slice(2)): Promise<number> 
 
   const perFile = await Promise.all(
     positionals.map(async (file) => {
-      let src = await Bun.file(file).text();
+      let src = await readFile(file, "utf8");
       if (values.fix) {
         const fixed = fixMarkdown(src);
         if (fixed !== src) {
-          await Bun.write(file, fixed);
+          await writeFile(file, fixed);
           src = fixed;
         }
       }

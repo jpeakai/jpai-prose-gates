@@ -4,7 +4,7 @@
 // source they were computed from, so every accepted edit restarts the pass.
 
 import { buildDocModel, parse } from "../model.ts";
-import { FIX_ORDER } from "../rules/index.ts";
+import { FIX_ORDER, ruleContext } from "../rules/index.ts";
 import type { Edit } from "../rules/types.ts";
 import { verify } from "./verify.ts";
 
@@ -35,8 +35,8 @@ export const fixMarkdownReport = (src: string): FixReport => {
   let current = src;
 
   for (let pass = 0; pass < MAX_PASSES; pass++) {
-    const doc = buildDocModel(current);
-    const before = { src: current, tree: doc.tree };
+    const ctx = ruleContext(buildDocModel(current));
+    const before = { src: current, tree: ctx.doc.tree };
     const keyOf = (e: Edit): string => `${e.rule}\u0000${current.slice(e.start, e.end)}\u0000${e.text}`;
 
     const attempt = (edits: Edit[]): boolean => {
@@ -52,7 +52,7 @@ export const fixMarkdownReport = (src: string): FixReport => {
 
     let progressed = false;
     for (const rule of FIX_ORDER) {
-      const edits = (rule.fix?.(doc) ?? []).filter(
+      const edits = (rule.fix?.(ctx) ?? []).filter(
         (e) => current.slice(e.start, e.end) !== e.text && !refusedKeys.has(keyOf(e)),
       );
       if (edits.length === 0) continue;

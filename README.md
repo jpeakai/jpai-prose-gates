@@ -25,6 +25,7 @@ Exit codes are 0 for clean, 1 for findings, and 2 for a usage error.
 
 Nine rules in three categories.
 [RULES.md](RULES.md) shows a failing example and the fix for each one.
+[docs/DATA_MODEL.md](docs/DATA_MODEL.md) diagrams how a rule is checked, fixed and verified.
 
 | Category | Rules | What it guards |
 |---|---|---|

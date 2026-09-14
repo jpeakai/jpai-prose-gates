@@ -2,7 +2,8 @@
 // optional fixer that proposes edits. The fix engine, not the fixer, decides
 // whether an edit is safe to keep.
 
-import type { DocModel, ParagraphView, Range } from "../model.ts";
+import type { InterpunctRun } from "../interpunct.ts";
+import type { DocModel, ParagraphView } from "../model.ts";
 
 export const RULE = {
   WRAP: "PG001",
@@ -25,21 +26,23 @@ export interface Finding {
   message: string;
 }
 
-// Paragraphs whose prose joins a run of items with 2+ interpunct separators.
-// Shared by PG005, PG006 and PG009 as an explicit data dependency.
-export interface InterpunctRun {
-  range: Range;
-  line: number;
-  separators: number;
-  lines: number; // source lines of the paragraph that carry a separator
-}
-
-export interface CheckContext {
+// What every rule reads, computed once per document and handed to it. Shared
+// data is passed in rather than recomputed, so a check and a fix can never
+// disagree about what the document holds.
+export interface RuleContext {
   doc: DocModel;
-  file: string;
-  maxWords: number;
   runs: InterpunctRun[];
 }
+
+// A check also names the file it reports against, and the sentence budget.
+export interface CheckContext extends RuleContext {
+  file: string;
+  maxWords: number;
+}
+
+// A fix needs nothing beyond the shared context. It proposes edits, and the
+// engine alone decides which of them survive verification.
+export type FixContext = RuleContext;
 
 // What the engine must be able to prove about the document after an edit.
 export type Expectation =
@@ -73,5 +76,5 @@ export interface Rule {
   summary: string;
   check: (ctx: CheckContext) => Finding[];
   // Absent for rules whose fix needs discretion (PG002).
-  fix?: (doc: DocModel) => Edit[];
+  fix?: (ctx: FixContext) => Edit[];
 }

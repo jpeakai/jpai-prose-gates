@@ -1,0 +1,53 @@
+id: PRS-0015
+slug: a-rule-reads-one-shared-context
+plan_id: null
+title: A check and a fix both read one context built once per document
+description: Both halves of a rule read one RuleContext, so a check and its fix can never disagree about the document
+status: accepted
+accepted_on: 2026-09-14
+last_changed_on: 2026-09-14
+tags: [architecture, rules]
+
+lens: |-
+  A check and its fix answer the same question at two moments.
+  They can only stay honest if they read the same data, not their own copy of it.
+
+provenance: Raised during a code-quality pass over the nine rule modules, which found four rules recomputing the interpunct runs inside their fixer
+enforced_in:
+  - src/rules/types.ts, which declares RuleContext, CheckContext and FixContext
+  - src/rules/index.ts, whose ruleContext builds the shared data once
+  - src/check.ts and src/fix/engine.ts, the two callers that build it
+  - src/rules/pg001-wrap.ts, pg005-interpunct.ts, pg006-interpunct-run.ts and pg009-stacked-runs.ts, which now read runs from the context
+
+relates_to:
+  - relation: depends_on
+    target: PRS-0008
+    note: the context is the argument the one-file-per-rule contract passes to both halves
+  - relation: depends_on
+    target: PRS-0001
+    note: the shared data is derived from the model parsed once
+  - relation: depended_on_by
+    target: PRS-0016
+    note: where the code that reads the context lives
+
+problem:
+  symptom: check received a context carrying the interpunct runs, while fix received only the document model.
+  pain_point: Four fixers called interpunctRuns themselves on every pass of a loop bounded at ten thousand passes. PG005 asked the same question two different ways in its two halves.
+
+decision:
+  given: several rules depend on data derived from the whole document rather than from one paragraph
+  we_prefer: deriving that data once per document into a RuleContext both halves receive, over letting each half compute what it needs
+  because: shared data is the only way the agreement between a check and its fix is structural rather than reviewed
+  unless: the data is local to one rule, which keeps it inside that module
+  in_practice:
+    - RuleContext holds the document model and the interpunct runs.
+    - CheckContext extends it with the file name and the sentence budget.
+    - FixContext is RuleContext, because a fixer names no file.
+    - A new shared derivation is added to ruleContext, never recomputed in a rule.
+
+consequences:
+  pros:
+    - The fixpoint loop derives the runs once per pass rather than once per rule.
+    - A rule module reads as data in, findings or edits out.
+  cons:
+    - Shared data is computed for every document, including one no rule will read it for.

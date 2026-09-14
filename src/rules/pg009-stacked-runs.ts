@@ -3,49 +3,58 @@
 // needs every line to read `Label: a · b · c`, and builds one parent bullet
 // per label with the items nested beneath it.
 
-import { cleanItem, type PromotedItem, promote } from "../fix/promote.ts";
-import { collapse, escaped, matchesInAll, within } from "../fix/spans.ts";
-import type { DocModel, Range } from "../model.ts";
-import { interpunctRuns } from "./interpunct.ts";
+import { itemsBetween, type PromotedItem, promote } from "../fix/promote.ts";
+import { GLYPH, isStacked, paragraphsOf, RUN_SEPARATOR } from "../interpunct.ts";
+import type { ParagraphView } from "../model.ts";
+import { colonsBefore, colonsIn, splittableSeparators } from "../query.ts";
+import { collapse, first, type Range, within } from "../text.ts";
 import { type Edit, RULE, type Rule } from "./types.ts";
 
-const fix = (doc: DocModel): Edit[] => {
+// The source lines of a paragraph, as absolute ranges.
+const linesOf = (view: ParagraphView): Range[] => {
+  const lines: Range[] = [];
+  let at = view.startOffset;
+  for (const line of view.raw.split("\n")) {
+    lines.push([at, at + line.length]);
+    at += line.length + 1;
+  }
+  return lines;
+};
+
+// One line read as `Label: a · b · c`, or null when it is not that shape.
+// Every line of the paragraph has to parse, or the fix has no nested list to
+// build and leaves the whole paragraph reported.
+const parentOf = (src: string, line: Range, separators: Range[], colons: Range[]): PromotedItem | null => {
+  const inside = separators.filter((separator) => within(separator, line));
+  if (inside.length === 0) return null;
+  const colon = colonsBefore(colons, line, first(inside)[0])[0];
+  if (!colon) return null;
+  return {
+    text: collapse(src.slice(line[0], colon[0])).trim(),
+    children: itemsBetween(src, [colon, ...inside], line[1]),
+  };
+};
+
+const check: Rule["check"] = ({ file, runs }) =>
+  runs.filter(isStacked).map((run) => ({
+    file,
+    line: run.line,
+    rule: RULE.STACKED_RUNS,
+    message: `interpunct runs stacked on ${run.lines} lines; promote to a nested list`,
+  }));
+
+const fix: Rule["fix"] = ({ doc, runs }) => {
   const { src } = doc;
   const edits: Edit[] = [];
-  const runs = interpunctRuns(doc).filter((r) => r.lines >= 2);
-  for (const view of doc.paragraphs) {
-    if (!runs.some((r) => r.range[0] === view.startOffset)) continue;
-    const seps = matchesInAll(src, view.directTexts, /[ \t]*·[ \t]*/);
-    const colons = matchesInAll(src, view.directTexts, /:/);
-    if (
-      seps === null ||
-      colons === null ||
-      seps.length !== (view.prose.match(/·/g) ?? []).length ||
-      seps.some(([s]) => escaped(src, s))
-    )
-      continue;
+  for (const view of paragraphsOf(doc, runs.filter(isStacked))) {
+    const separators = splittableSeparators(src, view, RUN_SEPARATOR, GLYPH);
+    const colons = colonsIn(src, view);
+    if (separators === null || colons === null) continue;
 
-    // Source lines of the paragraph, as absolute ranges.
-    const lines: Range[] = [];
-    let at = view.startOffset;
-    for (const line of view.raw.split("\n")) {
-      lines.push([at, at + line.length]);
-      at += line.length + 1;
-    }
-
-    const parents: PromotedItem[] = [];
-    for (const line of lines) {
-      const lineSeps = seps.filter((s) => within(s, line));
-      const colon = colons.find((c) => within(c, line));
-      if (lineSeps.length === 0 || !colon || colon[1] > (lineSeps[0] as Range)[0]) break;
-      const label = collapse(src.slice(line[0], colon[0])).trim();
-      const cuts: Range[] = [colon, ...lineSeps];
-      const children = cuts.map((cut, i) => {
-        const end = i + 1 < cuts.length ? (cuts[i + 1] as Range)[0] : line[1];
-        return cleanItem(src.slice(cut[1], end), { last: i + 1 === cuts.length });
-      });
-      parents.push({ text: label, children });
-    }
+    const lines = linesOf(view);
+    const parents = lines
+      .map((line) => parentOf(src, line, separators, colons))
+      .filter((parent): parent is PromotedItem => parent !== null);
     if (parents.length !== lines.length) continue;
 
     const edit = promote({
@@ -66,14 +75,6 @@ export const pg009: Rule = {
   id: RULE.STACKED_RUNS,
   category: "list",
   summary: "interpunct runs stacked on several lines (nested list)",
-  check: ({ file, runs }) =>
-    runs
-      .filter((r) => r.lines >= 2)
-      .map((r) => ({
-        file,
-        line: r.line,
-        rule: RULE.STACKED_RUNS,
-        message: `interpunct runs stacked on ${r.lines} lines; promote to a nested list`,
-      })),
+  check,
   fix,
 };

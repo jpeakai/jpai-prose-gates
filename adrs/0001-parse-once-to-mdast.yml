@@ -24,6 +24,9 @@ relates_to:
   - relation: depended_on_by
     target: PRS-0003
     note: splicing addresses source through the tree offsets
+  - relation: depended_on_by
+    target: PRS-0015
+    note: the shared rule context derives from the model parsed once
 
 problem:
   symptom: Each rule decided for itself what counted as code, a table or a list. The answers drifted between rules.

@@ -1,0 +1,54 @@
+id: PRS-0016
+slug: modules-group-by-what-a-function-takes
+plan_id: null
+title: A module groups functions by what they take, not by who calls them
+description: Shared code sits in the layer whose data it reads, and the layers import strictly downwards
+status: accepted
+accepted_on: 2026-09-14
+last_changed_on: 2026-09-14
+tags: [architecture]
+
+lens: |-
+  A folder name is a claim about what is inside it.
+  The claim has to survive someone reading the imports.
+
+provenance: Raised when the first attempt at this, grouping helpers by which half of a rule called them, was tested against the import graph and did not hold
+enforced_in:
+  - src/text.ts, which takes strings and ranges and imports nothing
+  - src/model.ts, which takes source and returns the views
+  - src/query.ts, which takes the model and answers what may be read and where it sits
+  - src/interpunct.ts, which takes the model and returns the one shared derivation
+  - src/fix/, which takes a view and a span and returns edits
+  - docs/DATA_MODEL.md, whose helper table names the layer for every shared helper
+
+relates_to:
+  - relation: depends_on
+    target: PRS-0015
+    note: the context says what a rule is handed, and this says where the code that reads it lives
+  - relation: depends_on
+    target: PRS-0008
+    note: a helper leaves its rule module only once a second rule needs it
+
+problem:
+  symptom: fix/spans.ts held matchesIn, sentenceSpans, within, collapse and escaped, which every check reads, so the folder name did not describe what was in it.
+  pain_point: model.ts also owned words, sentences and inRanges, which need no markdown at all. A helper had no predictable home, so a rule kept a private copy. Four rules wrote out the same colon lookup and five the same table filter.
+
+decision:
+  given: shared code has to live somewhere a reader can predict
+  we_prefer: grouping by the data a function takes, over grouping by which half of a rule calls it
+  because: the arguments are visible in the signature, while the callers are not
+  unless: a derivation has its own vocabulary, which earns it a named module of its own
+  in_practice:
+    - text.ts takes strings and ranges and imports nothing at all.
+    - query.ts takes the model or a view and answers a read-only question.
+    - interpunct.ts is the one named derivation, so it sits beside query.ts rather than among the rules.
+    - fix/ holds only what builds or verifies an edit.
+    - The layers import strictly downwards, so a cycle is a design error rather than a warning.
+
+consequences:
+  pros:
+    - src/rules/ holds the contract, the catalogue and the nine gates, and nothing else.
+    - A module name is checkable, because a reader confirms it from the signatures inside rather than by finding the callers.
+  cons:
+    - The move rewrote every import in the package at once.
+    - Sharing a helper costs an import edge where duplication cost none, so a rule now names more modules than it did.

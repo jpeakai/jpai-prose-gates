@@ -9,14 +9,13 @@ import { gfmFromMarkdown } from "mdast-util-gfm";
 import { frontmatter } from "micromark-extension-frontmatter";
 import { gfm } from "micromark-extension-gfm";
 import { visitParents } from "unist-util-visit-parents";
+import type { Range } from "./text.ts";
 
 // Fenced blocks in these languages hold markdown templates (a conventions or
 // skeleton file shown verbatim): their prose is audited as embedded markdown
 // instead of being exempt as code. Check-only, so no fix rewrites through a
 // fence boundary.
 const MARKDOWN_FENCE_LANGS = new Set(["markdown", "md"]);
-
-export type Range = [number, number];
 
 // A text node that is a direct child of its paragraph. Only these carry
 // separators a fixer may split on: text inside a link, emphasis or code is
@@ -48,7 +47,6 @@ export interface ParagraphView {
 export interface TextView {
   value: string;
   line: number;
-  offset: number | undefined;
   start: number | undefined;
   end: number | undefined;
   block: Node | undefined; // nearest paragraph, heading or table cell
@@ -128,7 +126,6 @@ export const buildDocModel = (src: string): DocModel => {
       texts.push({
         value: t.value,
         line: t.position?.start.line ?? 0,
-        offset: start,
         start,
         end,
         block: ancestors.findLast((a) => a.type === "paragraph" || a.type === "heading" || a.type === "tableCell"),
@@ -154,12 +151,3 @@ export const buildDocModel = (src: string): DocModel => {
   }
   return { src, tree, paragraphs, texts, fences };
 };
-
-export const inRanges = (offset: number, ranges: Range[]): boolean =>
-  ranges.some(([a, b]) => offset >= a && offset < b);
-
-export const sentences = (text: string): string[] =>
-  text
-    .split(/(?<=[.!?])\s+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);

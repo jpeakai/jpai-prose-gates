@@ -43,6 +43,9 @@ A pull request merges once Check (Node 20) and Check (Node 24) pass on its lates
 
 ## Changing a fixer
 
+[docs/DATA_MODEL.md](docs/DATA_MODEL.md) diagrams the document model, the rule contract and the two pipelines.
+It also carries the steps for adding a rule and choosing its expectation.
+
 The test suite has four layers, and a fix change touches the ones that apply.
 
 - `tests/fixtures/fix/<rule>-<case>/` holds an exact `input.md` and `expected.md` pair.

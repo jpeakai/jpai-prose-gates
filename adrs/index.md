@@ -18,11 +18,15 @@
 | [PRS-0012](0012-node-runs-a-published-bundle.md) | Node runs a bundle built at publish time, and Bun runs the source | accepted |
 | [PRS-0013](0013-releases-publish-from-github-actions.md) | Releases publish to npm from GitHub Actions through trusted publishing | accepted |
 | [PRS-0014](0014-main-changes-only-through-pull-requests.md) | Main changes only through pull requests, and releases run only from main | accepted |
+| [PRS-0015](0015-a-rule-reads-one-shared-context.md) | A check and a fix both read one context built once per document | accepted |
+| [PRS-0016](0016-modules-group-by-what-a-function-takes.md) | A module groups functions by what they take, not by who calls them | accepted |
 # By group
 
 ## architecture
 
 * [PRS-0008](0008-one-file-per-rule.md) - A rule module exports its id, summary, check and optional fix, and a registry lists them in order
+* [PRS-0015](0015-a-rule-reads-one-shared-context.md) - Both halves of a rule read one RuleContext, so a check and its fix can never disagree about the document
+* [PRS-0016](0016-modules-group-by-what-a-function-takes.md) - Shared code sits in the layer whose data it reads, and the layers import strictly downwards
 ## fixing
 
 * [PRS-0003](0003-splice-source-never-restringify.md) - An edit replaces a byte range with text built from source slices, so untouched bytes stay identical
@@ -57,6 +61,7 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 
 * PRS-0001 --depended_on_by--> PRS-0012
 * PRS-0001 --depended_on_by--> PRS-0003
+* PRS-0001 --depended_on_by--> PRS-0015
 * PRS-0003 --depends_on--> PRS-0001
 * PRS-0003 --depended_on_by--> PRS-0005
 * PRS-0004 --extended_by--> PRS-0005
@@ -70,6 +75,8 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0006 --extended_by--> PRS-0010
 * PRS-0007 --depends_on--> PRS-0004
 * PRS-0008 --extended_by--> PRS-0011
+* PRS-0008 --depended_on_by--> PRS-0015
+* PRS-0008 --depended_on_by--> PRS-0016
 * PRS-0009 --tests--> PRS-0004
 * PRS-0009 --tests--> PRS-0005
 * PRS-0010 --extends--> PRS-0006
@@ -79,3 +86,8 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0013 --depends_on--> PRS-0012
 * PRS-0013 --extended_by--> PRS-0014
 * PRS-0014 --extends--> PRS-0013
+* PRS-0015 --depends_on--> PRS-0008
+* PRS-0015 --depends_on--> PRS-0001
+* PRS-0015 --depended_on_by--> PRS-0016
+* PRS-0016 --depends_on--> PRS-0015
+* PRS-0016 --depends_on--> PRS-0008

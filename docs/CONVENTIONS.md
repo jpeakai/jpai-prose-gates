@@ -29,6 +29,7 @@ Agents and humans: consult this before creating, moving or renaming any doc.
 | `adrs/*.yml` | Immutable accepted decisions about how the tool works, authored as data | Both | A binding decision is made |
 | `adrs/*.md` | Generated reading surface for those records | Both | Never edited, only regenerated |
 | `docs/CONVENTIONS.md` | This dialect declaration | Both | A documentation convention changes |
+| `docs/DATA_MODEL.md` | The document model, the rule contract and the pipelines, with diagrams and an extension guide | Contributors | A model, an expectation kind or the fix order changes |
 | `docs/PUBLISHING.md` | The release speed run, the one-time npm setup and the failure table | Maintainers | The release workflow or npm setup changes |
 | `.github/workflows/` | CI on every push, and the manually triggered Publish workflow | Maintainers | The gate or the release process changes |
 | `LICENSE` | The MIT license | Consumers | Never, short of relicensing |

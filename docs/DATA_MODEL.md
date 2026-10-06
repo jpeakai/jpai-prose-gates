@@ -17,6 +17,7 @@ This document shows the shapes the gates are built from.
 - [Fix pipeline](#fix-pipeline)
 - [Verification](#verification)
 - [Fix order](#fix-order)
+- [Registry and plugins](#registry-and-plugins)
 - [Extending the model](#extending-the-model)
 
 ## The two models
@@ -116,7 +117,7 @@ Every offset is absolute into `src`, and is only valid for the source it was com
 ## Rule model
 
 A rule is data plus two functions.
-The catalogue in `src/rules/index.ts` is the only registry.
+`src/rules/index.ts` lists the built-in rules, and `src/rules/registry.ts` builds the registry a run actually uses (see [Registry and plugins](#registry-and-plugins)).
 
 ```mermaid
 erDiagram
@@ -442,11 +443,39 @@ flowchart LR
 
 *The shared promotion path.* | 9 nodes, VCS 17.6
 
+## Registry and plugins
+
+A run does not read the built-in list directly.
+`setUp` in `src/project.ts` finds the project root, reads the config, loads plugins, and builds a `Registry`.
+Check and fix both read that registry, so a rule behaves the same whoever wrote it.
+
+| Part | Where | What it holds |
+|---|---|---|
+| Config | `src/config.ts` | Which rules are off and each rule's options, checked against the loaded rules |
+| Discovery | `src/plugins/discover.ts` | Local files, declared packages and config entries, in that order |
+| Loader | `src/plugins/load.ts` | Imports a module, checks it against the contract, and wraps each rule |
+| Assembly | `src/plugins/index.ts` | Merges plugins, and rejects a repeated namespace or category |
+| Registry | `src/rules/registry.ts` | The active rules, the fix order, the options and the categories |
+
+The registry orders fixers as the built-in fix order, then plugin fixers in load order.
+A rule that is off is absent from both the rule list and the fix order.
+An interpunct run counts as reported only while its owning rule is on.
+The glyph rule reports a run whose owner is off.
+
+A plugin rule is wrapped when it loads.
+Its check cannot throw out of the run, its findings carry its own id and file, and its edits carry its own id.
+Its fixer then meets the same verification as a built-in, and an edit outside the source is refused before it is spliced.
+
+Frontmatter is the one new view.
+`DocModel.frontmatter` reads a leading YAML block lazily into top-level string entries with a line and source offsets.
+No built-in rule reads it, and verification still counts its words.
+[docs/plugins.md](plugins.md) is the guide for writing a rule against all of this.
+
 ## Extending the model
 
 ### Adding a rule
 
-One rule is one file, named `src/rules/pgNNN-slug.ts`, exporting one `Rule`.
+One rule is one file, named `src/rules/<rule-id>.ts`, exporting one `Rule`.
 
 Every rule module has the same shape, so a reader who has read one has read them all.
 

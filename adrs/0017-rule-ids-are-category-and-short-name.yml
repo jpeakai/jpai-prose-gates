@@ -26,6 +26,12 @@ relates_to:
   - relation: extends
     target: PRS-0011
     note: the category a rule carries is the first word of its id
+  - relation: depended_on_by
+    target: PRS-0018
+    note: a config names a rule by its id
+  - relation: depended_on_by
+    target: PRS-0019
+    note: a plugin id is the namespace in front of category-short-name
 
 problem:
   symptom: A finding read "PG006" and the reader had to open RULES.md to learn it meant an interpunct-joined list.

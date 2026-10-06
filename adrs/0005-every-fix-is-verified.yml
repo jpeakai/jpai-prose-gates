@@ -31,6 +31,9 @@ relates_to:
   - relation: tested_by
     target: PRS-0009
     note: properties assert the fingerprint is preserved
+  - relation: depended_on_by
+    target: PRS-0020
+    note: a plugin fixer meets the same fingerprint and shape proof
 
 problem:
   symptom: A fixer bug could drop a word, create emphasis from a stray asterisk, or split one paragraph into two.

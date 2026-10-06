@@ -9,7 +9,15 @@ When a new domain term enters the code or the conversation, add it here in the s
 | Term | Meaning |
 |---|---|
 | Prose gate | One deterministic markdown rule, identified by a rule id. Also called a rule in code. |
-| Category | The group a prose gate belongs to: sentence, list or punctuation. |
+| Category | The group a prose gate belongs to: sentence, list or punctuation, or a one-word category a plugin declares. |
+| Plugin | A module that adds rules to a run, with a name, a namespace, a contract version and optional categories. |
+| Namespace | The word before the slash in a plugin rule id, such as acme in acme/sentence-no-passive-voice. A core id has none. |
+| Local rule | A plugin rule that is one file in `.prose-gates/rules`, under the reserved namespace local. |
+| Config file | The optional `prose-gates.config.json` or `.mjs` that switches rules off and sets their options. |
+| Project root | The nearest ancestor of the working directory with a package.json, a config file or a `.prose-gates` directory. |
+| Registry | The rules a run uses: the built-ins plus loaded plugins, with the config applied. |
+| Loaded line | The one stderr line a run prints naming each plugin namespace it loaded and how many rules it brought. |
+| Frontmatter view | The top-level string keys of a leading YAML block, with a line and source offsets, read by plugin rules only. |
 | Rule id | The name of a prose gate, written category-short-name, such as sentence-one-per-line. The category is one lower-case word and the short name is three or four words. |
 | Finding | One reported violation of a prose gate, with a file, a line, a rule id and a message. |
 | Fixer | The optional fix function of a rule. It proposes edits and never writes files itself. |

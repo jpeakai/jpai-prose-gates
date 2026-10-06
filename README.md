@@ -19,6 +19,9 @@ npx -y @jpeakai/prose-gates --fix README.md  # apply every fix proven safe, repo
 Installed as a dev dependency, the command is `prose-gates`, and `--json` gives machine-readable output.
 
 `--max-words N` changes the sentence budget, which defaults to 25.
+`--config FILE` reads a config other than the one at the project root.
+`--no-plugins` runs the built-in rules only.
+`--list-rules` prints every active rule by category, including plugin rules.
 Exit codes are 0 for clean, 1 for findings, and 2 for a usage error.
 
 ## The rules
@@ -41,6 +44,31 @@ The reasoning behind each choice is recorded in [`adrs/`](adrs/index.md).
 Code blocks are exempt.
 Fences tagged `markdown` or `md` are the exception, since they hold templates whose body is audited recursively.
 
+## Plugins and local rules
+
+A project adds its own rules without forking this package.
+Both sources load on their own, with no config, and every run prints a line saying what it loaded.
+
+- **Local rules.** A `.js` or `.mjs` file in `.prose-gates/rules/` exports one rule, and its id is `local/` followed by the file name.
+- **Plugin packages.** A dependency named `prose-gates-plugin-name` or `@scope/prose-gates-plugin-name` loads under the namespace its own `meta.namespace` declares.
+- **New categories.** A plugin declares a category of its own, such as `frontmatter`, and its rules use it.
+- **Same treatment.** A plugin rule is switched off, given options and listed exactly like a built-in, and its fixer is verified like a built-in fixer.
+
+A config at the project root switches rules off and sets options.
+
+```json
+{
+  "rules": {
+    "list-semicolon-delimited-run": "off",
+    "local/frontmatter-description-word-budget": ["error", { "keys": ["description"], "maxWords": 40 }]
+  }
+}
+```
+
+Plugins are trusted code with no sandbox.
+Running the CLI in a repository runs that repository's local rules and declared plugins, so use `--no-plugins` on one you do not trust.
+[docs/plugins.md](docs/plugins.md) is the authoring guide, and [`examples/plugin-skills`](examples/plugin-skills) holds a working plugin.
+
 ## Consuming it
 
 Each meta repo declares this package and runs it through a `docs-ci` target.
@@ -50,7 +78,7 @@ bun add --dev @jpeakai/prose-gates
 ```
 
 npm works the same way, with `npm install --save-dev @jpeakai/prose-gates`.
-The library exports `checkMarkdown` and `fixMarkdown`.
+The library exports `checkMarkdown` and `fixMarkdown`, and `@jpeakai/prose-gates/testing` exports the helpers a plugin's tests use.
 Bun imports the TypeScript source, and Node imports the bundle in `dist/`.
 
 Generated markdown is gated too.

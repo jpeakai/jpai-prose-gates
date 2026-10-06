@@ -31,6 +31,9 @@ relates_to:
   - relation: extended_by
     target: PRS-0017
     note: the id a rule file is named by is now category-short-name
+  - relation: depended_on_by
+    target: PRS-0019
+    note: a plugin rule is the same unit, a check with an optional fix
 
 problem:
   symptom: All nine rules and the CLI shared one file, so any change touched everything.

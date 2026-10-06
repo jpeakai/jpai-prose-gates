@@ -24,6 +24,7 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 - Depended on by [PRS-0015](0015-a-rule-reads-one-shared-context.md) (the context is what a rule module receives in both halves)
 - Depended on by [PRS-0016](0016-modules-group-by-what-a-function-takes.md) (a helper leaves its rule module for the layer whose data it takes)
 - Extended by [PRS-0017](0017-rule-ids-are-category-and-short-name.md) (the id a rule file is named by is now category-short-name)
+- Depended on by [PRS-0019](0019-plugin-contract-and-namespace.md) (a plugin rule is the same unit, a check with an optional fix)
 
 ## Problem
 

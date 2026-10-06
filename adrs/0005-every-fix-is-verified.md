@@ -24,6 +24,7 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 - Extends [PRS-0004](0004-a-fixer-refuses-when-unsure.md) (the engine refuses on behalf of a fixer that did not)
 - Depended on by [PRS-0006](0006-sentence-length-is-never-autofixed.md) (a length fix would change the fingerprint)
 - Tested by [PRS-0009](0009-adversarial-and-property-tests-gate-fixes.md) (properties assert the fingerprint is preserved)
+- Depended on by [PRS-0020](0020-plugin-fixers-stay-under-verification.md) (a plugin fixer meets the same fingerprint and shape proof)
 
 ## Problem
 

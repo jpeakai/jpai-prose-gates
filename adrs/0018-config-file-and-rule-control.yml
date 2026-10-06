@@ -1,0 +1,61 @@
+id: PRS-0018
+slug: config-file-and-rule-control
+plan_id: null
+title: An optional config file switches rules off and sets their options
+description: A config is checked against the loaded rules, and a rule that is off loses both its halves
+status: accepted
+accepted_on: 2026-10-06
+last_changed_on: 2026-10-06
+tags: [config, rules, cli]
+
+lens: |-
+  A team needs to turn a rule off or tune it without forking the package.
+  A setting that names nothing must fail, or a retired id looks like it worked.
+
+provenance: Raised as phase 1 of issue 7, which asked for custom rules and found there was nowhere to put configuration
+
+enforced_in:
+  - src/config.ts, which reads and validates the file
+  - src/rules/registry.ts, which applies it and builds the active rule set
+  - src/project.ts, which finds the project root and the file once per run
+  - tests/config.test.ts, which holds every refusal and the deferral rule
+
+relates_to:
+  - relation: depends_on
+    target: PRS-0015
+    note: the registry decides which interpunct runs count as reported, inside the shared context
+  - relation: depends_on
+    target: PRS-0017
+    note: a config names a rule by its category-short-name id, and a retired PG id is an unknown id
+  - relation: depended_on_by
+    target: PRS-0019
+    note: plugin rules are switched off and given options through the same file
+  - relation: depended_on_by
+    target: PRS-0022
+    note: the config can list extra plugins or turn all of them off
+
+problem:
+  symptom: The CLI took four flags and had no place to say that one rule does not suit a project.
+  pain_point: Switching a rule off meant forking, and a rule that others defer to could hide findings if it were switched off naively.
+
+decision:
+  given: a project wants to disable a rule, tune its budget, or run extra rules
+  we_prefer: an optional config at the project root, validated against the loaded rules, over flags alone or a silent skip of unknown names
+  because: a config that is checked at load cannot drift from the rules it names
+  unless: a setting needs more than a severity and a typed option, which calls for a new record
+  in_practice:
+    - The file is prose-gates.config.json or .mjs at the project root, or the path in --config, and two at one root is an error.
+    - A rule is "error", "off", or [severity, options]. There is no warning tier, because the tool exits 1 on any finding.
+    - A rule that is off loses its check and its fixer together, so --fix cannot apply it.
+    - An id that matches no loaded rule is a usage error with exit code 2. This catches a stale PG id.
+    - An option must be one the rule declares, with the declared type. maxWords must be at least 1.
+    - The sentence budget is the --max-words flag, then the rule's maxWords option, then 25.
+    - An interpunct run counts as reported only while its owning rule is on. The glyph rule reports a run whose owner is off.
+
+consequences:
+  pros:
+    - A typo in a rule id fails the run instead of doing nothing.
+    - Switching a list rule off never leaves a run that no rule reports.
+  cons:
+    - The project root is a heuristic, the nearest ancestor with a package.json, a config or a .prose-gates directory.
+    - A second config format needs a new record, because .json and .mjs are the only two read.

@@ -36,6 +36,10 @@ When a new domain term enters the code or the conversation, add it to the glossa
   An ambiguous case refuses and stays reported, per [PRS-0004](adrs/0004-a-fixer-refuses-when-unsure.md).
 - Never add a fixer for sentence-word-budget-exceeded.
   Shortening a sentence changes its words, per [PRS-0006](adrs/0006-sentence-length-is-never-autofixed.md).
+- Never skip a plugin that fails to load.
+  A bad plugin stops the run with its reason, per [PRS-0022](adrs/0022-plugins-load-automatically.md).
+- Never let a plugin edit bypass verification.
+  A plugin fixer meets the same proof as a built-in one, per [PRS-0020](adrs/0020-plugin-fixers-stay-under-verification.md).
 - Never fix a fix bug without first adding the adversarial test that reproduces it.
 - Never use a Bun global in `src/`.
   The Node bundle must run without Bun, and a test checks it.

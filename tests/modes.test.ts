@@ -174,7 +174,7 @@ describe("every failure is a named class with a stable code", () => {
   test("a fixer that throws is a PluginFixerError, which stops the run", async () => {
     const files = local("sentence-fixer", todoRule("sentence", 'fix: () => { throw new Error("nope"); },'));
     const registry = (await setUp({ cwd: tempProject(files) })).registry;
-    const err = (await caught(() => fixMarkdownReport("A TODO here.\n", registry))) as PluginFixerError;
+    const err = (await caught(async () => await fixMarkdownReport("A TODO here.\n", registry))) as PluginFixerError;
     expect(err).toBeInstanceOf(PluginFixerError);
     expect([err.code, err.rule]).toEqual(["plugin-fixer", "local/sentence-fixer"]);
   });
@@ -438,7 +438,7 @@ export default {
   test("a .ts rule loads and runs where the runtime can import TypeScript", async () => {
     const files = local("sentence-no-todo", tsRule, "ts");
     const { registry } = await setUp({ cwd: tempProject(files) });
-    expect(checkMarkdown("A TODO here.\n", "doc.md", undefined, registry).map((f) => f.rule)).toEqual([
+    expect((await checkMarkdown("A TODO here.\n", "doc.md", undefined, registry)).map((f) => f.rule)).toEqual([
       "local/sentence-no-todo",
     ]);
   });

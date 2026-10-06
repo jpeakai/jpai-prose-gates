@@ -42,6 +42,9 @@ relates_to:
   - relation: depended_on_by
     target: PRS-0023
     note: the frontmatter view is part of the model a plugin rule reads
+  - relation: depended_on_by
+    target: PRS-0027
+    note: a plugin rule function may return a promise
 
 problem:
   symptom: The rule set, the id type and the fix order were closed arrays and a union of nine literals.

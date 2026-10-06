@@ -203,13 +203,13 @@ const run = async (argv: string[], cwd: string): Promise<number> => {
     positionals.map(async (file) => {
       let src = await readFile(file, "utf8");
       if (values.fix) {
-        const fixed = fixMarkdownReport(src, registry).output;
+        const fixed = (await fixMarkdownReport(src, registry)).output;
         if (fixed !== src) {
           await writeFile(file, fixed);
           src = fixed;
         }
       }
-      return checkModel(buildDocModel(src), file, maxWords, registry);
+      return await checkModel(buildDocModel(src), file, maxWords, registry);
     }),
   );
   const all = perFile.flat();

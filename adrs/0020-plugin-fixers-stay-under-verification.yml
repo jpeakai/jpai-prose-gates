@@ -27,6 +27,9 @@ relates_to:
   - relation: depends_on
     target: PRS-0005
     note: the fingerprint and the expected shape are the proof a plugin fixer meets
+  - relation: depended_on_by
+    target: PRS-0027
+    note: an async fixer meets the same verification
 
 problem:
   symptom: A user who writes a fixer could lose a word or corrupt a document.

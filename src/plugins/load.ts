@@ -192,17 +192,18 @@ const validFinding = (f: unknown): f is { line: number; message: string } =>
 
 const EXPECTATIONS = new Set(["same-tree", "same-shape", "replace-paragraph"]);
 
-// A plugin rule becomes a Rule whose id is namespace/key. Its check cannot
-// take the run down: a throw or a malformed finding becomes a finding for that
+// A plugin rule becomes a Rule whose id is namespace/key. The plugin function may
+// be synchronous or return a promise, and the wrapper awaits it. Its check cannot
+// take the run down: a throw, a rejection or a malformed finding becomes a finding for that
 // rule, and the other rules carry on. Its fixer is held to the same proof as a
 // built-in, so a fixer that throws or returns nonsense stops the run loudly.
 export const toRule = (namespace: string, key: string, rule: PluginRule): Rule => {
   const id = `${namespace}/${key}` as RuleId;
-  const check: Rule["check"] = (ctx) => {
+  const check: Rule["check"] = async (ctx) => {
     const report = (why: string): Finding[] => [{ file: ctx.file, line: 1, rule: id, message: `plugin rule ${why}` }];
     let found: unknown;
     try {
-      found = rule.check(ctx);
+      found = await rule.check(ctx);
     } catch (err) {
       return report(`threw: ${message(err)}`);
     }
@@ -212,10 +213,10 @@ export const toRule = (namespace: string, key: string, rule: PluginRule): Rule =
     return found.map((f) => ({ file: ctx.file, line: f.line, rule: id, message: f.message }));
   };
   const fix: Rule["fix"] = rule.fix
-    ? (ctx) => {
+    ? async (ctx) => {
         let edits: unknown;
         try {
-          edits = rule.fix?.(ctx);
+          edits = await rule.fix?.(ctx);
         } catch (err) {
           throw new PluginFixerError(id, `fixer threw: ${message(err)}`);
         }

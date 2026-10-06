@@ -21,6 +21,10 @@ export const RULE = {
 // is what tells the two apart.
 export type CoreRuleId = (typeof RULE)[keyof typeof RULE];
 
+// A rule function may be synchronous or return a promise, so a rule can call a tool
+// or a service. The engine awaits every call.
+export type Awaitable<T> = T | Promise<T>;
+
 export type PluginRuleId = `${string}/${string}`;
 
 export const isPluginRuleId = (id: string): id is PluginRuleId => id.includes("/");
@@ -109,7 +113,7 @@ export interface Rule {
   summary: string;
   // The options the rule accepts. Absent when it takes none.
   options?: OptionSpec;
-  check: (ctx: CheckContext) => Finding[];
+  check: (ctx: CheckContext) => Awaitable<Finding[]>;
   // Absent for rules whose fix needs discretion (sentence-word-budget-exceeded).
-  fix?: (ctx: FixContext) => Edit[];
+  fix?: (ctx: FixContext) => Awaitable<Edit[]>;
 }

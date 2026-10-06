@@ -28,6 +28,7 @@ generated: { by: human:maintainer, at: 2026-10-06T00:00:00Z }
 - Depended on by [PRS-0021](0021-plugins-declare-their-categories.md) (a plugin declares its categories in its meta)
 - Depended on by [PRS-0022](0022-plugins-load-automatically.md) (discovery finds modules that have this shape)
 - Depended on by [PRS-0023](0023-frontmatter-is-a-read-only-view.md) (the frontmatter view is part of the model a plugin rule reads)
+- Depended on by [PRS-0027](0027-rules-may-be-async.md) (a plugin rule function may return a promise)
 
 ## Problem
 

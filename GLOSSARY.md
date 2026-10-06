@@ -27,6 +27,7 @@ When a new domain term enters the code or the conversation, add it here in the s
 | Fixer | The optional fix function of a rule. It proposes edits and never writes files itself. |
 | Edit | A proposed change: a start offset, an end offset, replacement text and an expectation. |
 | Expectation | What an edit claims about the reparsed tree: same-tree, same-shape or replace-paragraph. |
+| Stable text | The text a fix run ends at. No fixer, asked again after the last accepted edit, has a verifiable edit left, so fixing it again changes nothing. |
 | Refusal | A fixer or the verifier declining an edit. The source is untouched and the finding stays. |
 | Fixpoint | The engine's loop of applying verified edits in a fixed rule order until nothing changes. |
 | Fingerprint | Every word, url, alt text and code value of a document in order. A fix must preserve it. |

@@ -466,6 +466,11 @@ A plugin rule is wrapped when it loads.
 Its check cannot throw out of the run, its findings carry its own id and file, and its edits carry its own id.
 Its fixer then meets the same verification as a built-in, and an edit outside the source is refused before it is spliced.
 
+A rule function may be synchronous or return a promise.
+The check engine starts every check at once and waits for all of them.
+The fix engine awaits one fixer at a time, in priority order.
+[docs/engines.md](engines.md) draws both, and states the stable-text guarantee a fix run ends with.
+
 Frontmatter is the one new view.
 `DocModel.frontmatter` reads a leading YAML block lazily into top-level string entries with a line and source offsets.
 No built-in rule reads it, and verification still counts its words.

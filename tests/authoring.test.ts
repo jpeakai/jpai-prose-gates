@@ -17,47 +17,47 @@ const words = (n: number): string => Array.from({ length: n }, (_, i) => `w${i}`
 const doc = (n: number): string => `---\ndescription: ${words(n)}.\n---\n\nBody.\n`;
 
 describe("the testing helper", () => {
-  test("runs a plugin rule over a string and reports under the plugin's id", () => {
-    const found = checkRule(template, KEY, doc(30));
+  test("runs a plugin rule over a string and reports under the plugin's id", async () => {
+    const found = await checkRule(template, KEY, doc(30));
     expect(found.map((f) => [f.rule, f.line])).toEqual([[`skills/${KEY}`, 2]]);
   });
 
-  test("passes a clean document", () => {
-    expect(checkRule(template, KEY, doc(5))).toEqual([]);
+  test("passes a clean document", async () => {
+    expect(await checkRule(template, KEY, doc(5))).toEqual([]);
   });
 
-  test("takes rule options and a budget, like a config and a flag", () => {
-    expect(checkRule(template, KEY, doc(30), { maxWords: 40 })).toEqual([]);
-    expect(checkRule(template, KEY, doc(12), { options: { maxWords: 10 } })).toHaveLength(1);
+  test("takes rule options and a budget, like a config and a flag", async () => {
+    expect(await checkRule(template, KEY, doc(30), { maxWords: 40 })).toEqual([]);
+    expect(await checkRule(template, KEY, doc(12), { options: { maxWords: 10 } })).toHaveLength(1);
     expect(
-      checkRule(template, KEY, `---\nsummary: ${words(30)}.\n---\n`, { options: { keys: ["summary"] } }),
+      await checkRule(template, KEY, `---\nsummary: ${words(30)}.\n---\n`, { options: { keys: ["summary"] } }),
     ).toHaveLength(1);
   });
 
-  test("fixRule runs the verified engine, and a rule with no fixer changes nothing", () => {
-    const out = fixRule(template, KEY, doc(30));
+  test("fixRule runs the verified engine, and a rule with no fixer changes nothing", async () => {
+    const out = await fixRule(template, KEY, doc(30));
     expect(out.output).toBe(doc(30));
     expect(out.applied).toEqual([]);
   });
 
-  test("holds the plugin to the loader's contract", () => {
+  test("holds the plugin to the loader's contract", async () => {
     const broken = { meta: { name: "x", namespace: "x", apiVersion: 2 }, rules: {} };
-    expect(() => checkRule(broken as never, KEY, "text\n")).toThrow(/apiVersion 2/);
+    await expect(checkRule(broken as never, KEY, "text\n")).rejects.toThrow(/apiVersion 2/);
   });
 
-  test("names the rules a plugin has when the key is wrong", () => {
-    expect(() => checkRule(template, "frontmatter-nope", "text\n")).toThrow(
+  test("names the rules a plugin has when the key is wrong", async () => {
+    await expect(checkRule(template, "frontmatter-nope", "text\n")).rejects.toThrow(
       /has no rule "frontmatter-nope"; it has frontmatter-description-word-budget/,
     );
   });
 
-  test("localPlugin wraps a local rule module the way the loader would", () => {
+  test("localPlugin wraps a local rule module the way the loader would", async () => {
     const plugin = localPlugin(KEY, ruleModule);
     expect(plugin.meta.namespace).toBe("local");
-    expect(checkRule(plugin, KEY, doc(30)).map((f) => f.rule)).toEqual([`local/${KEY}`]);
+    expect((await checkRule(plugin, KEY, doc(30))).map((f) => f.rule)).toEqual([`local/${KEY}`]);
   });
 
-  test("a fixer is run through the same proof as in a real run", () => {
+  test("a fixer is run through the same proof as in a real run", async () => {
     const spaces = {
       meta: { name: "s", namespace: "s", apiVersion: 1 },
       rules: {
@@ -72,7 +72,7 @@ describe("the testing helper", () => {
         },
       },
     };
-    expect(fixRule(spaces as never, "sentence-collapse-spaces", "a   b.\n").output).toBe("a b.\n");
+    expect((await fixRule(spaces as never, "sentence-collapse-spaces", "a   b.\n")).output).toBe("a b.\n");
   });
 });
 
@@ -117,7 +117,7 @@ describe("--list-rules", () => {
 
 describe("the Node bundle of the testing helper", () => {
   test("loads under Node and runs a rule", async () => {
-    const script = `const t = await import(${JSON.stringify(join(PROJECT_ROOT, "dist", "testing.js"))}); const p = (await import(${JSON.stringify(join(PROJECT_ROOT, "examples", "plugin-skills", "index.mjs"))})).default; process.stdout.write(String(t.checkRule(p, "${KEY}", ${JSON.stringify(doc(30))}).length));`;
+    const script = `const t = await import(${JSON.stringify(join(PROJECT_ROOT, "dist", "testing.js"))}); const p = (await import(${JSON.stringify(join(PROJECT_ROOT, "examples", "plugin-skills", "index.mjs"))})).default; process.stdout.write(String((await t.checkRule(p, "${KEY}", ${JSON.stringify(doc(30))})).length));`;
     const proc = Bun.spawn(["node", "--input-type=module", "-e", script], { stdout: "pipe", stderr: "pipe" });
     expect(await new Response(proc.stdout).text()).toBe("1");
     expect(await proc.exited).toBe(0);

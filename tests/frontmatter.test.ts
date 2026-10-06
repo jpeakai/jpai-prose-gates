@@ -21,7 +21,7 @@ const asLocal = async (config?: unknown) =>
 
 const findings = async (src: string, config?: unknown) => {
   const { registry } = await setUp({ cwd: await asLocal(config) });
-  return checkMarkdown(src, "doc.md", undefined, registry);
+  return await checkMarkdown(src, "doc.md", undefined, registry);
 };
 
 const words = (n: number): string => Array.from({ length: n }, (_, i) => `w${i}`).join(" ");
@@ -89,9 +89,9 @@ describe("DocModel.frontmatter", () => {
 });
 
 describe("built-in rules stay exempt from frontmatter", () => {
-  test("a long sentence in frontmatter is not reported by the sentence budget", () => {
+  test("a long sentence in frontmatter is not reported by the sentence budget", async () => {
     const src = `---\ndescription: ${words(60)}.\n---\n\nShort body.\n`;
-    expect(checkMarkdown(src, "doc.md").map((f) => f.rule)).toEqual([]);
+    expect((await checkMarkdown(src, "doc.md")).map((f) => f.rule)).toEqual([]);
   });
 });
 
@@ -143,7 +143,7 @@ describe("the skills description rule as a local rule", () => {
   test("the --max-words flag still wins for the run", async () => {
     const { registry } = await setUp({ cwd: await asLocal() });
     const src = `---\ndescription: ${words(30)}.\n---\n`;
-    expect(checkMarkdown(src, "doc.md", 50, registry)).toEqual([]);
+    expect(await checkMarkdown(src, "doc.md", 50, registry)).toEqual([]);
   });
 
   test("a document with no frontmatter is clean", async () => {
@@ -185,6 +185,6 @@ describe("the skills description rule as a packaged plugin", () => {
     const { registry } = await setUp({ cwd: root });
     expect(registry.categories.get("frontmatter")).toBe("Keys in the leading metadata block of a file");
     const src = `---\ndescription: ${words(30)}.\n---\n`;
-    expect(checkMarkdown(src, "doc.md", undefined, registry).map((f) => f.rule)).toEqual([`skills/${RULE_ID}`]);
+    expect((await checkMarkdown(src, "doc.md", undefined, registry)).map((f) => f.rule)).toEqual([`skills/${RULE_ID}`]);
   });
 });

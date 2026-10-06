@@ -60,7 +60,8 @@ A paragraph view has `raw`, `line`, `startOffset`, `endOffset` and `prose`, with
 
 ## Findings and fixes
 
-A check returns a list of `{ line, message }`.
+A check returns a list of `{ line, message }`, or a promise of one.
+Write it `async` when it needs to wait on a tool or a service, and the engine awaits it.
 The line is a whole number from 1.
 The engine adds the rule id and the file, so a finding cannot claim to come from another rule.
 
@@ -86,6 +87,10 @@ A fix that changes a word, adds one, or loses a url or a code value stops the ru
 An edit whose result is not the structure it declared is refused, and the finding stays.
 An edit with offsets outside the source is refused before it is applied.
 A fixer that throws, or returns something that is not a list of edits, stops the run and names the rule.
+
+A fixer may also be `async`, and it is awaited.
+Checks are all started at once and overlap while they wait.
+Fixers are asked one at a time, in priority order, because each one sees the text the last one left.
 
 Plugin fixers run after the built-ins.
 A check that throws does not stop the run.
@@ -187,14 +192,15 @@ An id that matches no loaded rule is a usage error, so a typo cannot silently do
 import { checkRule, fixRule } from "@jpeakai/prose-gates/testing";
 import plugin from "../index.mjs";
 
-test("flags a long description", () => {
-  const found = checkRule(plugin, "frontmatter-description-word-budget", doc, { maxWords: 20 });
+test("flags a long description", async () => {
+  const found = await checkRule(plugin, "frontmatter-description-word-budget", doc, { maxWords: 20 });
   expect(found).toHaveLength(1);
 });
 ```
 
 `localPlugin(key, module)` wraps a local rule file the way the loader does.
-`fixRule` returns the fixed text and what was applied or refused, and a fixer that loses a word throws as it would in a run.
+Both return promises, so `await` them.
+`fixRule` returns the fixed text and what was applied or refused, and a fixer that loses a word rejects as it would in a run.
 Test against real strings and files, and never with a mock.
 
 ## TypeScript rules

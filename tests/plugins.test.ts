@@ -27,7 +27,7 @@ const local = (name: string, source: string): Record<string, string> => ({
 const registryOf = async (files: Record<string, string>) => (await setUp({ cwd: tempProject(files) })).registry;
 
 const ids = async (files: Record<string, string>, src: string): Promise<string[]> =>
-  checkMarkdown(src, "doc.md", undefined, await registryOf(files)).map((f) => f.rule);
+  (await checkMarkdown(src, "doc.md", undefined, await registryOf(files))).map((f) => f.rule);
 
 const packageFiles = (name: string, plugin: string, extra: Record<string, unknown> = {}): Record<string, string> => ({
   [`node_modules/${name}/package.json`]: JSON.stringify({ name, type: "module", main: "index.mjs", ...extra }),
@@ -249,7 +249,7 @@ describe("a hostile plugin check", () => {
       "sentence-boom",
       'export default { category: "sentence", summary: "x", check: () => { throw new Error("boom"); } };\n',
     );
-    const found = checkMarkdown("A tell — here.\n", "doc.md", undefined, await registryOf(files));
+    const found = await checkMarkdown("A tell — here.\n", "doc.md", undefined, await registryOf(files));
     expect(found.map((f) => f.rule).sort()).toEqual(["local/sentence-boom", "punctuation-em-dash-in-prose"]);
     expect(found.find((f) => f.rule === "local/sentence-boom")?.message).toContain("threw: boom");
   });
@@ -261,7 +261,7 @@ describe("a hostile plugin check", () => {
     ["a finding with no message", "() => [{ line: 1 }]"],
   ])("returning %s becomes a finding about the rule", async (_name, check) => {
     const files = local("sentence-bad", `export default { category: "sentence", summary: "x", check: ${check} };\n`);
-    const found = checkMarkdown("Fine.\n", "doc.md", undefined, await registryOf(files));
+    const found = await checkMarkdown("Fine.\n", "doc.md", undefined, await registryOf(files));
     expect(found).toHaveLength(1);
     expect(found[0]?.rule).toBe("local/sentence-bad");
     expect(found[0]?.message).toContain("returned something other than a list");
@@ -272,7 +272,7 @@ describe("a hostile plugin check", () => {
       "sentence-liar",
       'export default { category: "sentence", summary: "x", check: () => [{ line: 1, message: "m", rule: "list-comma-labelled-run", file: "other.md" }] };\n',
     );
-    const [finding] = checkMarkdown("Fine.\n", "doc.md", undefined, await registryOf(files));
+    const [finding] = await checkMarkdown("Fine.\n", "doc.md", undefined, await registryOf(files));
     expect(finding).toEqual({ file: "doc.md", line: 1, rule: "local/sentence-liar", message: "m" });
   });
 });
@@ -282,7 +282,7 @@ describe("a hostile plugin fixer", () => {
   const fixer = (body: string): Record<string, string> =>
     local("sentence-fixer", todoRule("sentence", `fix: ({ doc }) => { ${body} },`));
 
-  const run = async (body: string, src: string) => fixMarkdownReport(src, await registryOf(fixer(body)));
+  const run = async (body: string, src: string) => await fixMarkdownReport(src, await registryOf(fixer(body)));
 
   const swapTodo = (replacement: string, expect = 'expect: { kind: "same-shape" }'): string =>
     `const i = doc.src.indexOf("TODO"); if (i < 0) return []; return [{ start: i, end: i + 4, text: "${replacement}", ${expect} }];`;
@@ -367,7 +367,7 @@ describe("a hostile plugin fixer", () => {
 
   test("plugin fixers run after the built-ins", async () => {
     const files = fixer(collapseSpaces);
-    const out = fixMarkdownReport("A tell — TODO   here.\n", await registryOf(files));
+    const out = await fixMarkdownReport("A tell — TODO   here.\n", await registryOf(files));
     expect(out.applied.map((e) => e.rule)).toEqual(["punctuation-em-dash-in-prose", "local/sentence-fixer"]);
   });
 
@@ -389,7 +389,7 @@ describe("plugin rules run inside markdown fences, check only", () => {
 };\n`;
     const files = local("sentence-no-todo", paragraphRule);
     const src = "Intro.\n\n```markdown\nA TODO here.\n```\n";
-    const found = checkMarkdown(src, "doc.md", undefined, await registryOf(files));
+    const found = await checkMarkdown(src, "doc.md", undefined, await registryOf(files));
     expect(found.map((f) => [f.rule, f.line])).toEqual([["local/sentence-no-todo", 4]]);
   });
 });

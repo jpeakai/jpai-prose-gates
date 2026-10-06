@@ -4,7 +4,7 @@
 // production code never does.
 
 import { checkMarkdown } from "./check.ts";
-import { fixMarkdownReport } from "./fix/engine.ts";
+import { type FixReport, fixMarkdownReport } from "./fix/engine.ts";
 import type { Plugin, PluginRule } from "./plugins/contract.ts";
 import { parsePlugin, toRule } from "./plugins/load.ts";
 import { BUILTIN_CATEGORIES, buildRegistry, type Registry } from "./rules/registry.ts";
@@ -51,10 +51,10 @@ const registryFor = (plugin: Plugin, key: string, options: RuleOptions): Registr
 };
 
 // The findings one rule of the plugin reports for a document.
-export const checkRule = (plugin: Plugin, key: string, src: string, run: RunOptions = {}): Finding[] =>
+export const checkRule = async (plugin: Plugin, key: string, src: string, run: RunOptions = {}): Promise<Finding[]> =>
   checkMarkdown(src, "test.md", run.maxWords, registryFor(plugin, key, run.options ?? {}));
 
 // The document after the rule's fixer has run to a fixpoint, and what was
 // applied or refused. A fixer that loses a word throws, exactly as in a real run.
-export const fixRule = (plugin: Plugin, key: string, src: string, run: RunOptions = {}) =>
+export const fixRule = async (plugin: Plugin, key: string, src: string, run: RunOptions = {}): Promise<FixReport> =>
   fixMarkdownReport(src, registryFor(plugin, key, run.options ?? {}));

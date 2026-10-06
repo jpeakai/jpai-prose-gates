@@ -80,7 +80,8 @@ bun add --dev @jpeakai/prose-gates
 ```
 
 npm works the same way, with `npm install --save-dev @jpeakai/prose-gates`.
-The library exports `checkMarkdown` and `fixMarkdown`, and `@jpeakai/prose-gates/testing` exports the helpers a plugin's tests use.
+The library exports `checkMarkdown` and `fixMarkdown`, which return promises because a rule may be async.
+`@jpeakai/prose-gates/testing` exports the helpers a plugin's tests use.
 Bun imports the TypeScript source, and Node imports the bundle in `dist/`.
 
 Generated markdown is gated too.

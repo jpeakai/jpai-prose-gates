@@ -37,7 +37,7 @@ const wellFormed = (e: Edit, length: number): boolean =>
   e.end <= length &&
   typeof e.text === "string";
 
-export const fixMarkdownReport = (src: string, registry: Registry = BUILTIN): FixReport => {
+export const fixMarkdownReport = async (src: string, registry: Registry = BUILTIN): Promise<FixReport> => {
   const applied: Edit[] = [];
   const refused: Edit[] = [];
   // An edit refused once stays refused while its source slice is unchanged.
@@ -63,7 +63,7 @@ export const fixMarkdownReport = (src: string, registry: Registry = BUILTIN): Fi
     let progressed = false;
     for (const rule of registry.fixOrder) {
       const proposed =
-        rule.fix?.({ ...ctx, options: registry.options.get(rule.id) ?? {}, helpers: TEXT_HELPERS }) ?? [];
+        (await rule.fix?.({ ...ctx, options: registry.options.get(rule.id) ?? {}, helpers: TEXT_HELPERS })) ?? [];
       // An edit that points outside the source cannot be proven, so it is
       // refused before it is ever spliced. A built-in never proposes one.
       const sound = proposed.filter((e) => {
@@ -102,4 +102,5 @@ export const fixMarkdownReport = (src: string, registry: Registry = BUILTIN): Fi
   throw new Error(`fix did not converge after ${MAX_PASSES} passes; a fixer keeps proposing edits`);
 };
 
-export const fixMarkdown = (src: string): string => fixMarkdownReport(src).output;
+export const fixMarkdown = async (src: string, registry: Registry = BUILTIN): Promise<string> =>
+  (await fixMarkdownReport(src, registry)).output;

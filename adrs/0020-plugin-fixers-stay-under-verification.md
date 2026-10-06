@@ -23,6 +23,7 @@ generated: { by: human:maintainer, at: 2026-10-06T00:00:00Z }
 
 - Depends on [PRS-0019](0019-plugin-contract-and-namespace.md) (a plugin fixer is part of the plugin contract)
 - Depends on [PRS-0005](0005-every-fix-is-verified.md) (the fingerprint and the expected shape are the proof a plugin fixer meets)
+- Depended on by [PRS-0027](0027-rules-may-be-async.md) (an async fixer meets the same verification)
 
 ## Problem
 

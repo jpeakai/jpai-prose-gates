@@ -15,8 +15,8 @@ export const tempFile = (content: string, name = "doc.md"): string => {
   return file;
 };
 
-export const rules = (src: string, maxWords?: number): string[] =>
-  checkMarkdown(src, "doc.md", maxWords).map((f) => f.rule);
+export const rules = async (src: string, maxWords?: number): Promise<string[]> =>
+  (await checkMarkdown(src, "doc.md", maxWords)).map((f) => f.rule);
 
 // A throwaway project directory holding the given files, so discovery and
 // config tests run against a real tree rather than a stand-in.

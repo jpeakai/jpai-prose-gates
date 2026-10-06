@@ -2,7 +2,7 @@
 // local rule, one PluginRule per file. The context a plugin rule receives is
 // the one the built-ins read, so a plugin rule is a built-in with a namespace.
 
-import type { CheckContext, Edit, Finding, FixContext, OptionSpec } from "../rules/types.ts";
+import type { Awaitable, CheckContext, Edit, Finding, FixContext, OptionSpec } from "../rules/types.ts";
 
 // Bumped when the contract changes in a way a plugin must notice. A plugin
 // that targets another version fails to load with both numbers in the message.
@@ -12,8 +12,8 @@ export interface PluginRule {
   category: string;
   summary: string;
   options?: OptionSpec;
-  check: (ctx: CheckContext) => Finding[];
-  fix?: (ctx: FixContext) => Edit[];
+  check: (ctx: CheckContext) => Awaitable<Finding[]>;
+  fix?: (ctx: FixContext) => Awaitable<Edit[]>;
 }
 
 export interface PluginMeta {

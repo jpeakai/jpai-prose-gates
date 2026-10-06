@@ -25,9 +25,11 @@ The fix engine reads it too, proposes edits, and rebuilds the model after every 
 | | Check engine | Fix engine |
 |---|---|---|
 | Entry | `checkMarkdown`, `checkModel` | `fixMarkdown`, `fixMarkdownReport` |
+| Returns | A promise of findings | A promise of text, or of a report |
 | Source file | `src/check.ts` | `src/fix/engine.ts` |
 | Changes the text | Never | Only through verified edits |
-| Rule function | `check(ctx)` returns findings | `fix(ctx)` returns edits |
+| Rule function | `check(ctx)` returns findings, or a promise of them | `fix(ctx)` returns edits, or a promise of them |
+| Rules run | All at once, so they overlap | One at a time, in priority order |
 | Model lifetime | One model per document | A new model after every accepted edit |
 | Rule order matters | No, results are sorted after | Only as a priority, see [Ordering](#ordering) |
 
@@ -203,8 +205,9 @@ They are derived once per document, so a check and its fixer can never disagree 
 
 ## The check engine
 
-`checkModel` builds one context per document and calls every active rule.
+`checkModel` builds one context per document and starts every active rule at once.
 No rule sees another rule's findings, and none can change the document.
+A rule may be synchronous or return a promise, and the engine waits for all of them.
 
 ```mermaid
 sequenceDiagram
@@ -218,14 +221,13 @@ sequenceDiagram
     M-->>K: DocModel
     K->>X: ruleContext(doc, registry)
     X-->>K: doc, runs, reported
-    loop each rule in registry.rules
+    par each rule in registry.rules
         K->>R: check(ctx with file, maxWords, options, helpers)
-        R-->>K: findings
-    end
-    loop each markdown fence
+    and each markdown fence
         K->>K: checkModel on the fence body, same registry
     end
-    K->>K: sort by line, then rule id
+    R-->>K: findings, as each rule finishes
+    K->>K: wait for all, then sort by line and rule id
     K-->>C: findings
 ```
 
@@ -233,8 +235,10 @@ What a check can rely on:
 
 - **A frozen document.** `ctx.doc` does not change during the call, and neither does any view.
 - **Independence.** A rule's result depends on the document, the file, the budget and its options, and on nothing another rule does.
-- **A stable order of results.** Findings are sorted by line and then by id, whatever order the rules ran in.
-- **A contained failure.** A plugin check that throws or returns the wrong shape becomes one finding for that rule.
+- **A stable order of results.** Findings are sorted by line and then by id, whatever order the rules finished in.
+- **A contained failure.** A plugin check that throws, rejects or returns the wrong shape becomes one finding for that rule.
+- **Concurrent, not parallel.** JavaScript runs one thread, so synchronous checks run back to back.
+  A check that waits on a tool or a service overlaps with the others.
 
 Fences are checked, never fixed.
 A fence body is parsed as its own document, and its findings are shifted by the fence's line.
@@ -257,7 +261,7 @@ sequenceDiagram
         M-->>E: DocModel and context
         loop each fixer in registry.fixOrder
             E->>F: fix(ctx with options, helpers)
-            F-->>E: edits against ctx.doc.src
+            F-->>E: edits against ctx.doc.src, awaited
             E->>E: drop malformed, no-op and already refused edits
             E->>E: splice the edits and parse the result
             E->>V: verify(edit, before, after tree)
@@ -375,10 +379,27 @@ Check order does not matter, and fix order is a priority.
 This section records what is true today so a plugin does not depend on more.
 
 - **Checks are independent.** Each reads the frozen model and nothing else, so any order gives the same sorted findings.
-- **Fixers run in a fixed list.** Built-ins run in `FIX_ORDER`, then plugin fixers in load order.
+- **Fixers run one at a time.** Built-ins run in `FIX_ORDER`, then plugin fixers in load order, and each fixer is awaited before the next is asked.
 - **The list is a priority.** An accepted edit restarts the pass from the top, so an earlier fixer always gets the next chance.
 - **Built-ins defer by data.** The interpunct glyph rule skips a run through `ctx.reported`, not through its place in the list.
+- **No ordering properties.** A rule does not declare a phase or an `after` constraint, because the evidence says the built-ins do not need them.
 - **Evidence.** Sampled random fixer orders reproduce every fixture and every `RULES.md` example, and the whole test suite passes under them.
 
 A plugin should not assume it runs before or after any other fixer.
 It should assume only that any text it is shown may already have been changed by an earlier accepted edit.
+
+## Stable text
+
+One invocation ends at a stable text.
+The loop stops only when no fixer, asked again after the last accepted edit, has a verifiable edit left.
+Fixing the output again therefore changes nothing, and the property tests hold the engine to that.
+
+This is the guarantee the restart rule buys.
+A later fixer can produce text that an earlier fixer would change.
+The earlier fixer is asked again, so the run does not end until both are satisfied.
+
+The cost is deliberate.
+Each accepted edit asks every earlier fixer again, so the work grows with the rules and the passes.
+That is cheap for a handful of rules and will not stay cheap for hundreds of rules over hundreds of files.
+Faster options exist, such as tracking which fixers a change could affect, or caching by file hash.
+None is built until the cost is real.

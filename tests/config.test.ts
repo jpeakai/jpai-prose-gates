@@ -44,14 +44,14 @@ describe("parseConfig", () => {
 });
 
 describe("registry rule control", () => {
-  test("a rule that is off loses its check", () => {
+  test("a rule that is off loses its check", async () => {
     const registry = registryFor({ "punctuation-em-dash-in-prose": "off" });
-    expect(checkMarkdown("A tell — here.\n", "doc.md", undefined, registry)).toEqual([]);
+    expect(await checkMarkdown("A tell — here.\n", "doc.md", undefined, registry)).toEqual([]);
   });
 
-  test("a rule that is off loses its fixer, so --fix leaves the text alone", () => {
+  test("a rule that is off loses its fixer, so --fix leaves the text alone", async () => {
     const registry = registryFor({ "punctuation-em-dash-in-prose": "off" });
-    expect(fixMarkdownReport("A tell — here.\n", registry).output).toBe("A tell — here.\n");
+    expect((await fixMarkdownReport("A tell — here.\n", registry)).output).toBe("A tell — here.\n");
   });
 
   test.each([
@@ -73,40 +73,40 @@ describe("registry rule control", () => {
     expect(() => registryFor(rules)).toThrow(UsageError);
   });
 
-  test("the budget comes from the rule option when no flag is given", () => {
+  test("the budget comes from the rule option when no flag is given", async () => {
     const registry = registryFor({ "sentence-word-budget-exceeded": ["error", { maxWords: 5 }] });
     const src = "One two three four five six seven eight.\n";
-    expect(checkMarkdown(src, "doc.md", undefined, registry).map((f) => f.rule)).toContain(
+    expect((await checkMarkdown(src, "doc.md", undefined, registry)).map((f) => f.rule)).toContain(
       "sentence-word-budget-exceeded",
     );
-    expect(checkMarkdown(src, "doc.md", 50, registry)).toEqual([]);
+    expect(await checkMarkdown(src, "doc.md", 50, registry)).toEqual([]);
   });
 });
 
 describe("a switched-off rule never hides what another rule defers to it", () => {
   const run = "Tools: fmt · vet · race.\n";
-  const rulesIn = (registry: ReturnType<typeof registryFor>, src: string): string[] =>
-    checkMarkdown(src, "doc.md", undefined, registry).map((f) => f.rule);
+  const rulesIn = async (registry: ReturnType<typeof registryFor>, src: string): Promise<string[]> =>
+    (await checkMarkdown(src, "doc.md", undefined, registry)).map((f) => f.rule);
 
-  test("with the flat list rule on, the run is reported once and the glyph rule stays quiet", () => {
-    expect(rulesIn(registryFor({}), run)).toEqual(["list-interpunct-joined-run"]);
+  test("with the flat list rule on, the run is reported once and the glyph rule stays quiet", async () => {
+    expect(await rulesIn(registryFor({}), run)).toEqual(["list-interpunct-joined-run"]);
   });
 
-  test("with the flat list rule off, the glyph rule reports instead", () => {
-    const found = rulesIn(registryFor({ "list-interpunct-joined-run": "off" }), run);
+  test("with the flat list rule off, the glyph rule reports instead", async () => {
+    const found = await rulesIn(registryFor({ "list-interpunct-joined-run": "off" }), run);
     expect(found).toContain("punctuation-interpunct-in-prose");
     expect(found).not.toContain("list-interpunct-joined-run");
   });
 
-  test("with the stacked list rule off, a stacked run is reported by the glyph rule", () => {
+  test("with the stacked list rule off, a stacked run is reported by the glyph rule", async () => {
     const stacked = "Tools: fmt · vet · race\nChecks: a · b · c\n";
-    const found = rulesIn(registryFor({ "list-stacked-interpunct-runs": "off" }), stacked);
+    const found = await rulesIn(registryFor({ "list-stacked-interpunct-runs": "off" }), stacked);
     expect(found).toContain("punctuation-interpunct-in-prose");
   });
 
-  test("with both list rules off the run is still reported by something", () => {
+  test("with both list rules off the run is still reported by something", async () => {
     const registry = registryFor({ "list-interpunct-joined-run": "off", "list-stacked-interpunct-runs": "off" });
-    expect(rulesIn(registry, run).length).toBeGreaterThan(0);
+    expect((await rulesIn(registry, run)).length).toBeGreaterThan(0);
   });
 });
 

@@ -1,5 +1,10 @@
 // Checking: build the model once, run every active rule over it, and audit
 // embedded markdown fences as documents of their own.
+//
+// Nothing is modified in check mode and no rule reads another's result, so every
+// rule is started at once and the engine waits for all of them. A rule may be
+// synchronous or return a promise, so concurrency is as good as parallelism
+// here: a rule that waits on a tool or a service overlaps with the others.
 
 import { buildDocModel, type DocModel } from "./model.ts";
 import { BUILTIN, type Registry, ruleContext, TEXT_HELPERS } from "./rules/registry.ts";
@@ -12,14 +17,14 @@ export const DEFAULT_MAX_WORDS = 25;
 const budgetFor = (flag: number | undefined, option: unknown): number =>
   flag ?? (typeof option === "number" ? option : DEFAULT_MAX_WORDS);
 
-export const checkModel = (
+export const checkModel = async (
   doc: DocModel,
   file: string,
   maxWords: number | undefined,
   registry: Registry = BUILTIN,
-): Finding[] => {
+): Promise<Finding[]> => {
   const shared = ruleContext(doc, registry);
-  const findings = registry.rules.flatMap((rule) => {
+  const perRule = registry.rules.map(async (rule) => {
     const options = registry.options.get(rule.id) ?? {};
     return rule.check({
       ...shared,
@@ -30,13 +35,17 @@ export const checkModel = (
     });
   });
   // The fence body starts one line below the opening fence.
-  for (const fence of doc.fences) {
-    for (const f of checkModel(buildDocModel(fence.value), file, maxWords, registry)) {
-      findings.push({ ...f, line: fence.line + f.line });
-    }
-  }
+  const perFence = doc.fences.map(async (fence) => {
+    const inner = await checkModel(buildDocModel(fence.value), file, maxWords, registry);
+    return inner.map((f) => ({ ...f, line: fence.line + f.line }));
+  });
+  const findings = (await Promise.all([...perRule, ...perFence])).flat();
   return findings.sort((a, b) => a.line - b.line || a.rule.localeCompare(b.rule));
 };
 
-export const checkMarkdown = (src: string, file: string, maxWords?: number, registry: Registry = BUILTIN): Finding[] =>
-  checkModel(buildDocModel(src), file, maxWords, registry);
+export const checkMarkdown = (
+  src: string,
+  file: string,
+  maxWords?: number,
+  registry: Registry = BUILTIN,
+): Promise<Finding[]> => checkModel(buildDocModel(src), file, maxWords, registry);

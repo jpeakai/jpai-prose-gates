@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { checkMarkdown, fixMarkdown } from "../../src/index.ts";
 
-describe("PG001 sentence-per-line reflow", () => {
+describe("sentence-one-per-line sentence-per-line reflow", () => {
   test("reflows a wrapped paragraph and passes the gate afterwards", () => {
     const fixed = fixMarkdown("First sentence wraps over\nthis line. Second sentence also\nwraps badly here.\n");
     expect(fixed).toBe("First sentence wraps over this line.\nSecond sentence also wraps badly here.\n");

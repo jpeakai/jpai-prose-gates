@@ -1,6 +1,6 @@
 // The interpunct run: the one piece of data derived from a whole document
-// that more than one rule reads. PG006 and PG009 report a run, PG005 stays
-// quiet inside one, and PG001 leaves a stacked one unreflowed, so it is
+// that more than one rule reads. list-interpunct-joined-run and list-stacked-interpunct-runs report a run, punctuation-interpunct-in-prose stays
+// quiet inside one, and sentence-one-per-line leaves a stacked one unreflowed, so it is
 // derived once per document and handed to every rule as data.
 
 import type { DocModel, ParagraphView } from "./model.ts";
@@ -10,8 +10,8 @@ import { countOf, type Range } from "./text.ts";
 export const INTERPUNCT = "·";
 
 // The glyph on its own, for counting, and the glyph with the space a run
-// puts around it, for splitting. PG006 and PG009 both cut on the separator;
-// PG005 is stricter and needs space on both sides, so it keeps its own.
+// puts around it, for splitting. list-interpunct-joined-run and list-stacked-interpunct-runs both cut on the separator;
+// punctuation-interpunct-in-prose is stricter and needs space on both sides, so it keeps its own.
 export const GLYPH = /·/g;
 export const RUN_SEPARATOR = /[ \t]*·[ \t]*/;
 
@@ -34,9 +34,9 @@ export const interpunctRuns = (doc: DocModel): InterpunctRun[] => {
   return runs;
 };
 
-// A run on one source line is a flat list, which PG006 owns. A run spread
-// over two or more lines is a two-level structure, which PG009 owns and
-// PG001 leaves unreflowed. The two predicates partition every run.
+// A run on one source line is a flat list, which list-interpunct-joined-run owns. A run spread
+// over two or more lines is a two-level structure, which list-stacked-interpunct-runs owns and
+// sentence-one-per-line leaves unreflowed. The two predicates partition every run.
 export const isFlat = (run: InterpunctRun): boolean => run.lines === 1;
 
 export const isStacked = (run: InterpunctRun): boolean => run.lines >= 2;

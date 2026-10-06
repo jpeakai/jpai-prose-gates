@@ -1,4 +1,4 @@
-// PG001: a newline inside a paragraph whose preceding non-space character
+// sentence-one-per-line: a newline inside a paragraph whose preceding non-space character
 // does not end a sentence is a mid-sentence wrap. The fix reflows the
 // paragraph to one sentence per line.
 
@@ -67,9 +67,9 @@ const check: Rule["check"] = ({ doc, file }) =>
 
 const fix: Rule["fix"] = ({ doc, runs }) => {
   const edits: Edit[] = [];
-  // Interpunct runs stacked on several lines are a nested list PG009 either
+  // Interpunct runs stacked on several lines are a nested list list-stacked-interpunct-runs either
   // promotes or leaves for a human. Joining the lines would destroy the
-  // structure and hand PG006 a flat run it would merge wrongly.
+  // structure and hand list-interpunct-joined-run a flat run it would merge wrongly.
   const stacked = new Set(paragraphsOf(doc, runs.filter(isStacked)));
   for (const view of proseParagraphs(doc)) {
     // A hard break is structure the author chose, so the paragraph is left
@@ -90,7 +90,7 @@ const fix: Rule["fix"] = ({ doc, runs }) => {
   return edits;
 };
 
-export const pg001: Rule = {
+export const sentenceOnePerLine: Rule = {
   id: RULE.WRAP,
   category: "sentence",
   summary: "mid-sentence line wrap (one sentence per line)",

@@ -1,5 +1,5 @@
-// PG008: one sentence stringing 3+ comma-separated segments each led by a
-// label (an inline-code span, or an identifier like PG001 / MD025 / S4)
+// list-comma-labelled-run: one sentence stringing 3+ comma-separated segments each led by a
+// label (an inline-code span, or an identifier like sentence-one-per-line / MD025 / S4)
 // WITH content after it is a hidden list of labelled items. Bare labels
 // ("A, B, and C are interchangeable") are a subject enumeration, not a
 // list. An optional "Rules: " style intro on the first segment, and a
@@ -92,7 +92,7 @@ const fix: Rule["fix"] = ({ doc }) => {
   return edits;
 };
 
-export const pg008: Rule = {
+export const listCommaLabelledRun: Rule = {
   id: RULE.LABELLED_RUN,
   category: "list",
   summary: "comma-joined labelled run (3+ labelled segments)",

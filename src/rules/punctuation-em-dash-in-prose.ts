@@ -1,4 +1,4 @@
-// PG004: an em-dash in prose. Code is exempt by construction, since only
+// punctuation-em-dash-in-prose: an em-dash in prose. Code is exempt by construction, since only
 // text nodes are read. The fix is deliberately narrow: a pair of dashes
 // around an aside becomes parentheses, a lone dash becomes a colon, and
 // anything else stays reported for a human.
@@ -99,7 +99,7 @@ const replacementFor = (src: string, { dashes, hasColon }: Aside): string | null
   const closing = last(dashes);
 
   // A pair wraps an aside, so it becomes parentheses. An aside that reads as
-  // "(b)" would plant a PG007 marker and hide the word from the fingerprint.
+  // "(b)" would plant a list-inline-enumeration-markers marker and hide the word from the fingerprint.
   if (dashes.length === 2) {
     const inner = src.slice(opening.range[1], closing.range[0]);
     return MARKER_LIKE.test(inner.trim()) ? null : ` (${inner}) `;
@@ -146,7 +146,7 @@ const fix: Rule["fix"] = ({ doc }) =>
     .map((aside) => rewrite(doc.src, aside))
     .filter((edit): edit is Edit => edit !== null);
 
-export const pg004: Rule = {
+export const punctuationEmDashInProse: Rule = {
   id: RULE.EM_DASH,
   category: "punctuation",
   summary: "em-dash U+2014 in prose",

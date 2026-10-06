@@ -29,9 +29,9 @@ Nine rules in three categories.
 
 | Category | Rules | What it guards |
 |---|---|---|
-| Sentence | PG001, PG002 | How a sentence is laid out and how long it runs |
-| List | PG003, PG006, PG007, PG008, PG009 | A list hidden in running prose, promoted to a real markdown list |
-| Punctuation | PG004, PG005 | A glyph that reads as generated text |
+| Sentence | sentence-one-per-line, sentence-word-budget-exceeded | How a sentence is laid out and how long it runs |
+| List | list-semicolon-delimited-run, list-interpunct-joined-run, list-inline-enumeration-markers, list-comma-labelled-run, list-stacked-interpunct-runs | A list hidden in running prose, promoted to a real markdown list |
+| Punctuation | punctuation-em-dash-in-prose, punctuation-interpunct-in-prose | A glyph that reads as generated text |
 
 Every fix is verified before it is written.
 A fix that would change a word, url or code value is a bug and fails the run.

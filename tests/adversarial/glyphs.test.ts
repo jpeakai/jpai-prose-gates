@@ -1,10 +1,10 @@
-// PG004 and PG005 at the edges of what a punctuation swap can safely mean.
+// punctuation-em-dash-in-prose and punctuation-interpunct-in-prose at the edges of what a punctuation swap can safely mean.
 
 import { describe, expect, test } from "bun:test";
 import { fixMarkdown } from "../../src/index.ts";
 import { fixesTo, refuses } from "./harness.ts";
 
-describe("PG004 refuses", () => {
+describe("punctuation-em-dash-in-prose refuses", () => {
   test.each([
     ["a tight numeric range", "From 2020—2021 only.\n"],
     ["three dashes in a sentence", "A — b — c — d.\n"],
@@ -12,45 +12,53 @@ describe("PG004 refuses", () => {
     ["a dash touching strong emphasis", "**Bold** — text.\n"],
     ["a dash touching a link", "[link](u) — text.\n"],
     ["a bare dash paragraph", "—\n"],
-  ])("%s", (_, src) => refuses(src, "PG004"));
+  ])("%s", (_, src) => refuses(src, "punctuation-em-dash-in-prose"));
 });
 
-describe("PG004 fixes", () => {
+describe("punctuation-em-dash-in-prose fixes", () => {
   test("a pair containing a conjunction keeps it", () => {
-    fixesTo("The parser — and the lexer — work.\n", "The parser (and the lexer) work.\n", "PG004");
+    fixesTo(
+      "The parser — and the lexer — work.\n",
+      "The parser (and the lexer) work.\n",
+      "punctuation-em-dash-in-prose",
+    );
   });
 
   test("a pair inside parentheses nests", () => {
-    fixesTo("The (parser — fast — ok) works.\n", "The (parser (fast) ok) works.\n", "PG004");
+    fixesTo("The (parser — fast — ok) works.\n", "The (parser (fast) ok) works.\n", "punctuation-em-dash-in-prose");
   });
 
   test("a pair after a colon is allowed", () => {
-    fixesTo("Note: the parser — fast — works.\n", "Note: the parser (fast) works.\n", "PG004");
+    fixesTo("Note: the parser — fast — works.\n", "Note: the parser (fast) works.\n", "punctuation-em-dash-in-prose");
   });
 
   test("a pair inside emphasis", () => {
-    fixesTo("The _parser — fast_ works.\n", "The _parser: fast_ works.\n", "PG004");
+    fixesTo("The _parser — fast_ works.\n", "The _parser: fast_ works.\n", "punctuation-em-dash-in-prose");
   });
 
   test("each sentence is judged on its own", () => {
-    fixesTo("A — b. C — d.\n", "A: b.\nC: d.\n", "PG004");
+    fixesTo("A — b. C — d.\n", "A: b.\nC: d.\n", "punctuation-em-dash-in-prose");
   });
 
   test("tight dash between words", () => {
-    fixesTo("word—word here.\n", "word: word here.\n", "PG004");
+    fixesTo("word—word here.\n", "word: word here.\n", "punctuation-em-dash-in-prose");
   });
 
   test("tabs around the dash collapse", () => {
-    fixesTo("One thing matters\t—\tspeed.\n", "One thing matters: speed.\n", "PG004");
+    fixesTo("One thing matters\t—\tspeed.\n", "One thing matters: speed.\n", "punctuation-em-dash-in-prose");
   });
 
   test("setext and atx headings", () => {
-    fixesTo("Title — sub\n===========\n\nBody.\n", "Title: sub\n===========\n\nBody.\n", "PG004");
-    fixesTo("## Title — sub\n", "## Title: sub\n", "PG004");
+    fixesTo(
+      "Title — sub\n===========\n\nBody.\n",
+      "Title: sub\n===========\n\nBody.\n",
+      "punctuation-em-dash-in-prose",
+    );
+    fixesTo("## Title — sub\n", "## Title: sub\n", "punctuation-em-dash-in-prose");
   });
 
   test("inline html around the dash", () => {
-    fixesTo("Text <span>a — b</span> end.\n", "Text <span>a: b</span> end.\n", "PG004");
+    fixesTo("Text <span>a — b</span> end.\n", "Text <span>a: b</span> end.\n", "punctuation-em-dash-in-prose");
   });
 
   // Regression: two dashes inside one emphasis node are treated as a pair spanning
@@ -64,7 +72,7 @@ describe("PG004 fixes", () => {
   // Regression: a spaced numeric range is read as a single aside.
   // Actual: "From 2020: 2021 only." Expected: refusal like the tight range.
   test("a spaced numeric range is refused", () => {
-    refuses("From 2020 — 2021 only.\n", "PG004");
+    refuses("From 2020 — 2021 only.\n", "punctuation-em-dash-in-prose");
   });
 
   // Regression: only [ \t] is collapsed, so a no-break or zero-width space before
@@ -76,21 +84,21 @@ describe("PG004 fixes", () => {
   });
 });
 
-describe("PG005", () => {
+describe("punctuation-interpunct-in-prose", () => {
   test("a tight interpunct is refused", () => {
-    refuses("x·y is a product.\n", "PG005");
+    refuses("x·y is a product.\n", "punctuation-interpunct-in-prose");
   });
 
   test("a bare interpunct paragraph is refused", () => {
-    refuses("·\n", "PG005");
+    refuses("·\n", "punctuation-interpunct-in-prose");
   });
 
   test("a single spaced interpunct becomes a comma", () => {
-    fixesTo("Home · About\n", "Home, About\n", "PG005");
+    fixesTo("Home · About\n", "Home, About\n", "punctuation-interpunct-in-prose");
   });
 
   test("a two-separator heading takes commas, not a list", () => {
-    fixesTo("# Docs · API · Blog\n", "# Docs, API, Blog\n", "PG005");
+    fixesTo("# Docs · API · Blog\n", "# Docs, API, Blog\n", "punctuation-interpunct-in-prose");
   });
 
   test("dash and interpunct in one sentence both swap", () => {
@@ -98,7 +106,7 @@ describe("PG005", () => {
   });
 
   // Regression: a backslash before the glyph is literal text (neither glyph is
-  // escapable), and PG006 treats "\·" as a separator, strips "or" as a
+  // escapable), and list-interpunct-joined-run treats "\·" as a separator, strips "or" as a
   // conjunction and leaves a lone backslash item.
   // Actual: "Not a \\:\n\n- dash\n- \\\n- here\n". Expected: "or" survives.
   test("a backslash before a glyph does not cost a word", () => {

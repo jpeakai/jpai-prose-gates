@@ -1,4 +1,4 @@
-// PG002: sentences over the word budget are hard to unpack, especially for
+// sentence-word-budget-exceeded: sentences over the word budget are hard to unpack, especially for
 // ESL readers and translators. Never autofixed: shortening a sentence is a
 // rewrite, and a rewrite needs discretion. The message estimates the clauses
 // in the sentence so the rewrite splits it rather than compressing it.
@@ -37,7 +37,7 @@ const check: Rule["check"] = ({ doc, file, maxWords }) =>
     }));
 
 // No fixer: shortening a sentence changes its words, per PRS-0006.
-export const pg002: Rule = {
+export const sentenceWordBudgetExceeded: Rule = {
   id: RULE.LENGTH,
   category: "sentence",
   summary: "sentence longer than the word budget (default 25)",

@@ -1,4 +1,4 @@
-// PG007: parenthesised enumerators inlined in one paragraph are a hidden
+// list-inline-enumeration-markers: parenthesised enumerators inlined in one paragraph are a hidden
 // list. Requiring the first two members of a family keeps citations and a
 // lone "(a)" reference from firing. The fix only trusts a clean sequence:
 // every marker in order, none skipped, none from another family.
@@ -118,7 +118,7 @@ const fix: Rule["fix"] = ({ doc }) => {
   return edits;
 };
 
-export const pg007: Rule = {
+export const listInlineEnumerationMarkers: Rule = {
   id: RULE.INLINE_ENUM,
   category: "list",
   summary: "enumeration markers (a)/(b) or (1)/(2) inlined in prose",

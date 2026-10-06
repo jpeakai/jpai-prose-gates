@@ -1,5 +1,5 @@
-// PG005: a stray interpunct in prose. One inside a reported run is left to
-// PG006 or PG009. The fix swaps a spaced interpunct for a comma; a glyph
+// punctuation-interpunct-in-prose: a stray interpunct in prose. One inside a reported run is left to
+// list-interpunct-joined-run or list-stacked-interpunct-runs. The fix swaps a spaced interpunct for a comma; a glyph
 // with no space on either side (a product name, a unit) is left alone.
 
 import { GLYPH, INTERPUNCT } from "../interpunct.ts";
@@ -8,7 +8,7 @@ import { inRanges } from "../text.ts";
 import { type Edit, RULE, type Rule } from "./types.ts";
 
 // Only a separator reads as a comma: the spaces on both sides are what make
-// the glyph a joiner rather than part of a name. PG006 and PG009 split on a
+// the glyph a joiner rather than part of a name. list-interpunct-joined-run and list-stacked-interpunct-runs split on a
 // looser one, because a run has already proved itself a list.
 const SEPARATOR = /[ \t]+·[ \t]+/;
 
@@ -43,7 +43,7 @@ const fix: Rule["fix"] = ({ doc, runs }) => {
   return edits;
 };
 
-export const pg005: Rule = {
+export const punctuationInterpunctInProse: Rule = {
   id: RULE.INTERPUNCT,
   category: "punctuation",
   summary: "interpunct U+00B7 in prose",

@@ -95,10 +95,10 @@ describe("fix properties", () => {
     );
   });
 
-  test("never applies a PG002 fix", () => {
+  test("never applies a sentence-word-budget-exceeded fix", () => {
     fc.assert(
       fc.property(doc, (src) => {
-        expect(fixMarkdownReport(src).applied.some((a) => a.rule === "PG002")).toBe(false);
+        expect(fixMarkdownReport(src).applied.some((a) => a.rule === "sentence-word-budget-exceeded")).toBe(false);
       }),
       RUNS,
     );

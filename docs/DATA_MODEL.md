@@ -130,11 +130,11 @@ erDiagram
     PROMOTION ||--o| EDIT : "promote returns"
 
     RULE {
-        RuleId id "PG001 to PG009"
+        RuleId id "sentence-one-per-line to list-stacked-interpunct-runs"
         Category category "sentence, list or punctuation"
         string summary "one line, shown in help"
         function check "required"
-        function fix "absent for PG002"
+        function fix "absent for sentence-word-budget-exceeded"
     }
     RULE_CONTEXT {
         DocModel doc "the document model"
@@ -142,7 +142,7 @@ erDiagram
     }
     CHECK_CONTEXT {
         string file "reported path"
-        number maxWords "PG002 budget, default 25"
+        number maxWords "sentence-word-budget-exceeded budget, default 25"
     }
     INTERPUNCT_RUN {
         Range range "paragraph bounds"
@@ -176,7 +176,7 @@ erDiagram
     }
     PROMOTED_ITEM {
         string text "one bullet, sliced from source"
-        string children "nested bullets, PG009 only"
+        string children "nested bullets, list-stacked-interpunct-runs only"
     }
 
     %% Attribute rows alternate, and only the even ones take a classDef fill.
@@ -196,7 +196,7 @@ erDiagram
 `ruleContext` builds the shared half once per document, and both halves of every rule read it.
 A check adds the file it reports against and the sentence budget; a fix needs nothing more, so `FixContext` is `RuleContext`.
 An interpunct run is the one piece of derived data shared between rules.
-It is what lets PG005 stay quiet inside a run that PG006 or PG009 already reports.
+It is what lets punctuation-interpunct-in-prose stay quiet inside a run that list-interpunct-joined-run or list-stacked-interpunct-runs already reports.
 
 ## Check pipeline
 
@@ -243,9 +243,9 @@ flowchart TB
     end
 
     subgraph gates["Prose gates"]
-        SENT["Sentence<br/>PG001 PG002"]:::gate
-        LIST["List<br/>PG003 PG006 PG007 PG008 PG009"]:::gate
-        PUNC["Punctuation<br/>PG004 PG005"]:::gate
+        SENT["Sentence<br/>sentence-one-per-line sentence-word-budget-exceeded"]:::gate
+        LIST["List<br/>list-semicolon-delimited-run list-interpunct-joined-run list-inline-enumeration-markers list-comma-labelled-run list-stacked-interpunct-runs"]:::gate
+        PUNC["Punctuation<br/>punctuation-em-dash-in-prose punctuation-interpunct-in-prose"]:::gate
     end
 
     RECUR["checkModel on the fence body"]:::gate
@@ -372,9 +372,9 @@ A mismatch means a context the fixer could not see, so the edit is refused and t
 
 | Expectation | Claim | Comparison | Used by |
 |---|---|---|---|
-| `same-tree` | Whitespace moved and nothing else | Trees equal once text whitespace is collapsed | PG001 |
-| `same-shape` | Glyphs swapped inside text | Trees equal once every text value is blanked | PG004, PG005 |
-| `replace-paragraph` | One paragraph became a lead-in and a list | Fragment has the declared shape, and swapping it into the old tree reproduces the new tree | PG003, PG006, PG007, PG008, PG009 |
+| `same-tree` | Whitespace moved and nothing else | Trees equal once text whitespace is collapsed | sentence-one-per-line |
+| `same-shape` | Glyphs swapped inside text | Trees equal once every text value is blanked | punctuation-em-dash-in-prose, punctuation-interpunct-in-prose |
+| `replace-paragraph` | One paragraph became a lead-in and a list | Fragment has the declared shape, and swapping it into the old tree reproduces the new tree | list-semicolon-delimited-run, list-interpunct-joined-run, list-inline-enumeration-markers, list-comma-labelled-run, list-stacked-interpunct-runs |
 
 ## Fix order
 
@@ -383,14 +383,14 @@ A promotion needs the separators a glyph swap would erase, and reflow only makes
 
 ```mermaid
 flowchart LR
-    P9["PG009<br/>stacked runs"]:::list
-    P7["PG007<br/>inline enum"]:::list
-    P8["PG008<br/>labelled run"]:::list
-    P6["PG006<br/>interpunct run"]:::list
-    P3["PG003<br/>semicolon list"]:::list
-    P5["PG005<br/>interpunct"]:::punc
-    P4["PG004<br/>em dash"]:::punc
-    P1["PG001<br/>reflow"]:::sent
+    P9["list-stacked-interpunct-runs<br/>stacked runs"]:::list
+    P7["list-inline-enumeration-markers<br/>inline enum"]:::list
+    P8["list-comma-labelled-run<br/>labelled run"]:::list
+    P6["list-interpunct-joined-run<br/>interpunct run"]:::list
+    P3["list-semicolon-delimited-run<br/>semicolon list"]:::list
+    P5["punctuation-interpunct-in-prose<br/>interpunct"]:::punc
+    P4["punctuation-em-dash-in-prose<br/>em dash"]:::punc
+    P1["sentence-one-per-line<br/>reflow"]:::sent
 
     P9 --> P7 --> P8 --> P6 --> P3 --> P5 --> P4 --> P1
 
@@ -401,7 +401,7 @@ flowchart LR
 
 *`FIX_ORDER` in `src/rules/index.ts`.* | 8 nodes, VCS 11.5
 
-PG002 has no fixer.
+sentence-word-budget-exceeded has no fixer.
 Shortening a sentence changes its words, and that needs discretion.
 
 The five list gates share one fixer helper, `promote`, in `src/fix/promote.ts`.
@@ -411,11 +411,11 @@ Item text is sliced from the source and never re-serialised, so links, emphasis,
 ```mermaid
 flowchart LR
     subgraph gates["List gates"]
-        G3["PG003"]:::gate
-        G6["PG006"]:::gate
-        G7["PG007"]:::gate
-        G8["PG008"]:::gate
-        G9["PG009"]:::gate
+        G3["list-semicolon-delimited-run"]:::gate
+        G6["list-interpunct-joined-run"]:::gate
+        G7["list-inline-enumeration-markers"]:::gate
+        G8["list-comma-labelled-run"]:::gate
+        G9["list-stacked-interpunct-runs"]:::gate
     end
     PROM["promote<br/>lead-in plus items"]:::build
     GUARD{"safe to promote?"}:::decide
@@ -527,10 +527,10 @@ The layers below import strictly downwards, so `text.ts` names no markdown conce
 | `sentenceSpans` | `query.ts` | Every sentence of a paragraph, as source offsets |
 | `colonsIn` | `query.ts` | The colons of a paragraph as ranges, or null when one cannot be trusted |
 | `colonsBefore` | `query.ts` | The colons that could announce a list, for the rule to take the outermost or the innermost |
-| `interpunctRuns` | `interpunct.ts` | The shared run data behind PG005, PG006 and PG009 |
-| `isFlat`, `isStacked` | `interpunct.ts` | Partitioning runs into the flat ones PG006 owns and the stacked ones PG009 owns |
+| `interpunctRuns` | `interpunct.ts` | The shared run data behind punctuation-interpunct-in-prose, list-interpunct-joined-run and list-stacked-interpunct-runs |
+| `isFlat`, `isStacked` | `interpunct.ts` | Partitioning runs into the flat ones list-interpunct-joined-run owns and the stacked ones list-stacked-interpunct-runs owns |
 | `paragraphsOf` | `interpunct.ts` | Getting from the runs a rule was handed back to the views its fixer needs |
-| `RUN_SEPARATOR`, `GLYPH` | `interpunct.ts` | Splitting and counting a run the same way in PG006 and PG009 |
+| `RUN_SEPARATOR`, `GLYPH` | `interpunct.ts` | Splitting and counting a run the same way in list-interpunct-joined-run and list-stacked-interpunct-runs |
 | `promote` | `fix/promote.ts` | Turning a span into a lead-in and a real markdown list |
 | `cleanItem` | `fix/promote.ts` | Trimming a trailing separator or a joining conjunction off one item |
 | `itemsOf` | `fix/promote.ts` | A run of source spans as cleaned item text, in document order |

@@ -20,6 +20,7 @@
 | [PRS-0014](0014-main-changes-only-through-pull-requests.md) | Main changes only through pull requests, and releases run only from main | accepted |
 | [PRS-0015](0015-a-rule-reads-one-shared-context.md) | A check and a fix both read one context built once per document | accepted |
 | [PRS-0016](0016-modules-group-by-what-a-function-takes.md) | A module groups functions by what they take, not by who calls them | accepted |
+| [PRS-0017](0017-rule-ids-are-category-and-short-name.md) | A rule id is its category followed by a short name | accepted |
 # By group
 
 ## architecture
@@ -51,6 +52,7 @@
 * [PRS-0007](0007-em-dash-becomes-parentheses-or-colon.md) - PG004 rewrites only the two dash patterns whose replacement punctuation is unambiguous
 * [PRS-0010](0010-length-findings-guide-a-split.md) - PG002 reports potential clauses and a target sentence count, steering a rewrite away from compression
 * [PRS-0011](0011-rules-carry-a-category.md) - Rules are tagged sentence, list or punctuation, and their documented examples run through the real fixer
+* [PRS-0017](0017-rule-ids-are-category-and-short-name.md) - Rules are named category-short-name, such as sentence-one-per-line, instead of by a number
 ## testing
 
 * [PRS-0009](0009-adversarial-and-property-tests-gate-fixes.md) - Fix behaviour is proven by exact fixtures, hostile inputs and generated documents, all without mocks
@@ -77,10 +79,12 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0008 --extended_by--> PRS-0011
 * PRS-0008 --depended_on_by--> PRS-0015
 * PRS-0008 --depended_on_by--> PRS-0016
+* PRS-0008 --extended_by--> PRS-0017
 * PRS-0009 --tests--> PRS-0004
 * PRS-0009 --tests--> PRS-0005
 * PRS-0010 --extends--> PRS-0006
 * PRS-0011 --extends--> PRS-0008
+* PRS-0011 --extended_by--> PRS-0017
 * PRS-0012 --depends_on--> PRS-0001
 * PRS-0012 --depended_on_by--> PRS-0013
 * PRS-0013 --depends_on--> PRS-0012
@@ -91,3 +95,5 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0015 --depended_on_by--> PRS-0016
 * PRS-0016 --depends_on--> PRS-0015
 * PRS-0016 --depends_on--> PRS-0008
+* PRS-0017 --extends--> PRS-0008
+* PRS-0017 --extends--> PRS-0011

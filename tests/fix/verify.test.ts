@@ -9,28 +9,46 @@ describe("verify", () => {
   test("a fixer that drops a word throws, it is never silently refused", () => {
     const src = "Keep every word here.\n";
     const doc = buildDocModel(src);
-    const edit: Edit = { rule: "PG004", start: 5, end: 11, text: "", expect: { kind: "same-shape" } };
+    const edit: Edit = {
+      rule: "punctuation-em-dash-in-prose",
+      start: 5,
+      end: 11,
+      text: "",
+      expect: { kind: "same-shape" },
+    };
     expect(() => verify(edit, { src, tree: doc.tree }, parse(apply(src, edit)))).toThrow(FixInvariantError);
   });
 
   test("the error names the diverging word", () => {
     const src = "alpha beta gamma.\n";
     const doc = buildDocModel(src);
-    const edit: Edit = { rule: "PG005", start: 6, end: 10, text: "BETA", expect: { kind: "same-shape" } };
+    const edit: Edit = {
+      rule: "punctuation-interpunct-in-prose",
+      start: 6,
+      end: 10,
+      text: "BETA",
+      expect: { kind: "same-shape" },
+    };
     expect(() => verify(edit, { src, tree: doc.tree }, parse(apply(src, edit)))).toThrow(/word 1 was "beta"/);
   });
 
   test("a whitespace edit that changes structure is refused", () => {
     const src = "Para one\npara two.\n";
     const doc = buildDocModel(src);
-    const edit: Edit = { rule: "PG001", start: 8, end: 9, text: "\n\n", expect: { kind: "same-tree" } };
+    const edit: Edit = { rule: "sentence-one-per-line", start: 8, end: 9, text: "\n\n", expect: { kind: "same-tree" } };
     expect(verify(edit, { src, tree: doc.tree }, parse(apply(src, edit)))).toBe("refuse");
   });
 
   test("a glyph edit that creates emphasis is refused", () => {
     const src = "a · b*\n";
     const doc = buildDocModel(src);
-    const edit: Edit = { rule: "PG005", start: 1, end: 4, text: " *", expect: { kind: "same-shape" } };
+    const edit: Edit = {
+      rule: "punctuation-interpunct-in-prose",
+      start: 1,
+      end: 4,
+      text: " *",
+      expect: { kind: "same-shape" },
+    };
     const after = parse(apply(src, edit));
     expect(fingerprint(after)).toEqual(fingerprint(doc.tree));
     expect(verify(edit, { src, tree: doc.tree }, after)).toBe("refuse");
@@ -43,7 +61,7 @@ describe("verify", () => {
     if (!view) throw new Error("expected a paragraph");
     const text = "Items:\n\n- a\n- b\n\n# c\n";
     const edit: Edit = {
-      rule: "PG003",
+      rule: "list-semicolon-delimited-run",
       start: 0,
       end: src.length - 1,
       text,

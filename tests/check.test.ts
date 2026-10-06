@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import { checkMarkdown, fixMarkdown } from "../src/index.ts";
-import { countClauses, lengthMessage } from "../src/rules/pg002-length.ts";
+import { countClauses, lengthMessage } from "../src/rules/sentence-word-budget-exceeded.ts";
 import { rules } from "./helpers.ts";
 
-describe("PG001 mid-sentence line wrap", () => {
+describe("sentence-one-per-line mid-sentence line wrap", () => {
   test("flags a sentence wrapped across lines", () => {
-    expect(rules("This sentence continues on\nthe next line for no reason.\n")).toContain("PG001");
+    expect(rules("This sentence continues on\nthe next line for no reason.\n")).toContain("sentence-one-per-line");
   });
 
   test("accepts one sentence per line", () => {
@@ -23,20 +23,20 @@ describe("PG001 mid-sentence line wrap", () => {
   });
 });
 
-describe("PG002 sentence word budget", () => {
+describe("sentence-word-budget-exceeded sentence word budget", () => {
   test("flags a sentence over 25 words", () => {
     const long = `${Array.from({ length: 30 }, (_, i) => `word${i}`).join(" ")}.`;
-    expect(rules(`${long}\n`)).toContain("PG002");
+    expect(rules(`${long}\n`)).toContain("sentence-word-budget-exceeded");
   });
 
   test("respects a custom budget", () => {
-    expect(rules("One two three four five six seven eight.\n", 5)).toContain("PG002");
+    expect(rules("One two three four five six seven eight.\n", 5)).toContain("sentence-word-budget-exceeded");
   });
 
   test("counts inline code as one word", () => {
     const words = Array.from({ length: 20 }, (_, i) => `w${i}`).join(" ");
     const found = rules(`${words} \`a very long inline code span with many words inside it\`.\n`);
-    expect(found.filter((r) => r === "PG002")).toHaveLength(0);
+    expect(found.filter((r) => r === "sentence-word-budget-exceeded")).toHaveLength(0);
   });
 
   test.each([
@@ -69,29 +69,31 @@ describe("PG002 sentence word budget", () => {
   });
 });
 
-describe("PG003 semicolon lists", () => {
+describe("list-semicolon-delimited-run semicolon lists", () => {
   test("flags two or more semicolons in one sentence", () => {
-    expect(rules("We ship parsing; then linting; then fixing.\n")).toContain("PG003");
+    expect(rules("We ship parsing; then linting; then fixing.\n")).toContain("list-semicolon-delimited-run");
   });
 
   test("allows a single joining semicolon", () => {
-    expect(rules("The cache is warm; queries are fast.\n").filter((r) => r === "PG003")).toHaveLength(0);
+    expect(
+      rules("The cache is warm; queries are fast.\n").filter((r) => r === "list-semicolon-delimited-run"),
+    ).toHaveLength(0);
   });
 });
 
-describe("PG004/PG005 glyph tells", () => {
+describe("punctuation-em-dash-in-prose/punctuation-interpunct-in-prose glyph tells", () => {
   test("flags em-dash and interpunct in prose but not in code", () => {
     const found = rules("A tell — right here.\n\nAlso a · dot.\n\n```\ncode — with · glyphs\n```\n");
-    expect(found).toContain("PG004");
-    expect(found).toContain("PG005");
+    expect(found).toContain("punctuation-em-dash-in-prose");
+    expect(found).toContain("punctuation-interpunct-in-prose");
     expect(found).toHaveLength(2);
   });
 });
 
-describe("PG006 interpunct-joined inline list", () => {
-  test("flags a separator run as one disguised list, not per-glyph PG005 spam", () => {
+describe("list-interpunct-joined-run interpunct-joined inline list", () => {
+  test("flags a separator run as one disguised list, not per-glyph punctuation-interpunct-in-prose spam", () => {
     const found = rules("[a](https://a) · [b](https://b) · [c](https://c) · plain d\n");
-    expect(found).toEqual(["PG006"]);
+    expect(found).toEqual(["list-interpunct-joined-run"]);
   });
 
   test("counts the items in the message", () => {
@@ -99,38 +101,40 @@ describe("PG006 interpunct-joined inline list", () => {
     expect(findings[0]?.message).toContain("4 items");
   });
 
-  test("a single stray interpunct stays PG005", () => {
-    expect(rules("A stray · here.\n")).toEqual(["PG005"]);
+  test("a single stray interpunct stays punctuation-interpunct-in-prose", () => {
+    expect(rules("A stray · here.\n")).toEqual(["punctuation-interpunct-in-prose"]);
   });
 });
 
-describe("PG007 inline enumeration", () => {
+describe("list-inline-enumeration-markers inline enumeration", () => {
   test("flags (a)/(b) enumerators inlined in one paragraph", () => {
     const src = "Two duties: (a) *name things* using canonical terms; (b) *keep it current* in the same change.\n";
-    expect(rules(src)).toContain("PG007");
+    expect(rules(src)).toContain("list-inline-enumeration-markers");
   });
 
   test("flags numeric (1)/(2) families", () => {
-    expect(rules("Steps: (1) parse the file and (2) emit findings.\n")).toContain("PG007");
+    expect(rules("Steps: (1) parse the file and (2) emit findings.\n")).toContain("list-inline-enumeration-markers");
   });
 
   test("a lone (a) back-reference does not fire", () => {
-    expect(rules("See item (a) above.\n").filter((r) => r === "PG007")).toHaveLength(0);
+    expect(rules("See item (a) above.\n").filter((r) => r === "list-inline-enumeration-markers")).toHaveLength(0);
   });
 
   test("enumerators inside code are exempt", () => {
-    expect(rules("Run `f((a), (b))` here.\n").filter((r) => r === "PG007")).toHaveLength(0);
+    expect(rules("Run `f((a), (b))` here.\n").filter((r) => r === "list-inline-enumeration-markers")).toHaveLength(0);
   });
 });
 
-describe("PG008 comma-joined labelled run", () => {
+describe("list-comma-labelled-run comma-joined labelled run", () => {
   test("flags a sentence of 3+ comma-joined labelled items", () => {
     const src = "Rules: PG001 mid-sentence wrap, PG002 word budget, PG003 semicolon list, PG004 em-dash tell.\n";
-    expect(rules(src)).toContain("PG008");
+    expect(rules(src)).toContain("list-comma-labelled-run");
   });
 
   test("counts inline-code labels too", () => {
-    expect(rules("Targets: `fmt` formats, `vet` inspects, `race` detects data races.\n")).toContain("PG008");
+    expect(rules("Targets: `fmt` formats, `vet` inspects, `race` detects data races.\n")).toContain(
+      "list-comma-labelled-run",
+    );
   });
 
   test("plain comma prose without labels does not fire", () => {
@@ -138,26 +142,30 @@ describe("PG008 comma-joined labelled run", () => {
   });
 
   test("two labelled segments stay under the threshold", () => {
-    expect(rules("Use PG001 for wraps, PG002 for budgets.\n").filter((r) => r === "PG008")).toHaveLength(0);
+    expect(
+      rules("Use sentence-one-per-line for wraps, sentence-word-budget-exceeded for budgets.\n").filter(
+        (r) => r === "list-comma-labelled-run",
+      ),
+    ).toHaveLength(0);
   });
 
   test("a bare-label subject enumeration does not fire", () => {
     const src = "The files `README.md`, `AGENTS.md`, and `CLAUDE.md` serve one role together.\n";
-    expect(rules(src).filter((r) => r === "PG008")).toHaveLength(0);
+    expect(rules(src).filter((r) => r === "list-comma-labelled-run")).toHaveLength(0);
   });
 });
 
-describe("PG009 stacked interpunct runs", () => {
-  test("runs stacked across lines replace PG006 and ask for a nested list", () => {
+describe("list-stacked-interpunct-runs stacked interpunct runs", () => {
+  test("runs stacked across lines replace list-interpunct-joined-run and ask for a nested list", () => {
     const src =
       "Group A: [a](https://a) · [b](https://b) · [c](https://c).\nGroup B: [d](https://d) · [e](https://e) · [f](https://f).\n";
     const findings = checkMarkdown(src, "doc.md");
-    expect(findings.map((f) => f.rule)).toEqual(["PG009"]);
+    expect(findings.map((f) => f.rule)).toEqual(["list-stacked-interpunct-runs"]);
     expect(findings[0]?.message).toContain("nested list");
   });
 
-  test("a single-line run stays PG006", () => {
-    expect(rules("[a](https://a) · [b](https://b) · [c](https://c)\n")).toEqual(["PG006"]);
+  test("a single-line run stays list-interpunct-joined-run", () => {
+    expect(rules("[a](https://a) · [b](https://b) · [c](https://c)\n")).toEqual(["list-interpunct-joined-run"]);
   });
 });
 
@@ -166,7 +174,7 @@ describe("embedded markdown fences", () => {
     const src = "Intro sentence.\n\n```markdown\nA wrapped sentence goes\nonward here.\n```\n";
     const findings = checkMarkdown(src, "doc.md");
     expect(findings).toHaveLength(1);
-    expect(findings[0]?.rule).toBe("PG001");
+    expect(findings[0]?.rule).toBe("sentence-one-per-line");
     expect(findings[0]?.line).toBe(4);
   });
 
@@ -209,7 +217,7 @@ Body prose stays audited.
 
   test("still audits the body beneath frontmatter", () => {
     const findings = checkMarkdown(`${record}\nA sentence that wraps\nacross two lines.\n`, "doc.md");
-    expect(findings.map((f) => f.rule)).toContain("PG001");
+    expect(findings.map((f) => f.rule)).toContain("sentence-one-per-line");
   });
 
   test("reports body line numbers past the frontmatter block", () => {
@@ -225,7 +233,7 @@ Body prose stays audited.
   test("a mid-document thematic break is still not frontmatter", () => {
     // Only a block at the very start is frontmatter; `---` later in the file
     // must keep its normal meaning.
-    expect(rules("Intro line.\n\n---\n\nA sentence that wraps\nacross lines.\n")).toContain("PG001");
+    expect(rules("Intro line.\n\n---\n\nA sentence that wraps\nacross lines.\n")).toContain("sentence-one-per-line");
   });
 
   test("does not swallow a setext heading", () => {

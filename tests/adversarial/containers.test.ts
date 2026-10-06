@@ -17,15 +17,19 @@ describe("code is never rewritten", () => {
   ])("%s", (_, src) => refuses(src));
 
   test("a separator inside a code span travels whole into its item", () => {
-    fixesTo("Tools: `a · b` · c · d.\n", "Tools:\n\n- `a · b`\n- c\n- d\n", "PG006");
+    fixesTo("Tools: `a · b` · c · d.\n", "Tools:\n\n- `a · b`\n- c\n- d\n", "list-interpunct-joined-run");
   });
 
   test("a url containing a dash is left alone while the link text is fixed", () => {
-    fixesTo("See [a — b](https://x.example/a—b) now.\n", "See [a: b](https://x.example/a—b) now.\n", "PG004");
+    fixesTo(
+      "See [a — b](https://x.example/a—b) now.\n",
+      "See [a: b](https://x.example/a—b) now.\n",
+      "punctuation-em-dash-in-prose",
+    );
   });
 
   test("a separator inside link text blocks the run", () => {
-    refuses("Links: [a · b](u) · c · d.\n", "PG006");
+    refuses("Links: [a · b](u) · c · d.\n", "list-interpunct-joined-run");
   });
 
   test("an interpunct in an autolink url is not touched", () => {
@@ -33,21 +37,25 @@ describe("code is never rewritten", () => {
   });
 
   test("entities are reported but never decoded", () => {
-    refuses("An &mdash; entity &middot; here.\n", "PG004");
+    refuses("An &mdash; entity &middot; here.\n", "punctuation-em-dash-in-prose");
   });
 });
 
 describe("block containers", () => {
   test("a wrap inside a blockquote is refused", () => {
-    refuses("> A wrapped sentence goes\n> onward here.\n", "PG001");
+    refuses("> A wrapped sentence goes\n> onward here.\n", "sentence-one-per-line");
   });
 
   test("a lazy continuation line is refused", () => {
-    refuses("> Quote starts here and\ncontinues lazily.\n", "PG001");
+    refuses("> Quote starts here and\ncontinues lazily.\n", "sentence-one-per-line");
   });
 
   test("glyph swaps inside a blockquote keep the quote", () => {
-    fixesTo("> The parser — which is fast — handles this.\n", "> The parser (which is fast) handles this.\n", "PG004");
+    fixesTo(
+      "> The parser — which is fast — handles this.\n",
+      "> The parser (which is fast) handles this.\n",
+      "punctuation-em-dash-in-prose",
+    );
   });
 
   test("table cells take glyph swaps without breaking the table", () => {
@@ -59,14 +67,18 @@ describe("block containers", () => {
   });
 
   test("a footnote reference travels with its item", () => {
-    fixesTo("Needs: a[^1]; b; c.\n\n[^1]: n.\n", "Needs:\n\n- a[^1]\n- b\n- c\n\n[^1]: n.\n", "PG003");
+    fixesTo(
+      "Needs: a[^1]; b; c.\n\n[^1]: n.\n",
+      "Needs:\n\n- a[^1]\n- b\n- c\n\n[^1]: n.\n",
+      "list-semicolon-delimited-run",
+    );
   });
 
   test("a reference link keeps resolving after promotion", () => {
     fixesTo(
       "Items: [a] · b · c.\n\n[a]: https://x.example 'T — t'\n",
       "Items:\n\n- [a]\n- b\n- c\n\n[a]: https://x.example 'T — t'\n",
-      "PG006",
+      "list-interpunct-joined-run",
     );
   });
 
@@ -81,7 +93,7 @@ describe("block containers", () => {
     fixesTo(
       "- Rules: `A` wraps, `B` counts, `C` finds.\n",
       "- Rules:\n  - `A` wraps\n  - `B` counts\n  - `C` finds\n",
-      "PG008",
+      "list-comma-labelled-run",
     );
   });
 });

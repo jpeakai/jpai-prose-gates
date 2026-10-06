@@ -25,6 +25,7 @@ generated: { by: human:maintainer, at: 2026-10-06T00:00:00Z }
 - Depends on [PRS-0017](0017-rule-ids-are-category-and-short-name.md) (a config names a rule by its category-short-name id, and a retired PG id is an unknown id)
 - Depended on by [PRS-0019](0019-plugin-contract-and-namespace.md) (plugin rules are switched off and given options through the same file)
 - Depended on by [PRS-0022](0022-plugins-load-automatically.md) (the config can list extra plugins or turn all of them off)
+- Depended on by [PRS-0024](0024-failures-are-named-errors-with-codes.md) (the config failures it raises are named errors with codes)
 
 ## Problem
 

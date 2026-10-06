@@ -13,7 +13,10 @@ The decisions behind it are [PRS-0019](../adrs/0019-plugin-contract-and-namespac
 - [A plugin package](#a-plugin-package)
 - [Configuring a rule](#configuring-a-rule)
 - [Testing a rule](#testing-a-rule)
+- [TypeScript rules](#typescript-rules)
 - [When a load fails](#when-a-load-fails)
+- [Strict, lenient and validated loading](#strict-lenient-and-validated-loading)
+- [Config errors](#config-errors)
 - [Trust](#trust)
 
 ## A local rule in one file
@@ -52,7 +55,8 @@ A check receives one context object.
 | `runs` and `reported` | The interpunct runs, and the ones an enabled rule reports |
 
 A paragraph view has `raw`, `line`, `startOffset`, `endOffset` and `prose`, with code spans already removed from `prose`.
-[docs/DATA_MODEL.md](DATA_MODEL.md) describes every view.
+[docs/engines.md](engines.md) shows what each view holds at every point of a check and a fix.
+[docs/DATA_MODEL.md](DATA_MODEL.md) is the full reference for the model.
 
 ## Findings and fixes
 
@@ -193,19 +197,93 @@ test("flags a long description", () => {
 `fixRule` returns the fixed text and what was applied or refused, and a fixer that loses a word throws as it would in a run.
 Test against real strings and files, and never with a mock.
 
+## TypeScript rules
+
+A local rule may be a `.ts` or `.mts` file, such as `.prose-gates/rules/frontmatter-description-sentence-length.ts`.
+It is imported as it is, so the runtime has to be able to import TypeScript.
+
+| Runtime | Works |
+|---|---|
+| Bun, including `bunx --bun @jpeakai/prose-gates` | Yes |
+| Node 22.18 or newer, which strips types by default | Yes |
+| Node 22.6 to 22.17 with `--experimental-strip-types` | Yes |
+| Node 20, or an older Node without the flag | No, and the error says how to fix it |
+
+`bunx` runs a package's own shebang, which is `node`, so a plain `bunx @jpeakai/prose-gates` uses Node.
+Add `--bun` to run it under Bun, or use a recent Node.
+Node strips types and does not check or transform them, so write erasable syntax only, with no enums and no parameter properties.
+
+A `.cts` file is refused, because the loader imports modules.
+A `.d.ts` file is ignored, so a declaration file can sit beside the rules.
+
 ## When a load fails
 
-Every failure names the source and the reason and stops the run with exit code 1.
-Nothing is skipped, because a rule that quietly did not run looks the same as a clean document.
+Every failure is a named error with a stable code, the source, and the reason.
+By default it stops the run with exit code 1, because a rule that quietly did not run looks the same as a clean document.
 
-| Cause | What the message says |
-|---|---|
-| A declared plugin is not installed | The package name, and that it is declared or listed but not installed |
-| A `.ts` file in `.prose-gates/rules` | That a local rule is a `.js` or `.mjs` file |
-| A rule key without its category first | That it must start with its category |
-| A new category the plugin did not declare | The category and that it is missing from `meta.categories` |
-| Two plugins with one namespace or category | Both sources |
-| A different `apiVersion` | The plugin's number and the one supported |
+```text
+error[plugin-contract]: plugin .prose-gates/rules/no-todo.mjs: rule "no-todo" must start with its category, as "sentence-short-name"
+```
+
+| Code | Class | Cause |
+|---|---|---|
+| `plugin-not-installed` | `PluginNotInstalledError` | A declared or listed package is not installed |
+| `plugin-import` | `PluginImportError` | The module threw, or could not be found, when imported |
+| `plugin-contract` | `PluginContractError` | The shape, version, namespace, category or a rule's declaration is wrong |
+| `plugin-conflict` | `PluginConflictError` | Two plugins use one namespace or declare one new category |
+| `plugin-source` | `PluginSourceError` | A `.cts` file, or TypeScript on a runtime that cannot import it |
+| `plugin-fixer` | `PluginFixerError` | A fixer threw or returned something that is not a list of edits |
+
+Every class extends `PluginLoadError`, except `PluginFixerError`, which is raised while a run is in progress.
+Each carries the fields a tool needs, such as `source`, `other` or `rule`.
+
+## Strict, lenient and validated loading
+
+Strict is the default.
+Two options change it, and both stay loud.
+
+- **`--lenient-plugins`.** A plugin that fails to load is left out, one stderr line names it with its code, and the rest still run.
+- **`"pluginLoading": "lenient"`.** The same, set in the config.
+- **`--validate-plugins`.** Every plugin is loaded and checked, every failure is reported together, and no check or fix runs.
+
+```text
+prose-gates: skipped plugin .prose-gates/rules/no-prefix.mjs [plugin-contract]: rule "no-prefix" must start with its category
+```
+
+A lenient run exits 1 if a document has findings and 0 if it is clean, whatever it skipped.
+A config setting for a rule of a skipped plugin is dropped, with a line saying so.
+A typo in a built-in id still fails.
+When two plugins clash, the first keeps the namespace and the later one is skipped.
+
+`--validate-plugins` exits 0 when every source is valid and 1 when any fails.
+It also fails with exit 2 on a config problem, so it checks the whole setup.
+It takes no files, and no `--fix`, `--no-plugins` or `--list-rules`.
+Use `--json` for the same result as data, with `valid`, `plugins` and `failures`.
+
+```text
+prose-gates: plugin validation failed, 2 of 3 sources
+  [plugin-contract] .prose-gates/rules/no-prefix.mjs: rule "no-prefix" must start with its category, as "sentence-short-name"
+  [plugin-not-installed] prose-gates-plugin-acme: is declared or listed but not installed; looked from /repo upward. Install it, or remove it
+```
+
+## Config errors
+
+A mistake in the config is a usage error with exit code 2.
+Each has its own class and code, so a wrapper can branch on the type.
+
+| Code | Class | Cause |
+|---|---|---|
+| `config-file` | `ConfigFileError` | The file is not valid JSON, threw when imported, or is not `.json` or `.mjs` |
+| `config-not-found` | `ConfigNotFoundError` | `--config` names a file that is not there |
+| `config-ambiguous` | `AmbiguousConfigError` | Both `.json` and `.mjs` exist at one root |
+| `config-shape` | `ConfigShapeError` | An unknown key, or `plugins`, `pluginLoading` or `rules` of the wrong type |
+| `rule-setting` | `RuleSettingError` | A rule's setting is not a severity, or a severity and options |
+| `unknown-rule` | `UnknownRuleError` | A rule id that matches no loaded rule, including a retired `PG` id |
+| `rule-option` | `RuleOptionError` | An option the rule does not take, of the wrong type, or out of range |
+| `flag` | `FlagError` | A flag that is missing, contradicts another, or has a bad value |
+
+All of them extend `UsageError`.
+`import { UnknownRuleError } from "@jpeakai/prose-gates"` gives every class, and each has a `code` property.
 
 ## Trust
 
@@ -217,4 +295,5 @@ prose-gates: loaded local (1 rule), acme (2 rules)
 ```
 
 Run `prose-gates --no-plugins` on a repository you do not trust.
+Lenient loading skips a failing plugin, but it still runs every plugin that loads, so it is not a safety option.
 It runs the built-in rules only and prints what it skipped.

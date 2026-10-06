@@ -25,6 +25,8 @@ generated: { by: human:maintainer, at: 2026-10-06T00:00:00Z }
 - Depends on [PRS-0021](0021-plugins-declare-their-categories.md) (a local file declares its category by exporting it)
 - Depends on [PRS-0018](0018-config-file-and-rule-control.md) (the config can list extra plugins or switch them all off)
 - Depends on [PRS-0012](0012-node-runs-a-published-bundle.md) (the loader runs under the Node bundle and uses no Bun global)
+- Extended by [PRS-0025](0025-plugin-loading-strictness.md) (a skip is now an explicit, reported choice rather than never allowed)
+- Depended on by [PRS-0026](0026-typescript-local-rules-need-a-runtime-that-imports-them.md) (a local file may be TypeScript where the runtime can import it)
 
 ## Problem
 

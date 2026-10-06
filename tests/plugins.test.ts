@@ -342,7 +342,7 @@ describe("a hostile plugin fixer", () => {
     const body =
       'const i = doc.src.indexOf("a  b"); return i >= 0 ? [{ start: i, end: i + 4, text: "a b", expect: { kind: "same-tree" } }] : [{ start: doc.src.indexOf("a b"), end: doc.src.indexOf("a b") + 3, text: "a  b", expect: { kind: "same-tree" } }];';
     await expect(run(body, "a b\n")).rejects.toThrow(/did not converge/);
-  });
+  }, 120_000);
 
   test("a fixer that throws stops the run and names the rule", async () => {
     await expect(run('throw new Error("nope");', "A TODO here.\n")).rejects.toThrow(

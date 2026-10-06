@@ -20,7 +20,8 @@ Installed as a dev dependency, the command is `prose-gates`, and `--json` gives 
 
 `--max-words N` changes the sentence budget, which defaults to 25.
 `--config FILE` reads a config other than the one at the project root.
-`--no-plugins` runs the built-in rules only.
+`--no-plugins` runs the built-in rules only, and `--lenient-plugins` skips a plugin that fails to load and says so.
+`--validate-plugins` loads and checks every plugin, reports every failure, and runs no check or fix.
 `--list-rules` prints every active rule by category, including plugin rules.
 Exit codes are 0 for clean, 1 for findings, and 2 for a usage error.
 
@@ -49,7 +50,7 @@ Fences tagged `markdown` or `md` are the exception, since they hold templates wh
 A project adds its own rules without forking this package.
 Both sources load on their own, with no config, and every run prints a line saying what it loaded.
 
-- **Local rules.** A `.js` or `.mjs` file in `.prose-gates/rules/` exports one rule, and its id is `local/` followed by the file name.
+- **Local rules.** A `.js`, `.mjs`, `.ts` or `.mts` file in `.prose-gates/rules/` exports one rule, and its id is `local/` followed by the file name. TypeScript needs Bun or Node 22.18 or newer.
 - **Plugin packages.** A dependency named `prose-gates-plugin-name` or `@scope/prose-gates-plugin-name` loads under the namespace its own `meta.namespace` declares.
 - **New categories.** A plugin declares a category of its own, such as `frontmatter`, and its rules use it.
 - **Same treatment.** A plugin rule is switched off, given options and listed exactly like a built-in, and its fixer is verified like a built-in fixer.
@@ -67,7 +68,8 @@ A config at the project root switches rules off and sets options.
 
 Plugins are trusted code with no sandbox.
 Running the CLI in a repository runs that repository's local rules and declared plugins, so use `--no-plugins` on one you do not trust.
-[docs/plugins.md](docs/plugins.md) is the authoring guide, and [`examples/plugin-skills`](examples/plugin-skills) holds a working plugin.
+[docs/plugins.md](docs/plugins.md) is the authoring guide, and [docs/engines.md](docs/engines.md) shows what the tree provides at each step of a check and a fix.
+[`examples/plugin-skills`](examples/plugin-skills) holds a working plugin.
 
 ## Consuming it
 

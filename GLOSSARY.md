@@ -16,6 +16,10 @@ When a new domain term enters the code or the conversation, add it here in the s
 | Config file | The optional `prose-gates.config.json` or `.mjs` that switches rules off and sets their options. |
 | Project root | The nearest ancestor of the working directory with a package.json, a config file or a `.prose-gates` directory. |
 | Registry | The rules a run uses: the built-ins plus loaded plugins, with the config applied. |
+| Plugin mode | How a plugin that fails to load is treated: off, strict, lenient or collect. Strict stops the run and is the default. |
+| Lenient loading | A plugin mode that leaves a failed plugin out, names it on stderr with its code, and runs the rest. |
+| Validation run | A run of --validate-plugins, which loads every plugin, reports every failure, and runs no check or fix. |
+| Error code | The stable kebab-case name of a failure, such as unknown-rule or plugin-contract, shown as error[code] and carried on the error class. |
 | Loaded line | The one stderr line a run prints naming each plugin namespace it loaded and how many rules it brought. |
 | Frontmatter view | The top-level string keys of a leading YAML block, with a line and source offsets, read by plugin rules only. |
 | Rule id | The name of a prose gate, written category-short-name, such as sentence-one-per-line. The category is one lower-case word and the short name is three or four words. |

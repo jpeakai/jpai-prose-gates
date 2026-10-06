@@ -33,6 +33,9 @@ relates_to:
   - relation: depended_on_by
     target: PRS-0022
     note: the config can list extra plugins or turn all of them off
+  - relation: depended_on_by
+    target: PRS-0024
+    note: the config failures it raises are named errors with codes
 
 problem:
   symptom: The CLI took four flags and had no place to say that one rule does not suit a project.

@@ -504,3 +504,79 @@ export default {
     }
   });
 });
+
+describe("the same paths in process", () => {
+  const bad = (): string =>
+    tempProject({
+      ...local("sentence-good", todoRule()),
+      ".prose-gates/rules/no-prefix.mjs": todoRule(),
+      "a.md": "Fine.\n",
+    });
+
+  test("main returns the exit code of each mode", async () => {
+    const root = bad();
+    const { main } = await import("../src/index.ts");
+    await expect(main([join(root, "a.md")], root)).rejects.toThrow(PluginContractError);
+    expect(await main([join(root, "a.md"), "--lenient-plugins"], root)).toBe(0);
+    expect(await main([join(root, "a.md"), "--lenient-plugins", "--json"], root)).toBe(0);
+    expect(await main(["--validate-plugins"], root)).toBe(1);
+    expect(await main(["--validate-plugins", "--json"], root)).toBe(1);
+    expect(await main(["--list-rules", "--lenient-plugins"], root)).toBe(0);
+    expect(await main(["--validate-plugins"], tempProject(PKG))).toBe(0);
+    expect(await main(["--validate-plugins", "--json"], tempProject(local("sentence-good", todoRule())))).toBe(0);
+    expect(await main(["--validate-plugins"], tempProject(local("sentence-good", todoRule())))).toBe(0);
+  });
+
+  test("flag mistakes exit 2", async () => {
+    const root = bad();
+    const { main } = await import("../src/index.ts");
+    expect(await main([], root)).toBe(2);
+    expect(await main(["--nope"], root)).toBe(2);
+    expect(await main(["a.md", "--max-words", "0"], root)).toBe(2);
+    expect(await main(["a.md", "--no-plugins", "--lenient-plugins"], root)).toBe(2);
+    expect(await main(["--validate-plugins", "a.md"], root)).toBe(2);
+    expect(await main(["--validate-plugins", "--fix"], root)).toBe(2);
+  });
+
+  test("a setting for a skipped plugin is dropped, and a built-in typo still fails, in process", () => {
+    const config = parseConfig("c.json", { rules: { "gone/sentence-x": "off", "sentence-one-per-line": "off" } });
+    const lenient = buildRegistry({
+      rules: RULES,
+      fixOrder: FIX_ORDER,
+      categories: BUILTIN_CATEGORIES,
+      config,
+      ignoreUnknownPluginIds: true,
+    });
+    expect(lenient.ignoredSettings).toEqual(["gone/sentence-x"]);
+    expect(lenient.rules.map((r) => r.id)).not.toContain("sentence-one-per-line");
+    expect(() => buildRegistry({ rules: RULES, fixOrder: FIX_ORDER, categories: BUILTIN_CATEGORIES, config })).toThrow(
+      UnknownRuleError,
+    );
+    const typo = parseConfig("c.json", { rules: { PG004: "off" } });
+    expect(() =>
+      buildRegistry({
+        rules: RULES,
+        fixOrder: FIX_ORDER,
+        categories: BUILTIN_CATEGORIES,
+        config: typo,
+        ignoreUnknownPluginIds: true,
+      }),
+    ).toThrow(UnknownRuleError);
+  });
+
+  test("--no-plugins does not fail on a declared package that is not installed", async () => {
+    const root = tempProject({ "package.json": JSON.stringify({ dependencies: { "prose-gates-plugin-acme": "1" } }) });
+    const { registry, skipped } = await setUp({ cwd: root, noPlugins: true });
+    expect(registry.sources).toEqual([]);
+    expect(skipped).toEqual(["prose-gates-plugin-acme"]);
+  });
+
+  test("a declared package listed twice is reported once", async () => {
+    const root = tempProject({
+      "package.json": JSON.stringify({ dependencies: { "prose-gates-plugin-acme": "1" } }),
+      "prose-gates.config.json": JSON.stringify({ plugins: ["prose-gates-plugin-acme"], pluginLoading: "lenient" }),
+    });
+    const { failures } = await setUp({ cwd: root });
+    expect(failures.map((f) => f.source)).toEqual(["prose-gates-plugin-acme"]);
+  });
+});

@@ -27,6 +27,9 @@
 | [PRS-0021](0021-plugins-declare-their-categories.md) | A plugin adds a category by declaring it | accepted |
 | [PRS-0022](0022-plugins-load-automatically.md) | Plugins and local rules load on their own from declared sources | accepted |
 | [PRS-0023](0023-frontmatter-is-a-read-only-view.md) | Frontmatter is a read-only view that built-in rules never see | accepted |
+| [PRS-0024](0024-failures-are-named-errors-with-codes.md) | Every deliberate failure is a named error class with a stable code | accepted |
+| [PRS-0025](0025-plugin-loading-strictness.md) | Strict loading is the default, lenient and validated loading are opt-in and loud | accepted |
+| [PRS-0026](0026-typescript-local-rules-need-a-runtime-that-imports-them.md) | A local rule may be TypeScript where the runtime can import it | accepted |
 # By group
 
 ## architecture
@@ -37,6 +40,9 @@
 ## config
 
 * [PRS-0018](0018-config-file-and-rule-control.md) - A config is checked against the loaded rules, and a rule that is off loses both its halves
+## errors
+
+* [PRS-0024](0024-failures-are-named-errors-with-codes.md) - Usage errors exit 2 and plugin errors exit 1, each class carrying a code and the fields to act on
 ## fixing
 
 * [PRS-0003](0003-splice-source-never-restringify.md) - An edit replaces a byte range with text built from source slices, so untouched bytes stay identical
@@ -61,6 +67,8 @@
 * [PRS-0020](0020-plugin-fixers-stay-under-verification.md) - Plugin fixers are allowed, every edit is verified, and a malformed edit is refused before it is spliced
 * [PRS-0021](0021-plugins-declare-their-categories.md) - A new one-word category is declared in meta.categories, and a word is declared once
 * [PRS-0022](0022-plugins-load-automatically.md) - Local rule files and declared plugin dependencies load with no config, and every run says so
+* [PRS-0025](0025-plugin-loading-strictness.md) - A lenient run skips a failed plugin and names it, and a validation run reports every failure and runs no engine
+* [PRS-0026](0026-typescript-local-rules-need-a-runtime-that-imports-them.md) - .ts and .mts rules are imported as they are, and a runtime that cannot says how to fix it
 ## release
 
 * [PRS-0014](0014-main-changes-only-through-pull-requests.md) - Main is protected so every change lands by a pull request that passes CI, and only main can publish
@@ -110,6 +118,7 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0012 --depends_on--> PRS-0001
 * PRS-0012 --depended_on_by--> PRS-0013
 * PRS-0012 --depended_on_by--> PRS-0022
+* PRS-0012 --depended_on_by--> PRS-0026
 * PRS-0013 --depends_on--> PRS-0012
 * PRS-0013 --extended_by--> PRS-0014
 * PRS-0014 --extends--> PRS-0013
@@ -127,6 +136,7 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0018 --depends_on--> PRS-0017
 * PRS-0018 --depended_on_by--> PRS-0019
 * PRS-0018 --depended_on_by--> PRS-0022
+* PRS-0018 --depended_on_by--> PRS-0024
 * PRS-0019 --depends_on--> PRS-0018
 * PRS-0019 --depends_on--> PRS-0008
 * PRS-0019 --depends_on--> PRS-0017
@@ -143,5 +153,13 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0022 --depends_on--> PRS-0021
 * PRS-0022 --depends_on--> PRS-0018
 * PRS-0022 --depends_on--> PRS-0012
+* PRS-0022 --extended_by--> PRS-0025
+* PRS-0022 --depended_on_by--> PRS-0026
 * PRS-0023 --depends_on--> PRS-0019
 * PRS-0023 --depends_on--> PRS-0001
+* PRS-0024 --depends_on--> PRS-0018
+* PRS-0024 --depended_on_by--> PRS-0025
+* PRS-0025 --extends--> PRS-0022
+* PRS-0025 --depends_on--> PRS-0024
+* PRS-0026 --depends_on--> PRS-0022
+* PRS-0026 --depends_on--> PRS-0012

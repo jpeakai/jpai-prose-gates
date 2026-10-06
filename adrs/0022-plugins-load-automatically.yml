@@ -33,6 +33,12 @@ relates_to:
   - relation: depends_on
     target: PRS-0012
     note: the loader runs under the Node bundle and uses no Bun global
+  - relation: extended_by
+    target: PRS-0025
+    note: a skip is now an explicit, reported choice rather than never allowed
+  - relation: depended_on_by
+    target: PRS-0026
+    note: a local file may be TypeScript where the runtime can import it
 
 problem:
   symptom: A rule set that a user could not extend, and a proposal that made extending it a manual wiring job.

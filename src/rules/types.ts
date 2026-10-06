@@ -6,15 +6,15 @@ import type { InterpunctRun } from "../interpunct.ts";
 import type { DocModel, ParagraphView } from "../model.ts";
 
 export const RULE = {
-  WRAP: "PG001",
-  LENGTH: "PG002",
-  SEMICOLON_LIST: "PG003",
-  EM_DASH: "PG004",
-  INTERPUNCT: "PG005",
-  INTERPUNCT_RUN: "PG006",
-  INLINE_ENUM: "PG007",
-  LABELLED_RUN: "PG008",
-  STACKED_RUNS: "PG009",
+  WRAP: "sentence-one-per-line",
+  LENGTH: "sentence-word-budget-exceeded",
+  SEMICOLON_LIST: "list-semicolon-delimited-run",
+  EM_DASH: "punctuation-em-dash-in-prose",
+  INTERPUNCT: "punctuation-interpunct-in-prose",
+  INTERPUNCT_RUN: "list-interpunct-joined-run",
+  INLINE_ENUM: "list-inline-enumeration-markers",
+  LABELLED_RUN: "list-comma-labelled-run",
+  STACKED_RUNS: "list-stacked-interpunct-runs",
 } as const;
 
 export type RuleId = (typeof RULE)[keyof typeof RULE];
@@ -75,6 +75,6 @@ export interface Rule {
   category: Category;
   summary: string;
   check: (ctx: CheckContext) => Finding[];
-  // Absent for rules whose fix needs discretion (PG002).
+  // Absent for rules whose fix needs discretion (sentence-word-budget-exceeded).
   fix?: (ctx: FixContext) => Edit[];
 }

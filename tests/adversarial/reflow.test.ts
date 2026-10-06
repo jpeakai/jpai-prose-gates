@@ -1,11 +1,11 @@
-// PG001 against line starts that would become block syntax, inline
+// sentence-one-per-line against line starts that would become block syntax, inline
 // constructs spanning the break, and line-ending encodings.
 
 import { describe, expect, test } from "bun:test";
 import { fixMarkdown } from "../../src/index.ts";
 import { fixesTo, refuses } from "./harness.ts";
 
-describe("PG001 leaves block syntax alone", () => {
+describe("sentence-one-per-line leaves block syntax alone", () => {
   test.each([
     ["an ordered-list-looking line", "Intro line\n1. not a list\n"],
     ["a plus-list line", "Text here\n+ item\n"],
@@ -17,22 +17,22 @@ describe("PG001 leaves block syntax alone", () => {
   ])("%s", (_, src) => refuses(src));
 });
 
-describe("PG001 joins across inline constructs", () => {
+describe("sentence-one-per-line joins across inline constructs", () => {
   test("link text", () => {
-    fixesTo("See [a wrapped\nlink text](u) now.\n", "See [a wrapped link text](u) now.\n", "PG001");
+    fixesTo("See [a wrapped\nlink text](u) now.\n", "See [a wrapped link text](u) now.\n", "sentence-one-per-line");
   });
 
   test("inline html", () => {
-    fixesTo("Text <b>bold\ntext</b> more.\n", "Text <b>bold text</b> more.\n", "PG001");
+    fixesTo("Text <b>bold\ntext</b> more.\n", "Text <b>bold text</b> more.\n", "sentence-one-per-line");
   });
 
   test("an abbreviation at the line end", () => {
-    fixesTo("Use e.g.\nthis one.\n", "Use e.g. this one.\n", "PG001");
+    fixesTo("Use e.g.\nthis one.\n", "Use e.g. this one.\n", "sentence-one-per-line");
   });
 
-  test("a forty-line wrap collapses to one line and PG002 remains", () => {
+  test("a forty-line wrap collapses to one line and sentence-word-budget-exceeded remains", () => {
     const words = Array.from({ length: 40 }, (_, i) => `w${i}`);
-    fixesTo(`${words.join("\n")}.\n`, `${words.join(" ")}.\n`, "PG001");
+    fixesTo(`${words.join("\n")}.\n`, `${words.join(" ")}.\n`, "sentence-one-per-line");
   });
 
   // Regression: the join replaces "\n" and leaves the "\r" of a CRLF ending, which
@@ -44,7 +44,7 @@ describe("PG001 joins across inline constructs", () => {
   });
 
   test("CRLF glyph swaps keep the line ending", () => {
-    fixesTo("One thing matters — speed.\r\n", "One thing matters: speed.\r\n", "PG004");
+    fixesTo("One thing matters — speed.\r\n", "One thing matters: speed.\r\n", "punctuation-em-dash-in-prose");
   });
 });
 
@@ -53,5 +53,5 @@ describe("unicode", () => {
     ["cjk", "中文句子 — 很好。\n", "中文句子: 很好。\n"],
     ["rtl", "שלום — עולם.\n", "שלום: עולם.\n"],
     ["emoji zwj", "Family 👨‍👩‍👧 — emoji.\n", "Family 👨‍👩‍👧: emoji.\n"],
-  ])("%s dash", (_, src, out) => fixesTo(src, out, "PG004"));
+  ])("%s dash", (_, src, out) => fixesTo(src, out, "punctuation-em-dash-in-prose"));
 });

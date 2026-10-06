@@ -28,6 +28,9 @@ relates_to:
   - relation: depended_on_by
     target: PRS-0016
     note: a helper leaves its rule module for the layer whose data it takes
+  - relation: extended_by
+    target: PRS-0017
+    note: the id a rule file is named by is now category-short-name
 
 problem:
   symptom: All nine rules and the CLI shared one file, so any change touched everything.

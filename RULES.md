@@ -11,15 +11,15 @@ Rules marked with a star in `--help` have a fixer.
 
 | Category | Rules | What it guards |
 |---|---|---|
-| Sentence | PG001, PG002 | How a sentence is laid out and how long it runs |
-| List | PG003, PG006, PG007, PG008, PG009 | A list hidden in running prose, promoted to a real markdown list |
-| Punctuation | PG004, PG005 | A glyph that reads as generated text |
+| Sentence | sentence-one-per-line, sentence-word-budget-exceeded | How a sentence is laid out and how long it runs |
+| List | list-semicolon-delimited-run, list-interpunct-joined-run, list-inline-enumeration-markers, list-comma-labelled-run, list-stacked-interpunct-runs | A list hidden in running prose, promoted to a real markdown list |
+| Punctuation | punctuation-em-dash-in-prose, punctuation-interpunct-in-prose | A glyph that reads as generated text |
 
 The list rules run before the punctuation rules, because a promotion needs the separators a glyph swap would erase.
 
 ## Sentence
 
-### PG001
+### sentence-one-per-line
 
 A sentence wrapped across lines, where one sentence per line is wanted.
 One sentence per line keeps diffs to the sentence that changed.
@@ -36,7 +36,7 @@ The parser reads the file and hands the tree to every rule.
 Each rule reports what it finds.
 ```
 
-### PG002
+### sentence-word-budget-exceeded
 
 A sentence longer than the word budget, which defaults to 25 words.
 It has no fixer, because shortening a sentence changes what it says.
@@ -48,7 +48,7 @@ The fixer reads the tree and proposes an edit because the rule fired, which the 
 The finding counts potential clauses and suggests how many sentences to split into:
 
 ```text
-PG002 sentence has 28 words (budget 25) and 4 potential clauses; split it into about 4 shorter sentences, one idea each, rather than compressing the wording
+sentence-word-budget-exceeded sentence has 28 words (budget 25) and 4 potential clauses; split it into about 4 shorter sentences, one idea each, rather than compressing the wording
 ```
 
 The clause count is a guide, not a parse, so a human or agent decides the real split.
@@ -63,7 +63,7 @@ It then compares the words it finds.
 
 ## List
 
-### PG003
+### list-semicolon-delimited-run
 
 A semicolon-delimited list, meaning two or more semicolons in one sentence.
 A single joining semicolon is allowed.
@@ -87,7 +87,7 @@ Without a colon there is no lead-in to keep, so the fixer refuses.
 A release needs a signed tag; a changelog entry; a green build.
 ```
 
-### PG006
+### list-interpunct-joined-run
 
 Items joined by interpuncts inside one paragraph.
 The fix promotes them to a bullet list after the label.
@@ -104,7 +104,7 @@ Stack:
 - biome
 ```
 
-### PG007
+### list-inline-enumeration-markers
 
 Enumeration markers such as `(a)` and `(b)`, or `(1)` and `(2)`, inlined in prose.
 The fix promotes them to a numbered list.
@@ -127,7 +127,7 @@ Markers used as back-references are not a list, so the fixer refuses.
 See (a) above and (b) below.
 ```
 
-### PG008
+### list-comma-labelled-run
 
 A run of three or more comma-joined items that each start with a label.
 The fix promotes them to a bullet list and keeps each label.
@@ -144,7 +144,7 @@ Targets:
 - `docs-ci` gates the prose
 ```
 
-### PG009
+### list-stacked-interpunct-runs
 
 Interpunct runs stacked on consecutive lines, each with its own label.
 The fix promotes them to a nested list, one parent item per label.
@@ -172,7 +172,7 @@ no label · here
 
 ## Punctuation
 
-### PG004
+### punctuation-em-dash-in-prose
 
 An em-dash in prose.
 A pair of em-dashes becomes parentheses, and a lone one becomes a colon.
@@ -199,7 +199,7 @@ An em-dash between numbers is a range that wants an en-dash rather than a colon,
 Pages 10 — 12 cover it.
 ```
 
-### PG005
+### punctuation-interpunct-in-prose
 
 A stray interpunct in prose, outside a run of items.
 A spaced interpunct becomes a comma.

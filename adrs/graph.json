@@ -266,6 +266,19 @@
     },
     {
       "data": {
+        "id": "PRS-0017",
+        "label": "0017",
+        "parent": "group-rules",
+        "colour": "#0284c7",
+        "file": "0017-rule-ids-are-category-and-short-name.md",
+        "title": "A rule id is its category followed by a short name",
+        "description": "Rules are named category-short-name, such as sentence-one-per-line, instead of by a number",
+        "status": "accepted",
+        "tags": "rules, naming, layout"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0001-depended_on_by-PRS-0012",
         "source": "PRS-0001",
         "target": "PRS-0012",
@@ -446,6 +459,16 @@
     },
     {
       "data": {
+        "id": "PRS-0008-extended_by-PRS-0017",
+        "source": "PRS-0008",
+        "target": "PRS-0017",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "the id a rule file is named by is now category-short-name"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0009-tests-PRS-0004",
         "source": "PRS-0009",
         "target": "PRS-0004",
@@ -482,6 +505,16 @@
         "label": "extends",
         "relation": "extends",
         "note": "a category is a field on the rule module, never a folder, so files stay named by rule id"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0011-extended_by-PRS-0017",
+        "source": "PRS-0011",
+        "target": "PRS-0017",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "the category is now the first word of a rule id"
       }
     },
     {
@@ -582,6 +615,26 @@
         "label": "depends on",
         "relation": "depends_on",
         "note": "a helper leaves its rule module only once a second rule needs it"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0017-extends-PRS-0008",
+        "source": "PRS-0017",
+        "target": "PRS-0008",
+        "label": "extends",
+        "relation": "extends",
+        "note": "a rule file is still named by its id, and the id is now category-short-name instead of pgNNN-slug"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0017-extends-PRS-0011",
+        "source": "PRS-0017",
+        "target": "PRS-0011",
+        "label": "extends",
+        "relation": "extends",
+        "note": "the category a rule carries is the first word of its id"
       }
     }
   ],

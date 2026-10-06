@@ -1,4 +1,4 @@
-// PG003: a run of items joined by semicolons is a wall of text hiding a
+// list-semicolon-delimited-run: a run of items joined by semicolons is a wall of text hiding a
 // list. The fix needs a colon lead-in to know where the list starts, and
 // refuses without one.
 
@@ -51,7 +51,7 @@ const fix: Rule["fix"] = ({ doc }) => {
   return edits;
 };
 
-export const pg003: Rule = {
+export const listSemicolonDelimitedRun: Rule = {
   id: RULE.SEMICOLON_LIST,
   category: "list",
   summary: "semicolon-delimited list (2+ ';' in one sentence)",

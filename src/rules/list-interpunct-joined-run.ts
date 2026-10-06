@@ -1,4 +1,4 @@
-// PG006: a single-line interpunct-joined run is a disguised flat list. The
+// list-interpunct-joined-run: a single-line interpunct-joined run is a disguised flat list. The
 // fix promotes it to bullets, taking a colon before the run as the lead-in.
 // Without a colon the run must be the whole paragraph, or there is no way to
 // tell where the first item starts.
@@ -59,7 +59,7 @@ const fix: Rule["fix"] = ({ doc, runs }) => {
   return edits;
 };
 
-export const pg006: Rule = {
+export const listInterpunctJoinedRun: Rule = {
   id: RULE.INTERPUNCT_RUN,
   category: "list",
   summary: "interpunct-joined inline list (2+ separators)",

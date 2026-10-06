@@ -4,18 +4,28 @@
 
 import { interpunctRuns } from "../interpunct.ts";
 import type { DocModel } from "../model.ts";
-import { pg001 } from "./pg001-wrap.ts";
-import { pg002 } from "./pg002-length.ts";
-import { pg003 } from "./pg003-semicolon-list.ts";
-import { pg004 } from "./pg004-em-dash.ts";
-import { pg005 } from "./pg005-interpunct.ts";
-import { pg006 } from "./pg006-interpunct-run.ts";
-import { pg007 } from "./pg007-inline-enum.ts";
-import { pg008 } from "./pg008-labelled-run.ts";
-import { pg009 } from "./pg009-stacked-runs.ts";
+import { listCommaLabelledRun } from "./list-comma-labelled-run.ts";
+import { listInlineEnumerationMarkers } from "./list-inline-enumeration-markers.ts";
+import { listInterpunctJoinedRun } from "./list-interpunct-joined-run.ts";
+import { listSemicolonDelimitedRun } from "./list-semicolon-delimited-run.ts";
+import { listStackedInterpunctRuns } from "./list-stacked-interpunct-runs.ts";
+import { punctuationEmDashInProse } from "./punctuation-em-dash-in-prose.ts";
+import { punctuationInterpunctInProse } from "./punctuation-interpunct-in-prose.ts";
+import { sentenceOnePerLine } from "./sentence-one-per-line.ts";
+import { sentenceWordBudgetExceeded } from "./sentence-word-budget-exceeded.ts";
 import type { Rule, RuleContext } from "./types.ts";
 
-export const RULES: Rule[] = [pg001, pg002, pg003, pg004, pg005, pg006, pg007, pg008, pg009];
+export const RULES: Rule[] = [
+  sentenceOnePerLine,
+  sentenceWordBudgetExceeded,
+  listSemicolonDelimitedRun,
+  punctuationEmDashInProse,
+  punctuationInterpunctInProse,
+  listInterpunctJoinedRun,
+  listInlineEnumerationMarkers,
+  listCommaLabelledRun,
+  listStackedInterpunctRuns,
+];
 
 // The data every rule shares, derived once per document. Interpunct runs are
 // read by four rules, so computing them here keeps the fix engine from
@@ -23,6 +33,15 @@ export const RULES: Rule[] = [pg001, pg002, pg003, pg004, pg005, pg006, pg007, p
 export const ruleContext = (doc: DocModel): RuleContext => ({ doc, runs: interpunctRuns(doc) });
 
 // The order fixers run in. Structure first: a promotion needs the separators
-// a glyph swap would erase, so PG009 and the list rules run before PG005
+// a glyph swap would erase, so list-stacked-interpunct-runs and the list rules run before punctuation-interpunct-in-prose
 // turns interpuncts into commas. Reflow runs last, over the settled blocks.
-export const FIX_ORDER: Rule[] = [pg009, pg007, pg008, pg006, pg003, pg005, pg004, pg001];
+export const FIX_ORDER: Rule[] = [
+  listStackedInterpunctRuns,
+  listInlineEnumerationMarkers,
+  listCommaLabelledRun,
+  listInterpunctJoinedRun,
+  listSemicolonDelimitedRun,
+  punctuationInterpunctInProse,
+  punctuationEmDashInProse,
+  sentenceOnePerLine,
+];

@@ -68,30 +68,30 @@ describe.each(RUNTIMES)("bin entry point: %s", (_, run) => {
     const file = tempFile("A tell — here.\n");
     const { code, stdout } = await run([file]);
     expect(code).toBe(1);
-    expect(stdout).toContain(`${file}:1 PG004`);
+    expect(stdout).toContain(`${file}:1 punctuation-em-dash-in-prose`);
     expect(stdout).toContain("1 finding(s) in 1 file(s)");
   });
 
   test("--json output parses", async () => {
     const { code, stdout } = await run([tempFile("A tell — here.\n"), "--json"]);
     expect(code).toBe(1);
-    expect(JSON.parse(stdout).findings[0].rule).toBe("PG004");
+    expect(JSON.parse(stdout).findings[0].rule).toBe("punctuation-em-dash-in-prose");
   });
 
   test("help marks the fixable rules", async () => {
     const { code, stdout } = await run(["--help"]);
     expect(code).toBe(0);
-    expect(stdout).toContain("PG001*");
-    expect(stdout).toContain("PG002 ");
+    expect(stdout).toContain("sentence-one-per-line*");
+    expect(stdout).toContain("sentence-word-budget-exceeded ");
   });
 
   test("help groups the rules by category", async () => {
     const { stdout } = await run(["--help"]);
     const at = (s: string): number => stdout.indexOf(s);
-    expect(at("  sentence:")).toBeLessThan(at("PG001*"));
-    expect(at("  list:")).toBeLessThan(at("PG003*"));
-    expect(at("  punctuation:")).toBeLessThan(at("PG004*"));
-    expect(at("PG009*")).toBeLessThan(at("  punctuation:"));
+    expect(at("  sentence:")).toBeLessThan(at("sentence-one-per-line*"));
+    expect(at("  list:")).toBeLessThan(at("list-semicolon-delimited-run*"));
+    expect(at("  punctuation:")).toBeLessThan(at("punctuation-em-dash-in-prose*"));
+    expect(at("list-stacked-interpunct-runs*")).toBeLessThan(at("  punctuation:"));
     expect(stdout).toContain("RULES.md");
   });
 

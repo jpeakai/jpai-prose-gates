@@ -1,5 +1,5 @@
-// PG009: interpunct runs stacked on 2+ source lines of one paragraph are a
-// two-level structure, so PG009 replaces PG006 for that paragraph. The fix
+// list-stacked-interpunct-runs: interpunct runs stacked on 2+ source lines of one paragraph are a
+// two-level structure, so list-stacked-interpunct-runs replaces list-interpunct-joined-run for that paragraph. The fix
 // needs every line to read `Label: a · b · c`, and builds one parent bullet
 // per label with the items nested beneath it.
 
@@ -71,7 +71,7 @@ const fix: Rule["fix"] = ({ doc, runs }) => {
   return edits;
 };
 
-export const pg009: Rule = {
+export const listStackedInterpunctRuns: Rule = {
   id: RULE.STACKED_RUNS,
   category: "list",
   summary: "interpunct runs stacked on several lines (nested list)",

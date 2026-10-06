@@ -22,6 +22,9 @@ relates_to:
   - relation: extends
     target: PRS-0008
     note: a category is a field on the rule module, never a folder, so files stay named by rule id
+  - relation: extended_by
+    target: PRS-0017
+    note: the category is now the first word of a rule id
 
 problem:
   symptom: The README listed nine rules in id order with a one-line fix each.

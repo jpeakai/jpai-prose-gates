@@ -4,7 +4,7 @@
 // source they were computed from, so every accepted edit restarts the pass.
 
 import { buildDocModel, parse } from "../model.ts";
-import { FIX_ORDER, ruleContext } from "../rules/index.ts";
+import { BUILTIN, type Registry, ruleContext, TEXT_HELPERS } from "../rules/registry.ts";
 import type { Edit } from "../rules/types.ts";
 import { verify } from "./verify.ts";
 
@@ -27,7 +27,17 @@ const overlaps = (edits: Edit[]): boolean => {
   return sorted.some((e, i) => i > 0 && e.start < (sorted[i - 1] as Edit).end);
 };
 
-export const fixMarkdownReport = (src: string): FixReport => {
+// Offsets are whole numbers inside the source, in order, and the replacement
+// is text. Anything else is a malformed edit from a fixer that miscounted.
+const wellFormed = (e: Edit, length: number): boolean =>
+  Number.isInteger(e.start) &&
+  Number.isInteger(e.end) &&
+  e.start >= 0 &&
+  e.start <= e.end &&
+  e.end <= length &&
+  typeof e.text === "string";
+
+export const fixMarkdownReport = (src: string, registry: Registry = BUILTIN): FixReport => {
   const applied: Edit[] = [];
   const refused: Edit[] = [];
   // An edit refused once stays refused while its source slice is unchanged.
@@ -35,7 +45,7 @@ export const fixMarkdownReport = (src: string): FixReport => {
   let current = src;
 
   for (let pass = 0; pass < MAX_PASSES; pass++) {
-    const ctx = ruleContext(buildDocModel(current));
+    const ctx = ruleContext(buildDocModel(current), registry);
     const before = { src: current, tree: ctx.doc.tree };
     const keyOf = (e: Edit): string => `${e.rule}\u0000${current.slice(e.start, e.end)}\u0000${e.text}`;
 
@@ -51,10 +61,21 @@ export const fixMarkdownReport = (src: string): FixReport => {
     };
 
     let progressed = false;
-    for (const rule of FIX_ORDER) {
-      const edits = (rule.fix?.(ctx) ?? []).filter(
-        (e) => current.slice(e.start, e.end) !== e.text && !refusedKeys.has(keyOf(e)),
-      );
+    for (const rule of registry.fixOrder) {
+      const proposed =
+        rule.fix?.({ ...ctx, options: registry.options.get(rule.id) ?? {}, helpers: TEXT_HELPERS }) ?? [];
+      // An edit that points outside the source cannot be proven, so it is
+      // refused before it is ever spliced. A built-in never proposes one.
+      const sound = proposed.filter((e) => {
+        if (wellFormed(e, current.length)) return true;
+        const key = `${e.rule}\u0000malformed\u0000${e.start}:${e.end}`;
+        if (!refusedKeys.has(key)) {
+          refusedKeys.add(key);
+          refused.push(e);
+        }
+        return false;
+      });
+      const edits = sound.filter((e) => current.slice(e.start, e.end) !== e.text && !refusedKeys.has(keyOf(e)));
       if (edits.length === 0) continue;
 
       // Whitespace and glyph edits leave the tree's shape alone, so a rule's

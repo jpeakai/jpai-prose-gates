@@ -41,5 +41,6 @@ export const sentenceWordBudgetExceeded: Rule = {
   id: RULE.LENGTH,
   category: "sentence",
   summary: "sentence longer than the word budget (default 25)",
+  options: { maxWords: "number" },
   check,
 };

@@ -17,7 +17,15 @@ export const RULE = {
   STACKED_RUNS: "list-stacked-interpunct-runs",
 } as const;
 
-export type RuleId = (typeof RULE)[keyof typeof RULE];
+// A core id has no slash. A plugin id is always namespace/name, so the slash
+// is what tells the two apart.
+export type CoreRuleId = (typeof RULE)[keyof typeof RULE];
+
+export type PluginRuleId = `${string}/${string}`;
+
+export type RuleId = CoreRuleId | PluginRuleId;
+
+export const isPluginRuleId = (id: string): id is PluginRuleId => id.includes("/");
 
 export interface Finding {
   file: string;
@@ -26,23 +34,47 @@ export interface Finding {
   message: string;
 }
 
-// What every rule reads, computed once per document and handed to it. Shared
-// data is passed in rather than recomputed, so a check and a fix can never
-// disagree about what the document holds.
+// The data every rule shares, computed once per document and handed to it.
+// Shared data is passed in rather than recomputed, so a check and a fix can
+// never disagree about what the document holds. `runs` is every interpunct
+// run. `reported` is the runs some enabled rule owns, so a rule that defers
+// to another stops deferring when that rule is switched off.
 export interface RuleContext {
   doc: DocModel;
   runs: InterpunctRun[];
+  reported: InterpunctRun[];
+}
+
+// What a rule may be configured with. A rule names each option it accepts
+// and the type of its value, and the config is checked against that.
+export type OptionType = "number" | "string" | "boolean" | "string[]";
+
+export type OptionSpec = Readonly<Record<string, OptionType>>;
+
+export type RuleOptions = Readonly<Record<string, unknown>>;
+
+// Plain functions a plugin can use without importing this package, so a plugin
+// never depends on resolving the host from its own location.
+export interface TextHelpers {
+  words: (text: string) => number;
+  sentences: (text: string) => string[];
+  lengthMessage: (sentence: string, maxWords: number) => string;
 }
 
 // A check also names the file it reports against, and the sentence budget.
 export interface CheckContext extends RuleContext {
   file: string;
   maxWords: number;
+  options: RuleOptions;
+  helpers: TextHelpers;
 }
 
-// A fix needs nothing beyond the shared context. It proposes edits, and the
-// engine alone decides which of them survive verification.
-export type FixContext = RuleContext;
+// A fix needs nothing beyond the shared context and its own options. It
+// proposes edits, and the engine alone decides which of them survive.
+export interface FixContext extends RuleContext {
+  options: RuleOptions;
+  helpers: TextHelpers;
+}
 
 // What the engine must be able to prove about the document after an edit.
 export type Expectation =
@@ -66,14 +98,17 @@ export interface Edit {
 // sentence: how a sentence is laid out and how long it runs.
 // list: a list hidden in running prose, promoted to a real markdown list.
 // punctuation: a glyph that reads as generated text.
+// A plugin may add a category of its own by declaring it.
 export const CATEGORIES = ["sentence", "list", "punctuation"] as const;
 
 export type Category = (typeof CATEGORIES)[number];
 
 export interface Rule {
   id: RuleId;
-  category: Category;
+  category: string;
   summary: string;
+  // The options the rule accepts. Absent when it takes none.
+  options?: OptionSpec;
   check: (ctx: CheckContext) => Finding[];
   // Absent for rules whose fix needs discretion (sentence-word-budget-exceeded).
   fix?: (ctx: FixContext) => Edit[];

@@ -10,10 +10,11 @@ import { buildDocModel } from "./model.ts";
 import type { PluginSource } from "./plugins/discover.ts";
 import { setUp } from "./project.ts";
 import { RULES } from "./rules/index.ts";
-import type { LoadedSource } from "./rules/registry.ts";
+import type { LoadedSource, Registry } from "./rules/registry.ts";
 import { CATEGORIES } from "./rules/types.ts";
 
 const USAGE = `usage: prose-gates <file.md> [...more] [--fix] [--json] [--max-words N] [--config FILE] [--no-plugins]
+       prose-gates --list-rules
 
 Deterministic prose gates (* = autofixable):
 ${CATEGORIES.map((c) =>
@@ -32,6 +33,7 @@ A fixer that is unsure leaves the text alone and the finding stays.
 --config FILE reads that config instead of prose-gates.config.json or .mjs at the project root.
 Plugins load on their own from .prose-gates/rules and from dependencies named prose-gates-plugin-*.
 --no-plugins runs the built-in rules only, for a baseline or a repo you do not trust.
+--list-rules prints every active rule by category, including plugin rules, and where each plugin came from.
 Exits 1 when findings remain, 2 on usage error.`;
 
 interface Parsed {
@@ -42,6 +44,7 @@ interface Parsed {
     "max-words"?: string;
     config?: string;
     "no-plugins"?: boolean;
+    "list-rules"?: boolean;
   };
   positionals: string[];
 }
@@ -56,6 +59,7 @@ const parse = (argv: string[]): Parsed =>
       "max-words": { type: "string" },
       config: { type: "string" },
       "no-plugins": { type: "boolean", default: false },
+      "list-rules": { type: "boolean", default: false },
     },
     allowPositionals: true,
     strict: true,
@@ -69,6 +73,23 @@ export const loadedLine = (sources: LoadedSource[], skipped: PluginSource[]): st
   if (sources.length === 0) return null;
   const parts = sources.map((s) => `${s.namespace} (${s.rules.length} rule${s.rules.length === 1 ? "" : "s"})`);
   return `prose-gates: loaded ${parts.join(", ")}`;
+};
+
+// Every active rule under its category, then where each plugin came from.
+// Built-in categories come first, in their fixed order, then plugin ones.
+export const listRules = (registry: Registry): string => {
+  const lines: string[] = [];
+  for (const [category, description] of registry.categories) {
+    const rules = registry.rules.filter((r) => r.category === category);
+    if (rules.length === 0) continue;
+    lines.push(`${category}: ${description}`);
+    for (const r of rules) lines.push(`  ${r.id}${r.fix ? "*" : " "} ${r.summary}`);
+  }
+  if (registry.sources.length > 0) {
+    lines.push("", "plugins:");
+    for (const s of registry.sources) lines.push(`  ${s.namespace} (${s.kind}) ${s.spec}`);
+  }
+  return lines.join("\n");
 };
 
 const run = async (argv: string[], cwd: string): Promise<number> => {
@@ -86,7 +107,7 @@ const run = async (argv: string[], cwd: string): Promise<number> => {
   // Absent means the rule's own option, then the default. Present is a flag
   // that wins for this run.
   const maxWords = values["max-words"] === undefined ? undefined : Number(values["max-words"]);
-  if (positionals.length === 0) throw new UsageError("no files given");
+  if (positionals.length === 0 && !values["list-rules"]) throw new UsageError("no files given");
   if (maxWords !== undefined && (Number.isNaN(maxWords) || maxWords < 1)) {
     throw new UsageError(`--max-words must be a number of at least 1, not "${values["max-words"]}"`);
   }
@@ -94,6 +115,10 @@ const run = async (argv: string[], cwd: string): Promise<number> => {
   const { registry, skipped } = await setUp({ cwd, configPath: values.config, noPlugins: values["no-plugins"] });
   const note = loadedLine(registry.sources, skipped);
   if (note) console.error(note);
+  if (values["list-rules"]) {
+    console.log(listRules(registry));
+    return 0;
+  }
   const perFile = await Promise.all(
     positionals.map(async (file) => {
       let src = await readFile(file, "utf8");

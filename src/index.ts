@@ -5,7 +5,7 @@ export { main } from "./cli.ts";
 export { type Config, loadConfig, parseConfig, type RuleSetting, type Severity, UsageError } from "./config.ts";
 export { type FixReport, fixMarkdown, fixMarkdownReport } from "./fix/engine.ts";
 export { FixInvariantError } from "./fix/verify.ts";
-export { buildDocModel, type DocModel } from "./model.ts";
+export { buildDocModel, type DocModel, type FrontmatterEntry, type FrontmatterView } from "./model.ts";
 export { findProjectRoot, setUp } from "./project.ts";
 export { FIX_ORDER, RULES } from "./rules/index.ts";
 export {

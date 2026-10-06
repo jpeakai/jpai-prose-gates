@@ -1,0 +1,12 @@
+{
+  "name": "prose-gates-plugin-skills",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Template plugin: holds frontmatter descriptions of agent skills to a sentence budget",
+  "type": "module",
+  "main": "index.mjs",
+  "keywords": ["prose-gates-plugin"],
+  "peerDependencies": {
+    "@jpeakai/prose-gates": ">=0.2.0"
+  }
+}

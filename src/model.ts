@@ -9,6 +9,7 @@ import { gfmFromMarkdown } from "mdast-util-gfm";
 import { frontmatter } from "micromark-extension-frontmatter";
 import { gfm } from "micromark-extension-gfm";
 import { visitParents } from "unist-util-visit-parents";
+import { isMap, isScalar, LineCounter, parseDocument } from "yaml";
 import type { Range } from "./text.ts";
 
 // Fenced blocks in these languages hold markdown templates (a conventions or
@@ -59,12 +60,29 @@ export interface FenceView {
   line: number; // line of the opening fence
 }
 
+// One top-level key of the frontmatter whose value is a string.
+export interface FrontmatterEntry {
+  key: string;
+  value: string; // the scalar as text, folded lines joined
+  line: number; // file line where the value starts
+  start: number; // source offsets of the value, quotes included
+  end: number;
+}
+
+export interface FrontmatterView {
+  format: "yaml";
+  entries: FrontmatterEntry[];
+}
+
 export interface DocModel {
   src: string;
   tree: Root;
   paragraphs: ParagraphView[];
   texts: TextView[]; // every prose text node, including headings and lists
   fences: FenceView[]; // embedded-markdown fences, audited recursively
+  // The leading YAML block as keys and values, read on first use so a document
+  // whose frontmatter is not valid YAML only fails the rules that ask for it.
+  readonly frontmatter: FrontmatterView | null;
 }
 
 export const parse = (src: string): Root =>
@@ -149,5 +167,53 @@ export const buildDocModel = (src: string): DocModel => {
     const view = viewOf.get(p);
     if (view) view.prose = parts.join(" ").replace(/\s+/g, " ").trim();
   }
-  return { src, tree, paragraphs, texts, fences };
+  let frontmatter: FrontmatterView | null | undefined;
+  return {
+    src,
+    tree,
+    paragraphs,
+    texts,
+    fences,
+    get frontmatter() {
+      frontmatter ??= readFrontmatter(src, tree);
+      return frontmatter;
+    },
+  };
+};
+
+// The top-level string entries of a leading YAML block. Only the first node
+// of the tree can be frontmatter, and TOML is not read. A value that is not a
+// plain string, and anything nested, is left out rather than guessed at. Invalid
+// YAML throws with the line, so a rule that needs the keys cannot run on a
+// block it could not read.
+const readFrontmatter = (src: string, tree: Root): FrontmatterView | null => {
+  const node = tree.children[0];
+  const offset = node?.position?.start.offset;
+  if (node?.type !== "yaml" || offset == null || !node.position) return null;
+  const opening = node.position.start;
+  const contentStart = offset + src.slice(offset).indexOf("\n") + 1;
+  const lines = new LineCounter();
+  const doc = parseDocument(node.value, { lineCounter: lines });
+  const [problem] = doc.errors;
+  if (problem) {
+    const line = opening.line + (problem.linePos?.[0].line ?? 1);
+    throw new Error(`frontmatter YAML error at line ${line}: ${problem.message.split("\n")[0]}`);
+  }
+  const entries: FrontmatterEntry[] = [];
+  if (isMap(doc.contents)) {
+    for (const pair of doc.contents.items) {
+      const { key, value } = pair;
+      if (!isScalar(key) || typeof key.value !== "string" || !isScalar(value) || typeof value.value !== "string")
+        continue;
+      const [from, to] = value.range ?? [0, 0];
+      entries.push({
+        key: key.value,
+        value: value.value,
+        line: opening.line + lines.linePos(from).line,
+        start: contentStart + from,
+        end: contentStart + to,
+      });
+    }
+  }
+  return { format: "yaml", entries };
 };

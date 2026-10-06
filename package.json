@@ -32,6 +32,11 @@
       "bun": "./src/index.ts",
       "types": "./src/index.ts",
       "default": "./dist/index.js"
+    },
+    "./testing": {
+      "bun": "./src/testing.ts",
+      "types": "./src/testing.ts",
+      "default": "./dist/testing.js"
     }
   },
   "engines": {
@@ -39,7 +44,8 @@
   },
   "files": [
     "src",
-    "dist"
+    "dist",
+    "examples"
   ],
   "dependencies": {
     "mdast-util-from-markdown": "^2.0.3",

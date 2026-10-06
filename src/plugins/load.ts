@@ -78,29 +78,28 @@ const checkCategories = (spec: string, raw: unknown): Record<string, string> => 
   return raw as Record<string, string>;
 };
 
-// A package: the default export is a Plugin.
-export const loadPackage = async (source: PluginSource, reserved: ReadonlySet<string>): Promise<Plugin> => {
-  const mod = await importModule(source);
-  const raw = mod.default;
+// A plugin object is checked here, apart from how it was imported, so a test
+// can hold the same plugin to the same contract the loader does.
+export const parsePlugin = (spec: string, raw: unknown, reserved: ReadonlySet<string>): Plugin => {
   if (!isRecord(raw) || !isRecord(raw.meta) || !isRecord(raw.rules)) {
-    throw new PluginLoadError(source.spec, "the default export must be { meta, rules }");
+    throw new PluginLoadError(spec, "the default export must be { meta, rules }");
   }
   const { name, namespace, apiVersion } = raw.meta;
   if (apiVersion !== API_VERSION) {
     throw new PluginLoadError(
-      source.spec,
+      spec,
       `targets plugin apiVersion ${JSON.stringify(apiVersion)}, but this prose-gates supports ${API_VERSION}`,
     );
   }
-  if (typeof name !== "string" || name === "") throw new PluginLoadError(source.spec, "meta.name is required");
+  if (typeof name !== "string" || name === "") throw new PluginLoadError(spec, "meta.name is required");
   if (typeof namespace !== "string" || !NAMESPACE.test(namespace)) {
-    throw new PluginLoadError(source.spec, "meta.namespace must be lower-case words joined by hyphens");
+    throw new PluginLoadError(spec, "meta.namespace must be lower-case words joined by hyphens");
   }
-  if (reserved.has(namespace)) throw new PluginLoadError(source.spec, `meta.namespace "${namespace}" is reserved`);
-  const categories = checkCategories(source.spec, raw.meta.categories);
+  if (reserved.has(namespace)) throw new PluginLoadError(spec, `meta.namespace "${namespace}" is reserved`);
+  const categories = checkCategories(spec, raw.meta.categories);
   const own = new Set(Object.keys(categories));
   const rules = Object.fromEntries(
-    Object.entries(raw.rules).map(([key, rule]) => [key, checkRule(source.spec, key, rule, own)]),
+    Object.entries(raw.rules).map(([key, rule]) => [key, checkRule(spec, key, rule, own)]),
   );
   return { meta: { name, namespace, apiVersion, categories }, rules };
 };
@@ -176,3 +175,7 @@ export const toRule = (namespace: string, key: string, rule: PluginRule): Rule =
     : undefined;
   return { id, category: rule.category, summary: rule.summary, options: rule.options, check, ...(fix ? { fix } : {}) };
 };
+
+// A package: the default export is a Plugin.
+export const loadPackage = async (source: PluginSource, reserved: ReadonlySet<string>): Promise<Plugin> =>
+  parsePlugin(source.spec, (await importModule(source)).default, reserved);

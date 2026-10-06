@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
+import { loadedLine } from "../src/cli.ts";
 import { parseConfig } from "../src/config.ts";
-import { buildRegistry, checkMarkdown, fixMarkdownReport, UsageError } from "../src/index.ts";
+import { buildRegistry, checkMarkdown, fixMarkdownReport, loadConfig, setUp, UsageError } from "../src/index.ts";
 import { findProjectRoot } from "../src/project.ts";
 import { FIX_ORDER, RULES } from "../src/rules/index.ts";
 import { BUILTIN_CATEGORIES } from "../src/rules/registry.ts";
@@ -197,5 +198,49 @@ describe("the CLI reads a config", () => {
   test("an unreadable config extension is a usage error", async () => {
     const root = tempProject({ "package.json": "{}", "c.yaml": "rules: {}\n", "a.md": "ok.\n" });
     expect((await runCli(root, ["a.md", "--config", "c.yaml"])).code).toBe(2);
+  });
+});
+
+describe("loading a config in process", () => {
+  test("reads .json and .mjs, and refuses anything else", async () => {
+    const root = tempProject({
+      "c.json": JSON.stringify({ rules: { "sentence-one-per-line": "off" } }),
+      "c.mjs": "export default { plugins: false };\n",
+      "bad.json": "{ nope",
+      "c.yaml": "rules: {}\n",
+    });
+    expect((await loadConfig(join(root, "c.json"))).rules.get("sentence-one-per-line")?.severity).toBe("off");
+    expect((await loadConfig(join(root, "c.mjs"))).plugins).toBe(false);
+    await expect(loadConfig(join(root, "bad.json"))).rejects.toThrow(UsageError);
+    await expect(loadConfig(join(root, "c.yaml"))).rejects.toThrow(/a .json or .mjs file/);
+  });
+
+  test("setUp reports a missing --config file as a usage error", async () => {
+    const root = tempProject({ "package.json": "{}" });
+    await expect(setUp({ cwd: root, configPath: "nope.json" })).rejects.toThrow(UsageError);
+  });
+});
+
+describe("loadedLine", () => {
+  const source = (rules: number) => ({
+    kind: "local" as const,
+    spec: ".prose-gates/rules",
+    namespace: "local",
+    rules: Array.from({ length: rules }, (_, i) => `local/sentence-r${i}` as const),
+  });
+
+  test("is silent for a project with no plugins", () => {
+    expect(loadedLine([], [])).toBeNull();
+  });
+
+  test("names each namespace and counts its rules", () => {
+    expect(loadedLine([source(1), { ...source(2), namespace: "acme" }], [])).toBe(
+      "prose-gates: loaded local (1 rule), acme (2 rules)",
+    );
+  });
+
+  test("says what was skipped when plugins are off", () => {
+    const skipped = [{ kind: "package" as const, spec: "prose-gates-plugin-acme", path: "/x" }];
+    expect(loadedLine([], skipped)).toBe("prose-gates: plugins off; skipped prose-gates-plugin-acme");
   });
 });

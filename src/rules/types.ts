@@ -25,8 +25,6 @@ export type PluginRuleId = `${string}/${string}`;
 
 export type RuleId = CoreRuleId | PluginRuleId;
 
-export const isPluginRuleId = (id: string): id is PluginRuleId => id.includes("/");
-
 export interface Finding {
   file: string;
   line: number;

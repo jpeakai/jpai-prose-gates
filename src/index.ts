@@ -33,5 +33,5 @@ export type {
   RuleOptions,
   TextHelpers,
 } from "./rules/types.ts";
-export { CATEGORIES, isPluginRuleId, RULE } from "./rules/types.ts";
+export { CATEGORIES, RULE } from "./rules/types.ts";
 export { sentences, words } from "./text.ts";

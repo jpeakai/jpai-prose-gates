@@ -1,13 +1,15 @@
-// Setting up a run: find the project root, read its config, and build the
-// registry every check and fix in the run uses. This happens once, before any
-// file is read, so a bad config or plugin stops the run before it touches a
-// document.
+// Setting up a run: find the project root, read its config, load the plugins,
+// and build the registry every check and fix in the run uses. This happens
+// once, before any file is read, so a bad config or plugin stops the run
+// before it touches a document.
 
 import { access } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { CONFIG_FILES, findConfig, loadConfig, NO_CONFIG, UsageError } from "./config.ts";
+import type { PluginSource } from "./plugins/discover.ts";
+import { loadPlugins } from "./plugins/index.ts";
 import { FIX_ORDER, RULES } from "./rules/index.ts";
-import { BUILTIN_CATEGORIES, buildRegistry, type Registry } from "./rules/registry.ts";
+import { buildRegistry, type Registry } from "./rules/registry.ts";
 
 export const LOCAL_DIR = ".prose-gates";
 
@@ -31,9 +33,16 @@ export const findProjectRoot = async (cwd: string): Promise<string> => {
 export interface SetupOptions {
   cwd: string;
   configPath?: string;
+  // Built-ins only. Anything discovered is reported as skipped.
+  noPlugins?: boolean;
 }
 
-export const setUp = async ({ cwd, configPath }: SetupOptions): Promise<Registry> => {
+export interface Setup {
+  registry: Registry;
+  skipped: PluginSource[];
+}
+
+export const setUp = async ({ cwd, configPath, noPlugins = false }: SetupOptions): Promise<Setup> => {
   const root = await findProjectRoot(cwd);
   let file: string | null;
   if (configPath !== undefined) {
@@ -43,5 +52,13 @@ export const setUp = async ({ cwd, configPath }: SetupOptions): Promise<Registry
     file = await findConfig(root);
   }
   const config = file ? await loadConfig(file) : NO_CONFIG;
-  return buildRegistry({ rules: RULES, fixOrder: FIX_ORDER, categories: BUILTIN_CATEGORIES, config });
+  const plugins = await loadPlugins(root, config, !noPlugins && config.plugins !== false);
+  const registry = buildRegistry({
+    rules: [...RULES, ...plugins.rules],
+    fixOrder: [...FIX_ORDER, ...plugins.rules.filter((r) => r.fix)],
+    categories: plugins.categories,
+    sources: plugins.sources,
+    config,
+  });
+  return { registry, skipped: plugins.skipped };
 };

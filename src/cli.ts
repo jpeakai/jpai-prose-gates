@@ -7,11 +7,13 @@ import { checkModel } from "./check.ts";
 import { UsageError } from "./config.ts";
 import { fixMarkdownReport } from "./fix/engine.ts";
 import { buildDocModel } from "./model.ts";
+import type { PluginSource } from "./plugins/discover.ts";
 import { setUp } from "./project.ts";
 import { RULES } from "./rules/index.ts";
+import type { LoadedSource } from "./rules/registry.ts";
 import { CATEGORIES } from "./rules/types.ts";
 
-const USAGE = `usage: prose-gates <file.md> [...more] [--fix] [--json] [--max-words N] [--config FILE]
+const USAGE = `usage: prose-gates <file.md> [...more] [--fix] [--json] [--max-words N] [--config FILE] [--no-plugins]
 
 Deterministic prose gates (* = autofixable):
 ${CATEGORIES.map((c) =>
@@ -28,10 +30,19 @@ markdown templates and their body is audited recursively (check-only).
 --fix applies every fix it can prove safe, then reports what remains.
 A fixer that is unsure leaves the text alone and the finding stays.
 --config FILE reads that config instead of prose-gates.config.json or .mjs at the project root.
+Plugins load on their own from .prose-gates/rules and from dependencies named prose-gates-plugin-*.
+--no-plugins runs the built-in rules only, for a baseline or a repo you do not trust.
 Exits 1 when findings remain, 2 on usage error.`;
 
 interface Parsed {
-  values: { fix?: boolean; json?: boolean; help?: boolean; "max-words"?: string; config?: string };
+  values: {
+    fix?: boolean;
+    json?: boolean;
+    help?: boolean;
+    "max-words"?: string;
+    config?: string;
+    "no-plugins"?: boolean;
+  };
   positionals: string[];
 }
 
@@ -44,10 +55,21 @@ const parse = (argv: string[]): Parsed =>
       help: { type: "boolean", short: "h", default: false },
       "max-words": { type: "string" },
       config: { type: "string" },
+      "no-plugins": { type: "boolean", default: false },
     },
     allowPositionals: true,
     strict: true,
   });
+
+// The one line every run prints about third-party code, because loading it is
+// automatic. It says what ran, or what was skipped, and prints nothing when the
+// project has no plugins.
+export const loadedLine = (sources: LoadedSource[], skipped: PluginSource[]): string | null => {
+  if (skipped.length > 0) return `prose-gates: plugins off; skipped ${skipped.map((s) => s.spec).join(", ")}`;
+  if (sources.length === 0) return null;
+  const parts = sources.map((s) => `${s.namespace} (${s.rules.length} rule${s.rules.length === 1 ? "" : "s"})`);
+  return `prose-gates: loaded ${parts.join(", ")}`;
+};
 
 const run = async (argv: string[], cwd: string): Promise<number> => {
   let parsed: Parsed;
@@ -69,7 +91,9 @@ const run = async (argv: string[], cwd: string): Promise<number> => {
     throw new UsageError(`--max-words must be a number of at least 1, not "${values["max-words"]}"`);
   }
 
-  const registry = await setUp({ cwd, configPath: values.config });
+  const { registry, skipped } = await setUp({ cwd, configPath: values.config, noPlugins: values["no-plugins"] });
+  const note = loadedLine(registry.sources, skipped);
+  if (note) console.error(note);
   const perFile = await Promise.all(
     positionals.map(async (file) => {
       let src = await readFile(file, "utf8");
@@ -86,7 +110,7 @@ const run = async (argv: string[], cwd: string): Promise<number> => {
   const all = perFile.flat();
 
   if (values.json) {
-    console.log(JSON.stringify({ findings: all, files: positionals.length }, null, 2));
+    console.log(JSON.stringify({ findings: all, files: positionals.length, plugins: registry.sources }, null, 2));
   } else {
     for (const f of all) console.log(`${f.file}:${f.line} ${f.rule} ${f.message}`);
     console.log(`${all.length} finding(s) in ${positionals.length} file(s)`);

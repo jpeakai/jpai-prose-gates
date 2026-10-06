@@ -10,3 +10,6 @@
 [test]
 coverageReporter = ["text"]
 coverageSkipTestFiles = true
+# Plugin fixtures that tests write under tmp/ are imported as real modules, so
+# keep them out of the report: coverage is of src, not of the tests' inputs.
+coveragePathIgnorePatterns = ["tmp/**"]

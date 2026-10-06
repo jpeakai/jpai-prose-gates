@@ -135,11 +135,6 @@ describe("local rules in .prose-gates/rules", () => {
     await expect(registryOf(local(file, source))).rejects.toThrow(message);
   });
 
-  test("a TypeScript file in the rules directory fails with the reason", async () => {
-    const files = { ...PKG, ".prose-gates/rules/sentence-ts.ts": "export default {};\n" };
-    await expect(registryOf(files)).rejects.toThrow(/\.js or \.mjs file/);
-  });
-
   test("other files in the directory are ignored", async () => {
     const files = { ...local("sentence-no-todo", todoRule()), ".prose-gates/rules/README.md": "notes\n" };
     expect((await registryOf(files)).rules.map((r) => r.id)).toContain("local/sentence-no-todo");
@@ -466,7 +461,7 @@ describe("plugin packages", () => {
 
   test("a matching dependency that is not installed fails with its name", async () => {
     await expect(registryOf(withDeps({ "prose-gates-plugin-acme": "1.0.0" }))).rejects.toThrow(
-      /plugin package "prose-gates-plugin-acme" is declared or listed but not installed/,
+      /plugin prose-gates-plugin-acme: is declared or listed but not installed/,
     );
   });
 
@@ -548,7 +543,7 @@ describe("plugin packages", () => {
 
   test("a config entry that is not installed fails", async () => {
     const files = { ...PKG, "prose-gates.config.json": JSON.stringify({ plugins: ["not-here"] }) };
-    await expect(registryOf(files)).rejects.toThrow(/"not-here" is declared or listed but not installed/);
+    await expect(registryOf(files)).rejects.toThrow(/plugin not-here: is declared or listed but not installed/);
   });
 
   test("a malformed package.json at the root fails with its path", async () => {

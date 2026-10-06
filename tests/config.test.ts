@@ -240,7 +240,7 @@ describe("loadedLine", () => {
   });
 
   test("says what was skipped when plugins are off", () => {
-    const skipped = [{ kind: "package" as const, spec: "prose-gates-plugin-acme", path: "/x" }];
+    const skipped = ["prose-gates-plugin-acme"];
     expect(loadedLine([], skipped)).toBe("prose-gates: plugins off; skipped prose-gates-plugin-acme");
   });
 });

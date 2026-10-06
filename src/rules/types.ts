@@ -23,6 +23,8 @@ export type CoreRuleId = (typeof RULE)[keyof typeof RULE];
 
 export type PluginRuleId = `${string}/${string}`;
 
+export const isPluginRuleId = (id: string): id is PluginRuleId => id.includes("/");
+
 export type RuleId = CoreRuleId | PluginRuleId;
 
 export interface Finding {

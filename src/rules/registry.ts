@@ -3,13 +3,22 @@
 // that is off loses its check and its fixer together. Nothing else reads the
 // catalogue directly, which is what lets a plugin rule behave as a built-in.
 
-import { type Config, UsageError } from "../config.ts";
+import type { Config } from "../config.ts";
+import { RuleOptionError, UnknownRuleError } from "../errors.ts";
 import { interpunctRuns, isFlat } from "../interpunct.ts";
 import type { DocModel } from "../model.ts";
 import { sentences, words } from "../text.ts";
 import { FIX_ORDER, RULES } from "./index.ts";
 import { lengthMessage } from "./sentence-word-budget-exceeded.ts";
-import { type OptionType, RULE, type Rule, type RuleContext, type RuleId, type RuleOptions } from "./types.ts";
+import {
+  isPluginRuleId,
+  type OptionType,
+  RULE,
+  type Rule,
+  type RuleContext,
+  type RuleId,
+  type RuleOptions,
+} from "./types.ts";
 
 export const BUILTIN_CATEGORIES: ReadonlyMap<string, string> = new Map([
   ["sentence", "How a sentence is laid out and how long it runs"],
@@ -34,6 +43,8 @@ export interface Registry {
   options: ReadonlyMap<RuleId, RuleOptions>;
   categories: ReadonlyMap<string, string>;
   sources: LoadedSource[];
+  // Config settings dropped because they name a plugin rule that did not load.
+  ignoredSettings: string[];
 }
 
 export interface RegistryInput {
@@ -42,6 +53,8 @@ export interface RegistryInput {
   categories: ReadonlyMap<string, string>;
   sources?: LoadedSource[];
   config?: Config;
+  // A lenient run drops a setting for an unknown plugin rule instead of failing.
+  ignoreUnknownPluginIds?: boolean;
 }
 
 const typeOf = (value: unknown): OptionType | null => {
@@ -58,27 +71,36 @@ const checkOptions = (where: string, rule: Rule, options: RuleOptions): void => 
     const want = rule.options?.[name];
     if (!want) {
       const list = accepted.length > 0 ? `it accepts ${accepted.join(", ")}` : "it takes no options";
-      throw new UsageError(`${where}: rule "${rule.id}" has no option "${name}"; ${list}`);
+      throw new RuleOptionError(where, rule.id, name, `rule "${rule.id}" has no option "${name}"; ${list}`);
     }
     if (typeOf(value) !== want) {
-      throw new UsageError(`${where}: option "${name}" of "${rule.id}" must be a ${want}`);
+      throw new RuleOptionError(where, rule.id, name, `option "${name}" of "${rule.id}" must be a ${want}`);
     }
   }
   if ("maxWords" in options && !((options.maxWords as number) >= 1)) {
-    throw new UsageError(`${where}: option "maxWords" of "${rule.id}" must be at least 1`);
+    throw new RuleOptionError(where, rule.id, "maxWords", `option "maxWords" of "${rule.id}" must be at least 1`);
   }
 };
 
 export const buildRegistry = (input: RegistryInput): Registry => {
-  const { rules, fixOrder, categories, sources = [], config } = input;
+  const { rules, fixOrder, categories, sources = [], config, ignoreUnknownPluginIds = false } = input;
   const off = new Set<string>();
   const options = new Map<RuleId, RuleOptions>();
+  const ignored: string[] = [];
   const where = config?.file ?? "config";
   for (const [id, setting] of config?.rules ?? []) {
     const rule = rules.find((r) => r.id === id);
     if (!rule) {
-      throw new UsageError(
-        `${where}: unknown rule "${id}"; a retired or misspelt id cannot be switched off. Known rules: ${rules.map((r) => r.id).join(", ")}`,
+      // A plugin that was skipped cannot have its rules configured, so a lenient
+      // run drops the setting and says so. A built-in id is never forgiven.
+      if (ignoreUnknownPluginIds && isPluginRuleId(id)) {
+        ignored.push(id);
+        continue;
+      }
+      throw new UnknownRuleError(
+        where,
+        id,
+        rules.map((r) => r.id),
       );
     }
     checkOptions(where, rule, setting.options);
@@ -93,6 +115,7 @@ export const buildRegistry = (input: RegistryInput): Registry => {
     options,
     categories,
     sources,
+    ignoredSettings: ignored,
   };
 };
 

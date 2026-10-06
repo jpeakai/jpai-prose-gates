@@ -2,7 +2,8 @@
 
 export { checkMarkdown, checkModel, DEFAULT_MAX_WORDS } from "./check.ts";
 export { main } from "./cli.ts";
-export { type Config, loadConfig, parseConfig, type RuleSetting, type Severity, UsageError } from "./config.ts";
+export { type Config, loadConfig, type PluginLoading, parseConfig, type RuleSetting, type Severity } from "./config.ts";
+export * from "./errors.ts";
 export { type FixReport, fixMarkdown, fixMarkdownReport } from "./fix/engine.ts";
 export { FixInvariantError } from "./fix/verify.ts";
 export { buildDocModel, type DocModel, type FrontmatterEntry, type FrontmatterView } from "./model.ts";

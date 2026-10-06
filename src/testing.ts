@@ -43,6 +43,7 @@ const registryFor = (plugin: Plugin, key: string, options: RuleOptions): Registr
     categories: new Map([...BUILTIN_CATEGORIES, ...Object.entries(checked.meta.categories ?? {})]),
     config: {
       plugins: [],
+      pluginLoading: "strict",
       file: null,
       rules: new Map([[built.id, { severity: "error", options }]]),
     },

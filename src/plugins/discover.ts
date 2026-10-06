@@ -3,10 +3,15 @@
 // dependencies and whose name matches the plugin pattern, and the paths or
 // names a config lists. A directory of node_modules is never scanned, so only
 // what the project chose to depend on can run.
+//
+// A source that cannot be resolved is a failure the caller decides how to
+// treat, not an exception, so a lenient run can skip it and a validating run
+// can report every one.
 
 import { readdir, readFile } from "node:fs/promises";
 import { dirname, extname, isAbsolute, join, resolve } from "node:path";
 import type { Config } from "../config.ts";
+import { PluginNotInstalledError } from "../errors.ts";
 
 export type SourceKind = "local" | "package" | "config";
 
@@ -16,6 +21,12 @@ export interface PluginSource {
   spec: string;
   // The file to import.
   path: string;
+}
+
+export interface Discovery {
+  sources: PluginSource[];
+  // Sources found but not resolvable, such as a declared package that is not installed.
+  failures: PluginNotInstalledError[];
 }
 
 export const LOCAL_RULES = join(".prose-gates", "rules");
@@ -41,8 +52,9 @@ const readJson = async (path: string): Promise<Record<string, unknown> | null> =
   throw new Error(`${path} is not a JSON object`);
 };
 
-const LOCAL_EXTENSIONS = new Set([".js", ".mjs"]);
-const TYPESCRIPT_EXTENSIONS = new Set([".ts", ".mts", ".cts"]);
+// Every extension a local rule may have. Whether the runtime can import a
+// TypeScript one is decided at load, so the reason is a named error.
+const LOCAL_EXTENSIONS = new Set([".js", ".mjs", ".ts", ".mts", ".cts"]);
 
 const localSources = async (root: string): Promise<PluginSource[]> => {
   const dir = join(root, LOCAL_RULES);
@@ -52,18 +64,9 @@ const localSources = async (root: string): Promise<PluginSource[]> => {
   } catch {
     return [];
   }
-  const sources: PluginSource[] = [];
-  for (const name of names) {
-    const ext = extname(name);
-    if (TYPESCRIPT_EXTENSIONS.has(ext)) {
-      throw new Error(
-        `${join(LOCAL_RULES, name)}: a local rule is a .js or .mjs file, because Node cannot import ${ext} directly`,
-      );
-    }
-    if (LOCAL_EXTENSIONS.has(ext))
-      sources.push({ kind: "local", spec: join(LOCAL_RULES, name), path: join(dir, name) });
-  }
-  return sources;
+  return names
+    .filter((name) => LOCAL_EXTENSIONS.has(extname(name)) && !name.endsWith(".d.ts") && !name.endsWith(".d.mts"))
+    .map((name) => ({ kind: "local", spec: join(LOCAL_RULES, name), path: join(dir, name) }));
 };
 
 // The file Node would import for a package, read from its package.json the
@@ -90,14 +93,9 @@ const pick = (target: unknown): string | null => {
 
 const entryOf = (pkg: Record<string, unknown>): string => {
   const exported = pkg.exports;
-  const main =
-    isRecord(exported) && "." in exported
-      ? exported["."]
-      : isRecord(exported) && Object.keys(exported).some((k) => k.startsWith("."))
-        ? null
-        : exported;
-  const entry = pick(main) ?? (typeof pkg.main === "string" ? pkg.main : "index.js");
-  return entry;
+  const hasMap = isRecord(exported) && Object.keys(exported).some((k) => k.startsWith("."));
+  const main = isRecord(exported) && "." in exported ? exported["."] : hasMap ? null : exported;
+  return pick(main) ?? (typeof pkg.main === "string" ? pkg.main : "index.js");
 };
 
 export const resolvePackage = async (root: string, name: string): Promise<string> => {
@@ -107,9 +105,7 @@ export const resolvePackage = async (root: string, name: string): Promise<string
     if (pkg) return join(folder, entryOf(pkg));
     if (dirname(dir) === dir) break;
   }
-  throw new Error(
-    `plugin package "${name}" is declared or listed but not installed; looked from ${root} upward. Install it, or remove it`,
-  );
+  throw new PluginNotInstalledError(name, root);
 };
 
 const declaredPlugins = async (root: string): Promise<string[]> => {
@@ -122,16 +118,23 @@ const declaredPlugins = async (root: string): Promise<string[]> => {
   return [...new Set(names)].filter((name) => PACKAGE_PATTERN.test(name)).sort();
 };
 
-export const discoverSources = async (root: string, config: Config): Promise<PluginSource[]> => {
+export const discoverSources = async (root: string, config: Config): Promise<Discovery> => {
   const sources = await localSources(root);
-  for (const name of await declaredPlugins(root)) {
-    sources.push({ kind: "package", spec: name, path: await resolvePackage(root, name) });
-  }
+  const failures: PluginNotInstalledError[] = [];
+  const add = async (kind: SourceKind, spec: string, resolveIt: () => Promise<string>): Promise<void> => {
+    try {
+      sources.push({ kind, spec, path: await resolveIt() });
+    } catch (err) {
+      if (!(err instanceof PluginNotInstalledError)) throw err;
+      failures.push(err);
+    }
+  };
+  for (const name of await declaredPlugins(root)) await add("package", name, () => resolvePackage(root, name));
   for (const spec of config.plugins || []) {
-    const path = spec.startsWith(".") || isAbsolute(spec) ? resolve(root, spec) : await resolvePackage(root, spec);
-    sources.push({ kind: "config", spec, path });
+    const path = spec.startsWith(".") || isAbsolute(spec);
+    await add("config", spec, () => (path ? Promise.resolve(resolve(root, spec)) : resolvePackage(root, spec)));
   }
   // A package both declared and listed in the config loads once.
   const seen = new Set<string>();
-  return sources.filter((s) => !seen.has(s.path) && seen.add(s.path));
+  return { sources: sources.filter((s) => !seen.has(s.path) && seen.add(s.path)), failures };
 };

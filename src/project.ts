@@ -5,9 +5,9 @@
 
 import { access } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
-import { CONFIG_FILES, findConfig, loadConfig, NO_CONFIG, UsageError } from "./config.ts";
-import type { PluginSource } from "./plugins/discover.ts";
-import { loadPlugins } from "./plugins/index.ts";
+import { CONFIG_FILES, findConfig, loadConfig, NO_CONFIG } from "./config.ts";
+import { ConfigNotFoundError } from "./errors.ts";
+import { loadPlugins, type PluginFailure, type PluginMode } from "./plugins/index.ts";
 import { FIX_ORDER, RULES } from "./rules/index.ts";
 import { buildRegistry, type Registry } from "./rules/registry.ts";
 
@@ -35,30 +35,47 @@ export interface SetupOptions {
   configPath?: string;
   // Built-ins only. Anything discovered is reported as skipped.
   noPlugins?: boolean;
+  // Skip a plugin that fails to load and say so, instead of stopping the run.
+  lenient?: boolean;
+  // Load every plugin and report every failure, without stopping at the first.
+  collect?: boolean;
 }
 
 export interface Setup {
   registry: Registry;
-  skipped: PluginSource[];
+  skipped: string[];
+  // Plugins left out because they failed. Empty unless the run was lenient or collecting.
+  failures: PluginFailure[];
 }
 
-export const setUp = async ({ cwd, configPath, noPlugins = false }: SetupOptions): Promise<Setup> => {
+export const setUp = async ({
+  cwd,
+  configPath,
+  noPlugins = false,
+  lenient = false,
+  collect = false,
+}: SetupOptions): Promise<Setup> => {
   const root = await findProjectRoot(cwd);
   let file: string | null;
   if (configPath !== undefined) {
     file = resolve(cwd, configPath);
-    if (!(await exists(file))) throw new UsageError(`--config ${configPath}: no such file`);
+    if (!(await exists(file))) throw new ConfigNotFoundError(configPath);
   } else {
     file = await findConfig(root);
   }
   const config = file ? await loadConfig(file) : NO_CONFIG;
-  const plugins = await loadPlugins(root, config, !noPlugins && config.plugins !== false);
+  let mode: PluginMode = "strict";
+  if (noPlugins || config.plugins === false) mode = "off";
+  else if (collect) mode = "collect";
+  else if (lenient || config.pluginLoading === "lenient") mode = "lenient";
+  const plugins = await loadPlugins(root, config, mode);
   const registry = buildRegistry({
     rules: [...RULES, ...plugins.rules],
     fixOrder: [...FIX_ORDER, ...plugins.rules.filter((r) => r.fix)],
     categories: plugins.categories,
     sources: plugins.sources,
     config,
+    ignoreUnknownPluginIds: mode === "lenient" || mode === "collect",
   });
-  return { registry, skipped: plugins.skipped };
+  return { registry, skipped: plugins.skipped, failures: plugins.failures };
 };

@@ -22,6 +22,7 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 - Depended on by [PRS-0012](0012-node-runs-a-published-bundle.md) (the Node bundle inlines the same parser)
 - Depended on by [PRS-0003](0003-splice-source-never-restringify.md) (splicing addresses source through the tree offsets)
 - Depended on by [PRS-0015](0015-a-rule-reads-one-shared-context.md) (the shared rule context derives from the model parsed once)
+- Depended on by [PRS-0023](0023-frontmatter-is-a-read-only-view.md) (the frontmatter view is derived from the tree parsed once)
 
 ## Problem
 

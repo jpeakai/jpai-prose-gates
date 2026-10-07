@@ -20,13 +20,13 @@ describe("fix fixtures", () => {
     expect(fixtures.length).toBeGreaterThan(0);
   });
 
-  test.each(fixtures)("%s", (name) => {
+  test.each(fixtures)("%s", async (name) => {
     const input = readFileSync(join(ROOT, name, "input.md"), "utf8");
     const expected = readFileSync(join(ROOT, name, "expected.md"), "utf8");
     const rule = name.slice(0, 5).toUpperCase();
-    const fixed = fixMarkdown(input);
+    const fixed = await fixMarkdown(input);
     expect(fixed).toBe(expected);
-    expect(fixMarkdown(fixed)).toBe(fixed);
-    expect(checkMarkdown(fixed, name).filter((f) => f.rule === rule)).toEqual([]);
+    expect(await fixMarkdown(fixed)).toBe(fixed);
+    expect((await checkMarkdown(fixed, name)).filter((f) => f.rule === rule)).toEqual([]);
   });
 });

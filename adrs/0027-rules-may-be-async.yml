@@ -1,0 +1,58 @@
+id: PRS-0027
+slug: rules-may-be-async
+plan_id: null
+title: Rules may be async, checks run concurrently, and fixers run in priority order
+description: The engines are async, checks overlap, fixers are awaited one at a time, and the order stays a hand-kept list
+status: accepted
+accepted_on: 2026-10-07
+last_changed_on: 2026-10-07
+tags: [engine, plugins, concurrency]
+
+lens: |-
+  A rule that calls a tool or a service has to wait, and the engine should not stop to wait with it.
+  A fix run must still end at a text that fixing again would not change.
+
+provenance: Raised in review of PR 10, which asked for async checks and fixers and for a fixer order driven by rule properties
+
+enforced_in:
+  - src/check.ts, which starts every check at once and awaits them all
+  - src/fix/engine.ts, which awaits each fixer in priority order inside the restart loop
+  - src/plugins/load.ts, which awaits a plugin function and contains a rejection
+  - tests/async.test.ts, which proves overlap, order, rejection handling and a stable result
+
+relates_to:
+  - relation: depends_on
+    target: PRS-0019
+    note: a plugin rule function may now return a promise
+  - relation: depends_on
+    target: PRS-0020
+    note: an async fixer meets the same verification as a sync one
+
+problem:
+  symptom: Check and fix were synchronous, so a rule could not wait on anything.
+  pain_point: A rule that needed a tool or a service had to block. A bare list gave no way to say what a run guaranteed.
+
+decision:
+  given: a rule may wait, and one invocation should end at a stable text
+  we_prefer: async engines, with concurrent checks and sequential fixers in a hand-kept list, over declared order properties or a staged fold
+  because: concurrency is as good as parallelism here, and the restart loop is what makes the result stable
+  unless: the cost of asking earlier fixers again becomes real, which calls for a faster loop and a new record
+  in_practice:
+    - checkMarkdown, checkModel, fixMarkdown, fixMarkdownReport and the testing helpers return promises.
+    - A rule's check and fix may return a value or a promise, and a built-in stays synchronous.
+    - Every check starts at once and the engine waits for all of them. JavaScript runs one thread, so this is concurrency and not parallelism.
+    - Findings are sorted by line and then by id after every check has finished, so the order the rules finish in never shows.
+    - A fixer is awaited before the next is asked, because each fixer must see the text the last one left.
+    - A rejected check becomes a finding for that rule. A rejected fixer stops the run with a PluginFixerError.
+    - The fix loop restarts from the top after every accepted edit, so an earlier fixer is asked again about text a later one changed.
+    - One invocation therefore ends at a stable text, and fixing the output again changes nothing.
+    - A rule declares no phase and no after or before constraint, because sampled random fixer orders reproduce every documented output.
+
+consequences:
+  pros:
+    - A plugin can call a tool or a service without blocking the other checks.
+    - The stable-text guarantee is a property of the loop and is checked by tests.
+  cons:
+    - The library API is async, which changes every caller before the first release.
+    - Asking every earlier fixer again after each accepted edit does not scale to hundreds of rules over hundreds of files.
+    - Fixers cannot overlap, so a slow fixer delays the ones after it.

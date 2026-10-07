@@ -8,19 +8,20 @@ import { checkMarkdown, fixMarkdown, fixMarkdownReport } from "../../src/index.t
 import { parse } from "../../src/model.ts";
 import type { RuleId } from "../../src/rules/types.ts";
 
-const rulesIn = (src: string): RuleId[] => checkMarkdown(src, "adversarial.md").map((f) => f.rule);
+const rulesIn = async (src: string): Promise<RuleId[]> =>
+  (await checkMarkdown(src, "adversarial.md")).map((f) => f.rule);
 
-export const refuses = (src: string, stillReported?: RuleId): void => {
-  const report = fixMarkdownReport(src);
+export const refuses = async (src: string, stillReported?: RuleId): Promise<void> => {
+  const report = await fixMarkdownReport(src);
   expect(report.output).toBe(src);
   expect(report.applied).toEqual([]);
-  if (stillReported) expect(rulesIn(src)).toContain(stillReported);
+  if (stillReported) expect(await rulesIn(src)).toContain(stillReported);
 };
 
-export const fixesTo = (src: string, out: string, gone?: RuleId): void => {
-  const fixed = fixMarkdown(src);
+export const fixesTo = async (src: string, out: string, gone?: RuleId): Promise<void> => {
+  const fixed = await fixMarkdown(src);
   expect(fixed).toBe(out);
-  expect(fixMarkdown(fixed)).toBe(fixed);
+  expect(await fixMarkdown(fixed)).toBe(fixed);
   expect(fingerprint(parse(fixed))).toEqual(fingerprint(parse(src)));
-  if (gone) expect(rulesIn(fixed)).not.toContain(gone);
+  if (gone) expect(await rulesIn(fixed)).not.toContain(gone);
 };

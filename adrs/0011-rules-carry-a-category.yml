@@ -25,6 +25,9 @@ relates_to:
   - relation: extended_by
     target: PRS-0017
     note: the category is now the first word of a rule id
+  - relation: extended_by
+    target: PRS-0021
+    note: a plugin adds a category by declaring it
 
 problem:
   symptom: The README listed nine rules in id order with a one-line fix each.

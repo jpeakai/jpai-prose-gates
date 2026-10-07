@@ -22,6 +22,7 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 
 - Extends [PRS-0008](0008-one-file-per-rule.md) (a category is a field on the rule module, never a folder, so files stay named by rule id)
 - Extended by [PRS-0017](0017-rule-ids-are-category-and-short-name.md) (the category is now the first word of a rule id)
+- Extended by [PRS-0021](0021-plugins-declare-their-categories.md) (a plugin adds a category by declaring it)
 
 ## Problem
 

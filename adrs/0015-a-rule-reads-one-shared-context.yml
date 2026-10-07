@@ -29,6 +29,9 @@ relates_to:
   - relation: depended_on_by
     target: PRS-0016
     note: where the code that reads the context lives
+  - relation: depended_on_by
+    target: PRS-0018
+    note: the registry decides which runs count as reported inside the context
 
 problem:
   symptom: check received a context carrying the interpunct runs, while fix received only the document model.

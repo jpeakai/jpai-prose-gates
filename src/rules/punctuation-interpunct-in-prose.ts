@@ -12,7 +12,7 @@ import { type Edit, RULE, type Rule } from "./types.ts";
 // looser one, because a run has already proved itself a list.
 const SEPARATOR = /[ \t]+·[ \t]+/;
 
-const check: Rule["check"] = ({ doc, file, runs }) => {
+const check: Rule["check"] = ({ doc, file, reported: runs }) => {
   const reported = runs.map((run) => run.range);
   return textsContaining(doc, INTERPUNCT)
     .filter((text) => text.start === undefined || !inRanges(text.start, reported))
@@ -24,7 +24,7 @@ const check: Rule["check"] = ({ doc, file, runs }) => {
     }));
 };
 
-const fix: Rule["fix"] = ({ doc, runs }) => {
+const fix: Rule["fix"] = ({ doc, reported: runs }) => {
   const reported = runs.map((run) => run.range);
   const edits: Edit[] = [];
   for (const { start, end, value } of textsContaining(doc, INTERPUNCT)) {

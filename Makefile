@@ -10,6 +10,7 @@ install:
 build:
 	bun build src/bin.ts --target=node --format=esm --outfile dist/bin.js
 	bun build src/index.ts --target=node --format=esm --outfile dist/index.js
+	bun build src/testing.ts --target=node --format=esm --outfile dist/testing.js
 
 # Regenerate and autofix everything that can be: formatting, lint and the
 # decision bundle. Safe to run at any time.

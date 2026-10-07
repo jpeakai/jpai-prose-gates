@@ -45,60 +45,62 @@ const doc = fc.array(block, { minLength: 1, maxLength: 5 }).map((blocks) => `${b
 const RUNS = { numRuns: 400 };
 
 describe("fix properties", () => {
-  test("never throws, even on content the fixers cannot handle", () => {
-    fc.assert(
-      fc.property(doc, (src) => {
-        fixMarkdown(src);
+  test("never throws, even on content the fixers cannot handle", async () => {
+    await fc.assert(
+      fc.asyncProperty(doc, async (src) => {
+        await fixMarkdown(src);
       }),
       RUNS,
     );
   });
 
-  test("is idempotent", () => {
-    fc.assert(
-      fc.property(doc, (src) => {
-        const once = fixMarkdown(src);
-        expect(fixMarkdown(once)).toBe(once);
+  test("is idempotent", async () => {
+    await fc.assert(
+      fc.asyncProperty(doc, async (src) => {
+        const once = await fixMarkdown(src);
+        expect(await fixMarkdown(once)).toBe(once);
       }),
       RUNS,
     );
   });
 
-  test("preserves every content word", () => {
-    fc.assert(
-      fc.property(doc, (src) => {
-        expect(fingerprint(parse(fixMarkdown(src)))).toEqual(fingerprint(parse(src)));
+  test("preserves every content word", async () => {
+    await fc.assert(
+      fc.asyncProperty(doc, async (src) => {
+        expect(fingerprint(parse(await fixMarkdown(src)))).toEqual(fingerprint(parse(src)));
       }),
       RUNS,
     );
   });
 
-  test("never increases the finding count", () => {
-    fc.assert(
-      fc.property(doc, (src) => {
-        expect(checkMarkdown(fixMarkdown(src), "doc.md").length).toBeLessThanOrEqual(
-          checkMarkdown(src, "doc.md").length,
+  test("never increases the finding count", async () => {
+    await fc.assert(
+      fc.asyncProperty(doc, async (src) => {
+        expect((await checkMarkdown(await fixMarkdown(src), "doc.md")).length).toBeLessThanOrEqual(
+          (await checkMarkdown(src, "doc.md")).length,
         );
       }),
       RUNS,
     );
   });
 
-  test("leaves fenced code byte-identical", () => {
+  test("leaves fenced code byte-identical", async () => {
     const fence = fc.tuple(paragraph, paragraph).map(([a, b]) => `${a}\n\n\`\`\`\n${b}\n\`\`\`\n`);
-    fc.assert(
-      fc.property(fence, (src) => {
+    await fc.assert(
+      fc.asyncProperty(fence, async (src) => {
         const body = src.slice(src.indexOf("```"));
-        expect(fixMarkdown(src).endsWith(body)).toBe(true);
+        expect((await fixMarkdown(src)).endsWith(body)).toBe(true);
       }),
       RUNS,
     );
   });
 
-  test("never applies a sentence-word-budget-exceeded fix", () => {
-    fc.assert(
-      fc.property(doc, (src) => {
-        expect(fixMarkdownReport(src).applied.some((a) => a.rule === "sentence-word-budget-exceeded")).toBe(false);
+  test("never applies a sentence-word-budget-exceeded fix", async () => {
+    await fc.assert(
+      fc.asyncProperty(doc, async (src) => {
+        expect((await fixMarkdownReport(src)).applied.some((a) => a.rule === "sentence-word-budget-exceeded")).toBe(
+          false,
+        );
       }),
       RUNS,
     );

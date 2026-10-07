@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-import { main } from "./cli.ts";
+import { describeError, main } from "./cli.ts";
 
 main().then(
   (code) => process.exit(code),
   (err: unknown) => {
-    console.error(`error: ${err instanceof Error ? err.message : String(err)}`);
+    console.error(describeError(err));
     process.exit(1);
   },
 );

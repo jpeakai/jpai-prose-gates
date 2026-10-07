@@ -1,0 +1,54 @@
+id: PRS-0026
+slug: typescript-local-rules-need-a-runtime-that-imports-them
+plan_id: null
+title: A local rule may be TypeScript where the runtime can import it
+description: .ts and .mts rules are imported as they are, and a runtime that cannot says how to fix it
+status: accepted
+accepted_on: 2026-10-07
+last_changed_on: 2026-10-07
+tags: [plugins, typescript, runtime]
+
+lens: |-
+  Authors of rules for TypeScript projects write TypeScript.
+  Transpiling it ourselves would add a compiler to a tool that is meant to be small.
+
+provenance: Raised in review of PR 10, which asked for a rule such as frontmatter-description-sentence-length.ts to work under bunx
+
+enforced_in:
+  - src/plugins/runtime.ts, which says whether the running process can import TypeScript
+  - src/plugins/load.ts, which refuses a file the runtime cannot import with a named error
+  - src/plugins/discover.ts, which finds .ts, .mts and .cts files and ignores declaration files
+  - tests/modes.test.ts, which runs a .ts rule under Bun and under the Node bundle
+
+relates_to:
+  - relation: depends_on
+    target: PRS-0022
+    note: local files are one of the sources discovery finds
+  - relation: depends_on
+    target: PRS-0012
+    note: the Node bundle imports the rule with the runtime it is given and uses no Bun global
+
+problem:
+  symptom: A .ts file in .prose-gates/rules failed with a message that said to write JavaScript.
+  pain_point: A TypeScript project had to keep its lint rules in a different language from the rest of its code.
+
+decision:
+  given: a local rule is written in TypeScript
+  we_prefer: importing it as it is and requiring a runtime that can, over bundling a transpiler
+  because: Bun and recent Node strip types natively, and a transpiler is a dependency we would own
+  unless: a runtime cannot import TypeScript, which is a named plugin-source error that says how to fix it
+  in_practice:
+    - A .ts or .mts file loads under Bun, and under Node 22.18 or newer, which strips types by default.
+    - The check is process.versions.bun or process.features.typescript, so no Bun global is used.
+    - A .cts file is refused, because the loader imports ES modules. A .d.ts file is ignored.
+    - bunx runs the package's own node shebang, so bunx --bun is how to run under Bun.
+    - Node only strips types, so a rule uses erasable syntax, with no enums and no parameter properties.
+    - A failure is a PluginSourceError with the code plugin-source, and a lenient run skips only that file.
+
+consequences:
+  pros:
+    - A rule can share types and idioms with the project it checks.
+    - There is no compiler in the dependency list.
+  cons:
+    - A rule that needs enums or other non-erasable syntax does not run under Node without a flag.
+    - Node 20 cannot run a TypeScript rule at all.

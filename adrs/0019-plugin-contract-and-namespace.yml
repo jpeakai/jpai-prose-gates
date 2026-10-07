@@ -1,0 +1,74 @@
+id: PRS-0019
+slug: plugin-contract-and-namespace
+plan_id: null
+title: A plugin rule is a built-in rule with a namespace, and the plugin names it
+description: A plugin is { meta, rules }, its rules see the built-in context, and its ids carry a namespace
+status: accepted
+accepted_on: 2026-10-06
+last_changed_on: 2026-10-06
+tags: [plugins, architecture, contract]
+
+lens: |-
+  A third-party rule must not need a second code path in the engine.
+  The only new thing a plugin brings is a name that cannot clash with a built-in.
+
+provenance: Raised as phase 2 of issue 7, after surveying how ESLint, Stylelint, markdownlint and Prettier namespace and version plugins
+
+enforced_in:
+  - src/plugins/contract.ts, where Plugin, PluginRule and the name patterns are declared
+  - src/plugins/load.ts, which checks a plugin against the contract and turns its rules into Rules
+  - src/plugins/index.ts, which merges plugins and rejects a repeated namespace
+  - tests/plugins.test.ts, which breaks the contract in every way it can be broken
+
+relates_to:
+  - relation: depends_on
+    target: PRS-0018
+    note: plugin rules join the registry and answer to the same config
+  - relation: depends_on
+    target: PRS-0008
+    note: a plugin rule is the same unit, a check with an optional fix
+  - relation: depends_on
+    target: PRS-0017
+    note: a rule key is category-short-name and the id adds the namespace in front
+  - relation: depended_on_by
+    target: PRS-0020
+    note: fixers from a plugin are held to the same proof
+  - relation: depended_on_by
+    target: PRS-0021
+    note: a plugin declares its categories in its meta
+  - relation: depended_on_by
+    target: PRS-0022
+    note: discovery finds modules that have this shape
+  - relation: depended_on_by
+    target: PRS-0023
+    note: the frontmatter view is part of the model a plugin rule reads
+  - relation: depended_on_by
+    target: PRS-0027
+    note: a plugin rule function may return a promise
+
+problem:
+  symptom: The rule set, the id type and the fix order were closed arrays and a union of nine literals.
+  pain_point: A house style could only be added by changing this repository.
+
+decision:
+  given: a user wants a rule this package does not ship
+  we_prefer: a plugin whose default export is { meta, rules }, with rules receiving the built-in context, over a second rule interface
+  because: one contract means the engine, the fixer proof and the config treat every rule alike
+  unless: the contract must change in a way a plugin would notice, which bumps apiVersion
+  in_practice:
+    - meta has name, namespace, apiVersion and optional categories. apiVersion is 1, and any other value fails the load with both numbers.
+    - The namespace comes from meta.namespace only, never from the package name, and must be lower-case words joined by hyphens.
+    - The namespace local is reserved for local files, and two plugins that claim one namespace fail the load, naming both.
+    - A rule key is category-short-name, so the key must start with its category and a plugin id reads namespace/category-short-name.
+    - A rule has a category, a summary, a check, an optional fix and optional typed options.
+    - The context adds options and helpers, the plain functions words, sentences and lengthMessage, so a plugin never has to import this package.
+    - A check cannot take the run down. A throw or a malformed finding becomes a finding for that rule and the others carry on.
+    - A finding carries its own rule id and file whatever the plugin returned, so a plugin cannot report as another rule.
+
+consequences:
+  pros:
+    - A plugin rule is switched off, given options and listed exactly like a built-in.
+    - A plugin cannot clash with a built-in id, because a core id has no slash.
+  cons:
+    - A throwing built-in still crashes the run, while a throwing plugin rule does not, so the two are not treated alike.
+    - apiVersion is one integer, so any breaking change fails every plugin until it is updated.

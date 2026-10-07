@@ -26,6 +26,12 @@ relates_to:
   - relation: depended_on_by
     target: PRS-0013
     note: the publish workflow ships this bundle
+  - relation: depended_on_by
+    target: PRS-0022
+    note: the plugin loader runs under the Node bundle
+  - relation: depended_on_by
+    target: PRS-0026
+    note: the Node bundle imports a TypeScript rule with the runtime it is given
 
 problem:
   symptom: The bin pointed at TypeScript with a Bun shebang, and the CLI read files through Bun globals.

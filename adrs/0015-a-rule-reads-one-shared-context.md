@@ -24,6 +24,7 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 - Depends on [PRS-0008](0008-one-file-per-rule.md) (the context is the argument the one-file-per-rule contract passes to both halves)
 - Depends on [PRS-0001](0001-parse-once-to-mdast.md) (the shared data is derived from the model parsed once)
 - Depended on by [PRS-0016](0016-modules-group-by-what-a-function-takes.md) (where the code that reads the context lives)
+- Depended on by [PRS-0018](0018-config-file-and-rule-control.md) (the registry decides which runs count as reported inside the context)
 
 ## Problem
 

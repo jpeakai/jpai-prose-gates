@@ -110,7 +110,7 @@ describe("node bundle", () => {
   });
 
   test("the library imports and fixes under Node", async () => {
-    const script = `import("${join(PROJECT_ROOT, "dist", "index.js")}").then((m) => process.stdout.write(m.fixMarkdown("One rule matters — never guess.\\n")))`;
+    const script = `import("${join(PROJECT_ROOT, "dist", "index.js")}").then((m) => m.fixMarkdown("One rule matters — never guess.\\n")).then((out) => process.stdout.write(out))`;
     const proc = Bun.spawn(["node", "-e", script], { stdout: "pipe", stderr: "pipe" });
     const [stdout, code] = await Promise.all([new Response(proc.stdout).text(), proc.exited]);
     expect(code).toBe(0);

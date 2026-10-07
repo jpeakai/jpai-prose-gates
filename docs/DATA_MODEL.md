@@ -17,6 +17,7 @@ This document shows the shapes the gates are built from.
 - [Fix pipeline](#fix-pipeline)
 - [Verification](#verification)
 - [Fix order](#fix-order)
+- [Registry and plugins](#registry-and-plugins)
 - [Extending the model](#extending-the-model)
 
 ## The two models
@@ -34,26 +35,30 @@ A fence tagged `markdown` or `md` is the one exception, since it holds a templat
 
 ## Document model
 
-`buildDocModel` parses the source once, then walks the tree once, filling three views.
+`buildDocModel` parses the source once, then walks the tree once, filling the views.
+Each lens below shows an overview first, then a detailed reference you can open.
 
 ```mermaid
 erDiagram
-    DOC_MODEL ||--|| MDAST_ROOT : "parsed once into"
-    DOC_MODEL ||--o{ PARAGRAPH_VIEW : "paragraphs"
-    DOC_MODEL ||--o{ TEXT_VIEW : "texts"
-    DOC_MODEL ||--o{ FENCE_VIEW : "fences"
+    DOC_MODEL ||--|| MDAST_ROOT : "parsed once"
+    DOC_MODEL ||--o{ PARAGRAPH_VIEW : paragraphs
+    DOC_MODEL ||--o{ TEXT_VIEW : texts
+    DOC_MODEL ||--o{ FENCE_VIEW : fences
+    DOC_MODEL ||--o| FRONTMATTER_VIEW : "frontmatter, read on first use"
+```
+
+*Overview: the document model is one tree and four views.*
+
+<details>
+<summary>Detail: every view and its fields</summary>
+
+The paragraph view and what hangs off it.
+
+```mermaid
+erDiagram
     PARAGRAPH_VIEW ||--o{ DIRECT_TEXT : "directTexts"
     PARAGRAPH_VIEW ||--o{ CODE_RANGE : "codeRanges"
-    FENCE_VIEW ||--|| DOC_MODEL : "audited as a nested"
 
-    DOC_MODEL {
-        string src "exact file source"
-        Root tree "mdast, frontmatter and gfm enabled"
-    }
-    MDAST_ROOT {
-        string type "root"
-        Node children "positions carry source offsets"
-    }
     PARAGRAPH_VIEW {
         string raw "exact source slice"
         string prose "text joined, inline code becomes CODE"
@@ -74,6 +79,23 @@ erDiagram
         number start "inline code span opens"
         number end "inline code span closes"
     }
+```
+
+The model and its other views.
+
+```mermaid
+erDiagram
+    DOC_MODEL ||--|| MDAST_ROOT : "parsed once into"
+    DOC_MODEL ||--o{ TEXT_VIEW : "texts"
+    DOC_MODEL ||--o{ FENCE_VIEW : "fences"
+    DOC_MODEL ||--o| FRONTMATTER_VIEW : "frontmatter"
+    FRONTMATTER_VIEW ||--o{ ENTRY : "entries"
+    FENCE_VIEW ||--|| DOC_MODEL : "audited as a nested"
+
+    DOC_MODEL {
+        string src "exact file source"
+        Root tree "mdast, frontmatter and gfm enabled"
+    }
     TEXT_VIEW {
         string value "every prose text node"
         number line "for the finding"
@@ -83,20 +105,21 @@ erDiagram
         string value "fence body, markdown or md only"
         number line "opening fence, for line offsetting"
     }
-
-    %% Attribute rows alternate, and only the even ones take a classDef fill.
-    %% The odd ones keep the theme background, so the label colour is left to
-    %% the theme and the fill is translucent enough to read under either one.
-    classDef source   fill:#2563eb66,stroke:#3b82f6,stroke-width:2px
-    classDef derived  fill:#7c3aed66,stroke:#8b5cf6,stroke-width:2px
-    classDef span     fill:#33415566,stroke:#7e8c9e,stroke-width:2px
-
-    class DOC_MODEL,MDAST_ROOT source
-    class PARAGRAPH_VIEW,TEXT_VIEW,FENCE_VIEW derived
-    class DIRECT_TEXT,CODE_RANGE span
+    FRONTMATTER_VIEW {
+        string format "yaml"
+    }
+    ENTRY {
+        string key "top level only"
+        string value "a string scalar"
+        number line "where the value starts"
+        number start "absolute source offset"
+        number end "absolute source offset"
+    }
 ```
 
-*The document model, built once per file.* | 7 entities, VCS 10.5
+*Detail: 8 entities with their fields, in two diagrams.*
+
+</details>
 
 Three distinctions carry most of the weight.
 
@@ -116,38 +139,45 @@ Every offset is absolute into `src`, and is only valid for the source it was com
 ## Rule model
 
 A rule is data plus two functions.
-The catalogue in `src/rules/index.ts` is the only registry.
+`src/rules/index.ts` lists the built-in rules, and `src/rules/registry.ts` builds the registry a run actually uses (see [Registry and plugins](#registry-and-plugins)).
 
 ```mermaid
 erDiagram
-    RULE ||--o{ FINDING : "check emits"
-    RULE ||--o{ EDIT : "fix proposes"
+    REGISTRY ||--o{ RULE : "active rules"
+    RULE ||--o{ FINDING : "check returns"
+    RULE ||--o{ EDIT : "fix returns"
+    EDIT ||--|| EXPECTATION : declares
     RULE_CONTEXT ||--|{ RULE : "both halves read"
-    RULE_CONTEXT ||--o{ INTERPUNCT_RUN : "runs"
-    RULE_CONTEXT ||--|| CHECK_CONTEXT : "a check adds"
-    EDIT ||--|| EXPECTATION : "declares"
-    PROMOTION ||--|{ PROMOTED_ITEM : "items"
-    PROMOTION ||--o| EDIT : "promote returns"
+```
 
+*Overview: a registry holds rules, a rule returns findings and edits, and an edit declares its proof.*
+
+<details>
+<summary>Detail: the contract, the contexts and the promotion shape</summary>
+
+The contract: what a registry holds and what a rule returns.
+
+```mermaid
+erDiagram
+    REGISTRY ||--o{ RULE : "active rules"
+    RULE ||--o{ FINDING : "check returns"
+    RULE ||--o{ EDIT : "fix returns"
+    EDIT ||--|| EXPECTATION : "declares"
+
+    REGISTRY {
+        Rule rules "active, in check order"
+        Rule fixOrder "active fixers, in priority order"
+        string enabled "ids of the active rules"
+        record options "per rule"
+        record categories "word to description"
+    }
     RULE {
-        RuleId id "sentence-one-per-line to list-stacked-interpunct-runs"
-        Category category "sentence, list or punctuation"
+        RuleId id "category-short-name, or namespace/name"
+        string category "a built-in word or a declared one"
         string summary "one line, shown in help"
-        function check "required"
-        function fix "absent for sentence-word-budget-exceeded"
-    }
-    RULE_CONTEXT {
-        DocModel doc "the document model"
-        InterpunctRun runs "computed once, shared"
-    }
-    CHECK_CONTEXT {
-        string file "reported path"
-        number maxWords "sentence-word-budget-exceeded budget, default 25"
-    }
-    INTERPUNCT_RUN {
-        Range range "paragraph bounds"
-        number separators "middle dots in the prose"
-        number lines "source lines carrying one"
+        record options "names and types it accepts"
+        function check "required, may return a promise"
+        function fix "optional, may return a promise"
     }
     FINDING {
         string file "path as given"
@@ -163,11 +193,50 @@ erDiagram
         Expectation expect "proof obligation"
     }
     EXPECTATION {
-        string kind "same-tree, same-shape or replace-paragraph"
+        string kind "same-tree, same-shape, same-frontmatter-data or replace-paragraph"
         ParagraphView view "replace-paragraph only"
         string fragment "replace-paragraph only"
         number listItems "replace-paragraph only"
     }
+```
+
+The contexts: what a rule receives.
+
+```mermaid
+erDiagram
+    RULE_CONTEXT ||--o{ INTERPUNCT_RUN : "runs, reported"
+    CHECK_CONTEXT ||--|| RULE_CONTEXT : "extends"
+    FIX_CONTEXT ||--|| RULE_CONTEXT : "extends"
+
+    RULE_CONTEXT {
+        DocModel doc "the document model"
+        InterpunctRun runs "every run, computed once"
+        InterpunctRun reported "runs an enabled rule owns"
+    }
+    CHECK_CONTEXT {
+        string file "reported path"
+        number maxWords "flag, then option, then 25"
+        record options "this rule's options"
+        record helpers "words, sentences, lengthMessage"
+    }
+    FIX_CONTEXT {
+        record options "this rule's options"
+        record helpers "words, sentences, lengthMessage"
+    }
+    INTERPUNCT_RUN {
+        Range range "paragraph bounds"
+        number separators "middle dots in the prose"
+        number lines "source lines carrying one"
+    }
+```
+
+The promotion shape the list gates share.
+
+```mermaid
+erDiagram
+    PROMOTION ||--|{ PROMOTED_ITEM : "items"
+    PROMOTION ||--o| EDIT : "promote returns"
+
     PROMOTION {
         RuleId rule "which list gate"
         Range span "sentences the list replaces"
@@ -176,44 +245,34 @@ erDiagram
     }
     PROMOTED_ITEM {
         string text "one bullet, sliced from source"
-        string children "nested bullets, list-stacked-interpunct-runs only"
+        string children "nested bullets, stacked runs only"
     }
-
-    %% Attribute rows alternate, and only the even ones take a classDef fill.
-    %% The odd ones keep the theme background, so the label colour is left to
-    %% the theme and the fill is translucent enough to read under either one.
-    classDef contract fill:#04785766,stroke:#059669,stroke-width:2px
-    classDef output   fill:#b4530966,stroke:#d97706,stroke-width:2px
-    classDef shared   fill:#33415566,stroke:#7e8c9e,stroke-width:2px
-
-    class RULE,PROMOTION,PROMOTED_ITEM contract
-    class FINDING,EDIT,EXPECTATION output
-    class RULE_CONTEXT,CHECK_CONTEXT,INTERPUNCT_RUN shared
+    EDIT {
+        RuleId rule "who proposed it"
+        Expectation expect "replace-paragraph here"
+    }
 ```
 
-*The rule contract and what it produces.* | 9 entities, VCS 12.5
+*Detail: 11 entities with their fields, in three diagrams.*
+
+</details>
 
 `ruleContext` builds the shared half once per document, and both halves of every rule read it.
-A check adds the file it reports against and the sentence budget; a fix needs nothing more, so `FixContext` is `RuleContext`.
+A check adds the file it reports against, the sentence budget, its options and the text helpers.
+A fix adds its options and the helpers, so `FixContext` is `RuleContext` plus those two.
 An interpunct run is the one piece of derived data shared between rules.
+`reported` holds the runs an enabled rule owns.
 It is what lets punctuation-interpunct-in-prose stay quiet inside a run that list-interpunct-joined-run or list-stacked-interpunct-runs already reports.
 
 ## Check pipeline
 
 Checking never mutates anything.
+Every active rule is started at once and the engine waits for all of them.
+A rule that waits on a tool therefore overlaps with the others.
 
 ```mermaid
 flowchart LR
-    SRC["Markdown source"]:::source
-    MODEL["buildDocModel<br/>one parse, one walk"]:::build
-    RUNS["interpunctRuns<br/>shared derived data"]:::build
-    GATES["9 prose gates<br/>each reads CheckContext"]:::gate
-    NESTED["markdown fences<br/>audited recursively"]:::gate
-    OUT["Findings<br/>sorted by line then rule"]:::out
-
-    SRC --> MODEL --> RUNS --> GATES --> OUT
-    MODEL --> NESTED
-    NESTED -- "line offset added" --> OUT
+    SRC["Markdown<br/>source"]:::source --> MODEL["Build<br/>model"]:::build --> CTX["Build<br/>context"]:::build --> RULES["Run every<br/>rule at once"]:::gate --> OUT["Findings,<br/>sorted"]:::out
 
     classDef source fill:#2563eb,stroke:#bfdbfe,color:#ffffff
     classDef build  fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
@@ -221,94 +280,118 @@ flowchart LR
     classDef out    fill:#fef3c7,stroke:#b45309,color:#1e293b
 ```
 
-*Check path.* | 6 nodes, VCS 9.0
+*Overview: source to model to context, then every rule, then sorted findings.*
 
 <details>
-<summary>Complete check pipeline, with the shared data each gate reads (17 nodes)</summary>
+<summary>Detail: the model, the shared data and the rules each check reads</summary>
 
 ```mermaid
 flowchart TB
     SRC["Markdown source"]:::source
 
-    subgraph build["Document model"]
-        PARSE["parse<br/>mdast, frontmatter, gfm"]:::build
-        WALK["visitParents<br/>single walk"]:::build
-        PARA["paragraphs"]:::view
-        TEXT["texts"]:::view
-        FENCE["fences"]:::view
+    subgraph model["Document model"]
+        PARSE["parse: mdast, frontmatter, gfm"]:::build
+        WALK["one walk of the tree"]:::build
+        VIEWS["paragraphs, texts, fences,<br/>frontmatter on first use"]:::view
     end
 
-    subgraph derived["Shared derived data"]
-        RUNS["interpunctRuns<br/>range, separators, lines"]:::build
+    subgraph ctx["Shared context"]
+        RUNS["interpunctRuns: every run"]:::build
+        REP["reported: runs an enabled rule owns"]:::build
     end
 
-    subgraph gates["Prose gates"]
-        SENT["Sentence<br/>sentence-one-per-line sentence-word-budget-exceeded"]:::gate
-        LIST["List<br/>list-semicolon-delimited-run list-interpunct-joined-run list-inline-enumeration-markers list-comma-labelled-run list-stacked-interpunct-runs"]:::gate
-        PUNC["Punctuation<br/>punctuation-em-dash-in-prose punctuation-interpunct-in-prose"]:::gate
+    subgraph rules["Active rules, started together"]
+        BUILTIN["Built-in gates<br/>sentence, list, punctuation"]:::gate
+        PLUGIN["Plugin rules<br/>wrapped: awaited, contained"]:::ext
     end
 
-    RECUR["checkModel on the fence body"]:::gate
+    FENCE["markdown fences:<br/>checkModel on each body"]:::gate
+    WAIT["wait for all"]:::out
     SORT["sort by line, then rule id"]:::out
     OUT["Finding list"]:::out
 
-    SRC --> PARSE --> WALK
-    WALK --> PARA
-    WALK --> TEXT
-    WALK --> FENCE
-    PARA --> RUNS
-    PARA --> SENT
-    PARA --> LIST
-    TEXT --> PUNC
-    RUNS --> LIST
-    RUNS --> PUNC
-    FENCE --> RECUR
-    SENT --> SORT
-    LIST --> SORT
-    PUNC --> SORT
-    RECUR --> SORT --> OUT
+    SRC --> PARSE --> WALK --> VIEWS
+    VIEWS --> RUNS --> REP
+    VIEWS --> BUILTIN
+    REP --> BUILTIN
+    VIEWS --> PLUGIN
+    VIEWS --> FENCE
+    BUILTIN --> WAIT
+    PLUGIN --> WAIT
+    FENCE --> WAIT
+    WAIT --> SORT --> OUT
 
     classDef source fill:#2563eb,stroke:#bfdbfe,color:#ffffff
     classDef build  fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
     classDef view   fill:#c4b5fd,stroke:#7c3aed,color:#1e293b
     classDef gate   fill:#047857,stroke:#a7f3d0,color:#ffffff
+    classDef ext    fill:#334155,stroke:#cbd5e1,color:#ffffff
     classDef out    fill:#fef3c7,stroke:#b45309,color:#1e293b
 
-    style build fill:#ede9fe,stroke:#6d28d9,color:#1e293b
-    style derived fill:#f1f5f9,stroke:#334155,color:#1e293b
-    style gates fill:#d1fae5,stroke:#065f46,color:#1e293b
+    style model fill:#ede9fe,stroke:#6d28d9,color:#1e293b
+    style ctx fill:#f1f5f9,stroke:#334155,color:#1e293b
+    style rules fill:#d1fae5,stroke:#065f46,color:#1e293b
 ```
+
+*Detail: 13 nodes in three groups.*
 
 </details>
 
-Every gate reads the same `CheckContext`, which is the shared `RuleContext` plus the file it reports against and the sentence budget.
-A gate never writes a file, never mutates the model and never sees another gate's output.
+Every rule reads the same `CheckContext`.
+That is the shared `RuleContext` plus the file it reports against, the sentence budget, its options and the text helpers.
+A rule never writes a file, never mutates the model and never sees another rule's output.
+A plugin check that throws, rejects or returns the wrong shape becomes one finding for that rule.
 
 ## Fix pipeline
 
 Fixing is a fixpoint loop over splice edits.
 Offsets are only valid for the source they were computed from, so every accepted edit restarts the pass.
+Each fixer is awaited before the next is asked.
+An earlier fixer is asked again after every accepted edit, so one run ends at a stable text.
+
+```mermaid
+flowchart LR
+    START(["fixMarkdown"]):::source --> BUILD["Build<br/>model"]:::build --> ASK["Ask fixers<br/>in order"]:::build --> VERIFY{"Verify<br/>one edit"}:::decide
+    VERIFY -- "accept: restart" --> BUILD
+    ASK -- "none left" --> DONE(["Stable<br/>text"]):::out
+
+    classDef source fill:#2563eb,stroke:#bfdbfe,color:#ffffff
+    classDef build  fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
+    classDef decide fill:#334155,stroke:#cbd5e1,color:#ffffff
+    classDef out    fill:#fef3c7,stroke:#b45309,color:#1e293b
+```
+
+*Overview: build, ask, verify, and restart on every accepted edit.*
+
+<details>
+<summary>Detail: the loop in src/fix/engine.ts, step by step</summary>
 
 ```mermaid
 flowchart TB
-    START(["fixMarkdownReport(src)"]):::source
-    BUILD["ruleContext over the current source<br/>model and runs, rebuilt each pass"]:::build
-    ASK["ask the next rule in FIX_ORDER for edits"]:::build
-    FILTER["drop no-op edits and edits already refused"]:::build
-    BATCH{"batchable?<br/>no overlap, no paragraph replacement"}:::decide
+    START(["fixMarkdownReport(src, registry)"]):::source
+    BUILD["rebuild model and<br/>runs from the text"]:::build
+    ASK["await the next fixer<br/>in registry.fixOrder"]:::build
+    SOUND{"edit well formed?<br/>offsets inside the source"}:::decide
+    REJECT["refuse it once,<br/>never splice it"]:::bad
+    FILTER["drop no-ops and<br/>refused edits"]:::build
+    BATCH{"batchable?<br/>no overlap"}:::decide
     SPLICE["splice, then reparse"]:::build
     VERIFY{"verify"}:::decide
     ACCEPT["keep the edit, restart the pass"]:::ok
-    REFUSE["remember the refusal, try the next edit"]:::bad
-    DONE(["no rule progressed: return the report"]):::out
+    REFUSE["remember it,<br/>try the next edit"]:::bad
+    THROW["FixInvariantError:<br/>a word changed"]:::bad
+    DONE(["no progress:<br/>return the report"]):::out
 
-    START --> BUILD --> ASK --> FILTER --> BATCH
+    START --> BUILD --> ASK --> SOUND
+    SOUND -- "no" --> REJECT
+    SOUND -- "yes" --> FILTER --> BATCH
     BATCH -- "yes, whole batch" --> SPLICE
     BATCH -- "no, one at a time" --> SPLICE
     SPLICE --> VERIFY
     VERIFY -- "accept" --> ACCEPT --> BUILD
     VERIFY -- "refuse" --> REFUSE --> ASK
-    ASK -- "no rule left" --> DONE
+    VERIFY -- "fingerprint changed" --> THROW
+    ASK -- "no fixer left" --> DONE
 
     classDef source fill:#2563eb,stroke:#bfdbfe,color:#ffffff
     classDef build  fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
@@ -318,7 +401,9 @@ flowchart TB
     classDef out    fill:#fef3c7,stroke:#b45309,color:#1e293b
 ```
 
-*The fixpoint loop in `src/fix/engine.ts`.* | 10 nodes, VCS 17.0
+*Detail: 12 nodes, the fixpoint loop.*
+
+</details>
 
 A refused edit is remembered by the triple of rule, source slice and replacement text.
 It stays refused while that slice is unchanged, so a stubborn fixer cannot spin the loop.
@@ -330,6 +415,25 @@ A fixer proposes.
 The engine, not the fixer, decides whether an edit is safe to keep.
 
 ```mermaid
+flowchart LR
+    EDIT(["Edit"]):::source --> FP{"Same<br/>words?"}:::decide
+    FP -- "no" --> THROW["Throw"]:::bad
+    FP -- "yes" --> EXP{"Shape as<br/>declared?"}:::decide
+    EXP -- "yes" --> OK(["Accept"]):::ok
+    EXP -- "no" --> NO(["Refuse"]):::bad
+
+    classDef source fill:#2563eb,stroke:#bfdbfe,color:#ffffff
+    classDef decide fill:#334155,stroke:#cbd5e1,color:#ffffff
+    classDef ok     fill:#047857,stroke:#a7f3d0,color:#ffffff
+    classDef bad    fill:#b91c1c,stroke:#fecaca,color:#ffffff
+```
+
+*Overview: two obligations, in order.*
+
+<details>
+<summary>Detail: the four expectation kinds</summary>
+
+```mermaid
 flowchart TB
     EDIT(["an edit and the reparsed tree"]):::source
     FP{"fingerprint unchanged?"}:::decide
@@ -337,6 +441,7 @@ flowchart TB
     KIND{"expectation kind"}:::decide
     TREE["same-tree<br/>whitespace collapsed, trees equal"]:::build
     SHAPE["same-shape<br/>text blanked, trees equal"]:::build
+    FMD["same-frontmatter-data<br/>YAML data equal, rest of tree equal"]:::build
     REPL["replace-paragraph<br/>fragment shape, then swapped tree equal"]:::build
     OK(["accept: write it"]):::ok
     NO(["refuse: the finding stays"]):::bad
@@ -346,12 +451,15 @@ flowchart TB
     FP -- "yes" --> KIND
     KIND -- "same-tree" --> TREE
     KIND -- "same-shape" --> SHAPE
+    KIND -- "same-frontmatter-data" --> FMD
     KIND -- "replace-paragraph" --> REPL
     TREE --> OK
     SHAPE --> OK
+    FMD --> OK
     REPL --> OK
     TREE --> NO
     SHAPE --> NO
+    FMD --> NO
     REPL --> NO
 
     classDef source fill:#2563eb,stroke:#bfdbfe,color:#ffffff
@@ -361,7 +469,9 @@ flowchart TB
     classDef bad    fill:#b91c1c,stroke:#fecaca,color:#ffffff
 ```
 
-*Two obligations, in order.* | 9 nodes, VCS 15.0
+*Detail: 9 nodes.*
+
+</details>
 
 The fingerprint is every word, url, alt text and code value of the document, in order.
 Joining conjunctions and enumeration markers are excluded, because a fixer is allowed to rewrite those.
@@ -374,32 +484,60 @@ A mismatch means a context the fixer could not see, so the edit is refused and t
 |---|---|---|---|
 | `same-tree` | Whitespace moved and nothing else | Trees equal once text whitespace is collapsed | sentence-one-per-line |
 | `same-shape` | Glyphs swapped inside text | Trees equal once every text value is blanked | punctuation-em-dash-in-prose, punctuation-interpunct-in-prose |
+| `same-frontmatter-data` | Frontmatter written a different way | The YAML parses to identical data, and the tree without its frontmatter is equal | plugin rules, such as the folded-block fixer in `examples/` |
 | `replace-paragraph` | One paragraph became a lead-in and a list | Fragment has the declared shape, and swapping it into the old tree reproduces the new tree | list-semicolon-delimited-run, list-interpunct-joined-run, list-inline-enumeration-markers, list-comma-labelled-run, list-stacked-interpunct-runs |
 
 ## Fix order
 
 Structure first, then glyphs, then layout.
 A promotion needs the separators a glyph swap would erase, and reflow only makes sense over settled blocks.
+Plugin fixers are asked after every built-in, in load order.
 
 ```mermaid
 flowchart LR
-    P9["list-stacked-interpunct-runs<br/>stacked runs"]:::list
-    P7["list-inline-enumeration-markers<br/>inline enum"]:::list
-    P8["list-comma-labelled-run<br/>labelled run"]:::list
-    P6["list-interpunct-joined-run<br/>interpunct run"]:::list
-    P3["list-semicolon-delimited-run<br/>semicolon list"]:::list
-    P5["punctuation-interpunct-in-prose<br/>interpunct"]:::punc
-    P4["punctuation-em-dash-in-prose<br/>em dash"]:::punc
-    P1["sentence-one-per-line<br/>reflow"]:::sent
-
-    P9 --> P7 --> P8 --> P6 --> P3 --> P5 --> P4 --> P1
+    S["Structure<br/>5 list gates"]:::list --> G["Glyphs<br/>2 punctuation gates"]:::punc --> L["Layout<br/>1 reflow gate"]:::sent --> P["Plugin<br/>fixers"]:::ext
 
     classDef list fill:#047857,stroke:#a7f3d0,color:#ffffff
     classDef punc fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
     classDef sent fill:#2563eb,stroke:#bfdbfe,color:#ffffff
+    classDef ext  fill:#334155,stroke:#cbd5e1,color:#ffffff
 ```
 
-*`FIX_ORDER` in `src/rules/index.ts`.* | 8 nodes, VCS 11.5
+*Overview: the order is a priority list, structure first.*
+
+<details>
+<summary>Detail: FIX_ORDER, rule by rule</summary>
+
+```mermaid
+flowchart TB
+    subgraph structure["Structure"]
+        P9["list-stacked-interpunct-runs"]:::list --> P7["list-inline-enumeration-markers"]:::list --> P8["list-comma-labelled-run"]:::list --> P6["list-interpunct-joined-run"]:::list --> P3["list-semicolon-delimited-run"]:::list
+    end
+    subgraph glyphs["Glyphs"]
+        P5["punctuation-interpunct-in-prose"]:::punc --> P4["punctuation-em-dash-in-prose"]:::punc
+    end
+    subgraph layout["Layout"]
+        P1["sentence-one-per-line"]:::sent
+    end
+    PLG["plugin fixers, in load order"]:::ext
+
+    P3 --> P5
+    P4 --> P1
+    P1 --> PLG
+
+    classDef list fill:#047857,stroke:#a7f3d0,color:#ffffff
+    classDef punc fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
+    classDef sent fill:#2563eb,stroke:#bfdbfe,color:#ffffff
+    classDef ext  fill:#334155,stroke:#cbd5e1,color:#ffffff
+
+    style structure fill:#d1fae5,stroke:#065f46,color:#1e293b
+    style glyphs fill:#ede9fe,stroke:#6d28d9,color:#1e293b
+    style layout fill:#dbeafe,stroke:#1d4ed8,color:#1e293b
+```
+
+*Detail: 9 nodes in three groups. `FIX_ORDER` is in `src/rules/index.ts`.*
+
+</details>
 
 sentence-word-budget-exceeded has no fixer.
 Shortening a sentence changes its words, and that needs discretion.
@@ -410,6 +548,24 @@ Item text is sliced from the source and never re-serialised, so links, emphasis,
 
 ```mermaid
 flowchart LR
+    GATES["5 list gates"]:::gate --> PROM["promote"]:::build --> GUARD{"Safe?"}:::decide
+    GUARD -- "yes" --> EDIT(["Edit"]):::ok
+    GUARD -- "no" --> NULL(["null"]):::bad
+
+    classDef gate   fill:#047857,stroke:#a7f3d0,color:#ffffff
+    classDef build  fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
+    classDef decide fill:#334155,stroke:#cbd5e1,color:#ffffff
+    classDef ok     fill:#fef3c7,stroke:#b45309,color:#1e293b
+    classDef bad    fill:#b91c1c,stroke:#fecaca,color:#ffffff
+```
+
+*Overview: every list gate hands its list to `promote`, which returns an edit or null.*
+
+<details>
+<summary>Detail: the shared promotion path</summary>
+
+```mermaid
+flowchart TB
     subgraph gates["List gates"]
         G3["list-semicolon-delimited-run"]:::gate
         G6["list-interpunct-joined-run"]:::gate
@@ -417,6 +573,7 @@ flowchart LR
         G8["list-comma-labelled-run"]:::gate
         G9["list-stacked-interpunct-runs"]:::gate
     end
+    G3 ~~~ G6 ~~~ G7 ~~~ G8 ~~~ G9
     PROM["promote<br/>lead-in plus items"]:::build
     GUARD{"safe to promote?"}:::decide
     NULL(["null: the finding stays"]):::bad
@@ -428,8 +585,8 @@ flowchart LR
     G8 --> PROM
     G9 --> PROM
     PROM --> GUARD
-    GUARD -- "table, quote, hard break, under two items, unsafe line start" --> NULL
-    GUARD -- "otherwise" --> EDIT
+    GUARD -- "no: table, quote, break,<br/>few items, unsafe start" --> NULL
+    GUARD -- "yes" --> EDIT
 
     classDef gate   fill:#047857,stroke:#a7f3d0,color:#ffffff
     classDef build  fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
@@ -440,13 +597,105 @@ flowchart LR
     style gates fill:#d1fae5,stroke:#065f46,color:#1e293b
 ```
 
-*The shared promotion path.* | 9 nodes, VCS 17.6
+*Detail: 9 nodes.*
+
+</details>
+
+## Registry and plugins
+
+A run does not read the built-in list directly.
+`setUp` in `src/project.ts` finds the project root, reads the config, loads plugins, and builds a `Registry`.
+Check and fix both read that registry, so a rule behaves the same whoever wrote it.
+
+```mermaid
+flowchart LR
+    BI["Built-in<br/>rules"]:::core --> REG["Registry"]:::build
+    PL["Plugins and<br/>local rules"]:::ext --> REG
+    CFG["Config<br/>file"]:::source --> REG
+    REG --> CHK["Check<br/>engine"]:::gate
+    REG --> FIX["Fix<br/>engine"]:::gate
+
+    classDef core   fill:#2563eb,stroke:#bfdbfe,color:#ffffff
+    classDef build  fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
+    classDef ext    fill:#334155,stroke:#cbd5e1,color:#ffffff
+    classDef source fill:#b45309,stroke:#fde68a,color:#ffffff
+    classDef gate   fill:#047857,stroke:#a7f3d0,color:#ffffff
+```
+
+*Overview: three sources feed one registry, and both engines read it.*
+
+<details>
+<summary>Detail: what setUp does, in order</summary>
+
+```mermaid
+flowchart TB
+    ROOT["find the project root"]:::build
+    CFGF["find and load the config"]:::source
+    DISC["discover sources:<br/>local files, declared packages, config entries"]:::ext
+    MODE{"plugin mode"}:::decide
+    OFF["off: built-ins only,<br/>sources reported as skipped"]:::out
+    LOAD["import each source<br/>and check the contract"]:::ext
+    FAIL{"a source failed?"}:::decide
+    STRICT["strict: throw the named error"]:::bad
+    SKIP["lenient or collect:<br/>leave it out, record it"]:::out
+    MERGE["merge: reject a repeated<br/>namespace or category"]:::ext
+    BUILD["buildRegistry:<br/>apply off, options and order"]:::build
+    REG["Registry"]:::gate
+
+    ROOT --> CFGF --> DISC --> MODE
+    MODE -- "off" --> OFF --> BUILD
+    MODE -- "strict, lenient, collect" --> LOAD --> FAIL
+    FAIL -- "strict" --> STRICT
+    FAIL -- "otherwise" --> SKIP --> MERGE
+    FAIL -- "none" --> MERGE
+    MERGE --> BUILD --> REG
+
+    classDef build  fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
+    classDef source fill:#b45309,stroke:#fde68a,color:#ffffff
+    classDef ext    fill:#334155,stroke:#cbd5e1,color:#ffffff
+    classDef decide fill:#1e293b,stroke:#94a3b8,color:#ffffff
+    classDef bad    fill:#b91c1c,stroke:#fecaca,color:#ffffff
+    classDef out    fill:#fef3c7,stroke:#b45309,color:#1e293b
+    classDef gate   fill:#047857,stroke:#a7f3d0,color:#ffffff
+```
+
+*Detail: 13 nodes.*
+
+</details>
+
+| Part | Where | What it holds |
+|---|---|---|
+| Config | `src/config.ts` | Which rules are off and each rule's options, checked against the loaded rules |
+| Discovery | `src/plugins/discover.ts` | Local files, declared packages and config entries, in that order |
+| Loader | `src/plugins/load.ts` | Imports a module, checks it against the contract, and wraps each rule |
+| Assembly | `src/plugins/index.ts` | Merges plugins, and rejects a repeated namespace or category |
+| Registry | `src/rules/registry.ts` | The active rules, the fix order, the options and the categories |
+
+The registry orders fixers as the built-in fix order, then plugin fixers in load order.
+A rule that is off is absent from both the rule list and the fix order.
+An interpunct run counts as reported only while its owning rule is on.
+The glyph rule reports a run whose owner is off.
+
+A plugin rule is wrapped when it loads.
+Its check cannot throw out of the run, its findings carry its own id and file, and its edits carry its own id.
+Its fixer then meets the same verification as a built-in, and an edit outside the source is refused before it is spliced.
+
+A rule function may be synchronous or return a promise.
+The check engine starts every check at once and waits for all of them.
+The fix engine awaits one fixer at a time, in priority order.
+[docs/engines.md](engines.md) draws both, and states the stable-text guarantee a fix run ends with.
+
+Frontmatter is the one new view.
+`DocModel.frontmatter` reads a leading YAML block lazily.
+It holds the whole parsed document, every string at any depth with a path, a line and source offsets, and the top-level entries.
+No built-in rule reads it, and verification still counts its words.
+[docs/plugins.md](plugins.md) is the guide for writing a rule against all of this.
 
 ## Extending the model
 
 ### Adding a rule
 
-One rule is one file, named `src/rules/pgNNN-slug.ts`, exporting one `Rule`.
+One rule is one file, named `src/rules/<rule-id>.ts`, exporting one `Rule`.
 
 Every rule module has the same shape, so a reader who has read one has read them all.
 
@@ -487,6 +736,7 @@ The expectation is the strongest claim the edit can honestly make.
 
 Reach for `same-tree` when the edit only moves whitespace.
 Reach for `same-shape` when the edit swaps glyphs inside text and leaves node boundaries alone.
+Reach for `same-frontmatter-data` when frontmatter is written differently and means the same.
 Reach for `replace-paragraph` when one paragraph becomes several blocks.
 
 A weaker claim is not safer.

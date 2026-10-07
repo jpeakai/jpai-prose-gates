@@ -22,6 +22,8 @@ generated: { by: human:maintainer, at: 2026-10-06T00:00:00Z }
 
 - Extends [PRS-0008](0008-one-file-per-rule.md) (a rule file is still named by its id, and the id is now category-short-name instead of pgNNN-slug)
 - Extends [PRS-0011](0011-rules-carry-a-category.md) (the category a rule carries is the first word of its id)
+- Depended on by [PRS-0018](0018-config-file-and-rule-control.md) (a config names a rule by its id)
+- Depended on by [PRS-0019](0019-plugin-contract-and-namespace.md) (a plugin id is the namespace in front of category-short-name)
 
 ## Problem
 

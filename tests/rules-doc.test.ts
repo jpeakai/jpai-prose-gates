@@ -63,14 +63,14 @@ describe("RULES.md", () => {
     }
   });
 
-  test.each(pairs)("$rule: the fixer turns before into after", ({ rule: id, before, after }) => {
-    expect(checkMarkdown(before, "RULES.md").map((f): string => f.rule)).toContain(id);
-    expect(fixMarkdown(before)).toBe(after);
-    expect(checkMarkdown(after, "RULES.md")).toEqual([]);
+  test.each(pairs)("$rule: the fixer turns before into after", async ({ rule: id, before, after }) => {
+    expect((await checkMarkdown(before, "RULES.md")).map((f): string => f.rule)).toContain(id);
+    expect(await fixMarkdown(before)).toBe(after);
+    expect(await checkMarkdown(after, "RULES.md")).toEqual([]);
   });
 
-  test.each(reported)("$rule: a reported case fires and is left alone", ({ rule: id, body }) => {
-    expect(checkMarkdown(body, "RULES.md").map((f): string => f.rule)).toContain(id);
-    expect(fixMarkdown(body)).toBe(body);
+  test.each(reported)("$rule: a reported case fires and is left alone", async ({ rule: id, body }) => {
+    expect((await checkMarkdown(body, "RULES.md")).map((f): string => f.rule)).toContain(id);
+    expect(await fixMarkdown(body)).toBe(body);
   });
 });

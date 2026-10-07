@@ -193,7 +193,7 @@ erDiagram
         Expectation expect "proof obligation"
     }
     EXPECTATION {
-        string kind "same-tree, same-shape or replace-paragraph"
+        string kind "same-tree, same-shape, same-frontmatter-data or replace-paragraph"
         ParagraphView view "replace-paragraph only"
         string fragment "replace-paragraph only"
         number listItems "replace-paragraph only"
@@ -431,7 +431,7 @@ flowchart LR
 *Overview: two obligations, in order.*
 
 <details>
-<summary>Detail: the three expectation kinds</summary>
+<summary>Detail: the four expectation kinds</summary>
 
 ```mermaid
 flowchart TB
@@ -441,6 +441,7 @@ flowchart TB
     KIND{"expectation kind"}:::decide
     TREE["same-tree<br/>whitespace collapsed, trees equal"]:::build
     SHAPE["same-shape<br/>text blanked, trees equal"]:::build
+    FMD["same-frontmatter-data<br/>YAML data equal, rest of tree equal"]:::build
     REPL["replace-paragraph<br/>fragment shape, then swapped tree equal"]:::build
     OK(["accept: write it"]):::ok
     NO(["refuse: the finding stays"]):::bad
@@ -450,12 +451,15 @@ flowchart TB
     FP -- "yes" --> KIND
     KIND -- "same-tree" --> TREE
     KIND -- "same-shape" --> SHAPE
+    KIND -- "same-frontmatter-data" --> FMD
     KIND -- "replace-paragraph" --> REPL
     TREE --> OK
     SHAPE --> OK
+    FMD --> OK
     REPL --> OK
     TREE --> NO
     SHAPE --> NO
+    FMD --> NO
     REPL --> NO
 
     classDef source fill:#2563eb,stroke:#bfdbfe,color:#ffffff
@@ -480,6 +484,7 @@ A mismatch means a context the fixer could not see, so the edit is refused and t
 |---|---|---|---|
 | `same-tree` | Whitespace moved and nothing else | Trees equal once text whitespace is collapsed | sentence-one-per-line |
 | `same-shape` | Glyphs swapped inside text | Trees equal once every text value is blanked | punctuation-em-dash-in-prose, punctuation-interpunct-in-prose |
+| `same-frontmatter-data` | Frontmatter written a different way | The YAML parses to identical data, and the tree without its frontmatter is equal | plugin rules, such as the folded-block fixer in `examples/` |
 | `replace-paragraph` | One paragraph became a lead-in and a list | Fragment has the declared shape, and swapping it into the old tree reproduces the new tree | list-semicolon-delimited-run, list-interpunct-joined-run, list-inline-enumeration-markers, list-comma-labelled-run, list-stacked-interpunct-runs |
 
 ## Fix order
@@ -681,7 +686,8 @@ The fix engine awaits one fixer at a time, in priority order.
 [docs/engines.md](engines.md) draws both, and states the stable-text guarantee a fix run ends with.
 
 Frontmatter is the one new view.
-`DocModel.frontmatter` reads a leading YAML block lazily into top-level string entries with a line and source offsets.
+`DocModel.frontmatter` reads a leading YAML block lazily.
+It holds the whole parsed document, every string at any depth with a path, a line and source offsets, and the top-level entries.
 No built-in rule reads it, and verification still counts its words.
 [docs/plugins.md](plugins.md) is the guide for writing a rule against all of this.
 
@@ -730,6 +736,7 @@ The expectation is the strongest claim the edit can honestly make.
 
 Reach for `same-tree` when the edit only moves whitespace.
 Reach for `same-shape` when the edit swaps glyphs inside text and leaves node boundaries alone.
+Reach for `same-frontmatter-data` when frontmatter is written differently and means the same.
 Reach for `replace-paragraph` when one paragraph becomes several blocks.
 
 A weaker claim is not safer.

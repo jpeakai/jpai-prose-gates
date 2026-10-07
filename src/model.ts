@@ -9,7 +9,7 @@ import { gfmFromMarkdown } from "mdast-util-gfm";
 import { frontmatter } from "micromark-extension-frontmatter";
 import { gfm } from "micromark-extension-gfm";
 import { visitParents } from "unist-util-visit-parents";
-import { isMap, isScalar, LineCounter, parseDocument } from "yaml";
+import { type Document, isMap, isPair, isScalar, isSeq, LineCounter, parseDocument, type Scalar } from "yaml";
 import type { Range } from "./text.ts";
 
 // Fenced blocks in these languages hold markdown templates (a conventions or
@@ -69,9 +69,38 @@ export interface FrontmatterEntry {
   end: number;
 }
 
+// How a YAML string is written, which a fixer needs to rewrite it safely.
+export type ScalarStyle = "plain" | "double" | "single" | "literal" | "folded";
+
+// A string value anywhere in the frontmatter, found by walking the whole YAML
+// document in order. A value in a nested map or a list is here too, with the
+// path that leads to it.
+export interface FrontmatterScalar {
+  path: (string | number)[]; // keys and list indexes from the document root
+  key: string | null; // the nearest map key above it, at any depth
+  keyLine: number | null; // file line of that key
+  value: string; // the string as YAML reads it
+  line: number; // file line where the value starts
+  start: number; // absolute source offsets of the value, quotes included
+  end: number;
+  style: ScalarStyle;
+  indent: number; // leading spaces of the line the key, or the value, sits on
+  node: Scalar; // the yaml package node, for anything this view does not carry
+}
+
 export interface FrontmatterView {
   format: "yaml";
+  // The top-level string entries, kept for the common flat case.
   entries: FrontmatterEntry[];
+  // Every string scalar at any depth, in document order.
+  scalars: FrontmatterScalar[];
+  // The whole parsed document, from the yaml package, for full traversal.
+  document: Document.Parsed;
+  // Absolute offset in `src` where the YAML text starts, so a node range from
+  // `document` maps to the source as offset + range.
+  offset: number;
+  // The file line of an absolute source offset inside the block.
+  lineOf: (absoluteOffset: number) => number;
 }
 
 export interface DocModel {
@@ -181,11 +210,19 @@ export const buildDocModel = (src: string): DocModel => {
   };
 };
 
-// The top-level string entries of a leading YAML block. Only the first node
-// of the tree can be frontmatter, and TOML is not read. A value that is not a
-// plain string, and anything nested, is left out rather than guessed at. Invalid
-// YAML throws with the line, so a rule that needs the keys cannot run on a
-// block it could not read.
+const STYLES: Record<string, ScalarStyle> = {
+  PLAIN: "plain",
+  QUOTE_DOUBLE: "double",
+  QUOTE_SINGLE: "single",
+  BLOCK_LITERAL: "literal",
+  BLOCK_FOLDED: "folded",
+};
+
+// A leading YAML block as a whole document, plus the string scalars found by
+// walking all of it. Only the first node of the tree can be frontmatter, and
+// TOML is not read. A value that is not a string is left out of `scalars`
+// rather than guessed at, and an alias is not followed. Invalid YAML throws with
+// the line, so a rule that needs the keys cannot run on a block it could not read.
 const readFrontmatter = (src: string, tree: Root): FrontmatterView | null => {
   const node = tree.children[0];
   const offset = node?.position?.start.offset;
@@ -199,21 +236,47 @@ const readFrontmatter = (src: string, tree: Root): FrontmatterView | null => {
     const line = opening.line + (problem.linePos?.[0].line ?? 1);
     throw new Error(`frontmatter YAML error at line ${line}: ${problem.message.split("\n")[0]}`);
   }
-  const entries: FrontmatterEntry[] = [];
-  if (isMap(doc.contents)) {
-    for (const pair of doc.contents.items) {
-      const { key, value } = pair;
-      if (!isScalar(key) || typeof key.value !== "string" || !isScalar(value) || typeof value.value !== "string")
-        continue;
-      const [from, to] = value.range ?? [0, 0];
-      entries.push({
-        key: key.value,
+  const lineOf = (absolute: number): number => opening.line + lines.linePos(absolute - contentStart).line;
+  const indentOf = (relative: number): number => {
+    const lineStart = node.value.lastIndexOf("\n", relative - 1) + 1;
+    return /^ */.exec(node.value.slice(lineStart))?.[0].length ?? 0;
+  };
+
+  const scalars: FrontmatterScalar[] = [];
+  const walk = (value: unknown, path: (string | number)[], key: Scalar | null): void => {
+    if (isScalar(value)) {
+      if (typeof value.value !== "string" || !value.range) return;
+      const [from, to] = value.range;
+      const anchor = key?.range ? key.range[0] : from;
+      scalars.push({
+        path,
+        key: key && typeof key.value === "string" ? key.value : null,
+        keyLine: key?.range ? lineOf(contentStart + key.range[0]) : null,
         value: value.value,
-        line: opening.line + lines.linePos(from).line,
+        line: lineOf(contentStart + from),
         start: contentStart + from,
         end: contentStart + to,
+        style: STYLES[value.type ?? "PLAIN"] ?? "plain",
+        indent: indentOf(anchor),
+        node: value,
+      });
+    } else if (isMap(value)) {
+      for (const pair of value.items) {
+        if (!isPair(pair)) continue;
+        const k = isScalar(pair.key) ? pair.key : null;
+        const name = k ? String(k.value) : "";
+        walk(pair.value, [...path, name], k);
+      }
+    } else if (isSeq(value)) {
+      value.items.forEach((item, i) => {
+        walk(item, [...path, i], key);
       });
     }
-  }
-  return { format: "yaml", entries };
+  };
+  walk(doc.contents, [], null);
+
+  const entries: FrontmatterEntry[] = scalars
+    .filter((s) => s.path.length === 1 && typeof s.path[0] === "string")
+    .map((s) => ({ key: s.path[0] as string, value: s.value, line: s.line, start: s.start, end: s.end }));
+  return { format: "yaml", entries, scalars, document: doc, offset: contentStart, lineOf };
 };

@@ -22,6 +22,7 @@ generated: { by: human:maintainer, at: 2026-10-06T00:00:00Z }
 
 - Depends on [PRS-0019](0019-plugin-contract-and-namespace.md) (a plugin rule reads the view through the model it is handed)
 - Depends on [PRS-0001](0001-parse-once-to-mdast.md) (the view is derived from the tree parsed once)
+- Extended by [PRS-0028](0028-frontmatter-edits-are-verified-by-data-equality.md) (a frontmatter edit is now allowed when the data is unchanged)
 
 ## Problem
 

@@ -31,6 +31,7 @@
 | [PRS-0025](0025-plugin-loading-strictness.md) | Strict loading is the default, lenient and validated loading are opt-in and loud | accepted |
 | [PRS-0026](0026-typescript-local-rules-need-a-runtime-that-imports-them.md) | A local rule may be TypeScript where the runtime can import it | accepted |
 | [PRS-0027](0027-rules-may-be-async.md) | Rules may be async, checks run concurrently, and fixers run in priority order | accepted |
+| [PRS-0028](0028-frontmatter-edits-are-verified-by-data-equality.md) | A frontmatter edit is verified by comparing the YAML data before and after | accepted |
 # By group
 
 ## architecture
@@ -52,6 +53,9 @@
 * [PRS-0003](0003-splice-source-never-restringify.md) - An edit replaces a byte range with text built from source slices, so untouched bytes stay identical
 * [PRS-0004](0004-a-fixer-refuses-when-unsure.md) - An unfixable case leaves the source untouched and the finding reported, never a best guess
 * [PRS-0005](0005-every-fix-is-verified.md) - A lost word throws, and an unexpected tree shape refuses the edit before it is applied
+## frontmatter
+
+* [PRS-0028](0028-frontmatter-edits-are-verified-by-data-equality.md) - A fixer may rewrite frontmatter if the YAML data is unchanged, and the view walks the whole document
 ## gates
 
 * [PRS-0002](0002-generated-markdown-is-gated.md) - Rendered output passes the same gates, and a finding there is fixed in its source or template
@@ -105,6 +109,7 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0005 --depended_on_by--> PRS-0006
 * PRS-0005 --tested_by--> PRS-0009
 * PRS-0005 --depended_on_by--> PRS-0020
+* PRS-0005 --depended_on_by--> PRS-0028
 * PRS-0006 --depends_on--> PRS-0005
 * PRS-0006 --extended_by--> PRS-0010
 * PRS-0007 --depends_on--> PRS-0004
@@ -163,6 +168,7 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0022 --depended_on_by--> PRS-0026
 * PRS-0023 --depends_on--> PRS-0019
 * PRS-0023 --depends_on--> PRS-0001
+* PRS-0023 --extended_by--> PRS-0028
 * PRS-0024 --depends_on--> PRS-0018
 * PRS-0024 --depended_on_by--> PRS-0025
 * PRS-0025 --extends--> PRS-0022
@@ -171,3 +177,5 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0026 --depends_on--> PRS-0012
 * PRS-0027 --depends_on--> PRS-0019
 * PRS-0027 --depends_on--> PRS-0020
+* PRS-0028 --extends--> PRS-0023
+* PRS-0028 --depends_on--> PRS-0005

@@ -47,7 +47,7 @@ describe("the testing helper", () => {
 
   test("names the rules a plugin has when the key is wrong", async () => {
     await expect(checkRule(template, "frontmatter-nope", "text\n")).rejects.toThrow(
-      /has no rule "frontmatter-nope"; it has frontmatter-description-word-budget/,
+      /has no rule "frontmatter-nope"; it has frontmatter-description-multiline-string, frontmatter-description-word-budget/,
     );
   });
 

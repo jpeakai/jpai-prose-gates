@@ -1,22 +1,25 @@
-// frontmatter-description-word-budget: a sentence in a frontmatter value that
-// runs past the word budget. It reads every string whose nearest key is in
-// `keys`, which default to `description`, at any depth, so it covers the
-// description of an agent skill and a description nested under a `metadata` key.
-// It is a plain module so the same file works as a local rule in
-// .prose-gates/rules and inside a packaged plugin.
+// frontmatter-description-word-budget, written in TypeScript. A sentence in a
+// frontmatter value that runs past the word budget, for any string whose nearest
+// key is in `keys` (default `description`), at any depth.
 //
 // It never fixes: shortening a sentence changes its words.
+//
+// The file is a plain module, so it works as a local rule in .prose-gates/rules
+// and inside the packaged plugin. The type import is erased at run time, so the
+// runtime only has to be able to import TypeScript.
 
-export const categories = {
+import type { PluginFinding, PluginRule } from "@jpeakai/prose-gates";
+
+export const categories: Record<string, string> = {
   frontmatter: "Keys in the leading metadata block of a file",
 };
 
-export default {
+const rule: PluginRule = {
   category: "frontmatter",
   summary: "sentence in a frontmatter value longer than the word budget",
   options: { keys: "string[]", maxWords: "number" },
-  check({ doc, maxWords, options, helpers }) {
-    const keys = options.keys ?? ["description"];
+  check({ doc, maxWords, options, helpers }): PluginFinding[] {
+    const keys = (options.keys as string[] | undefined) ?? ["description"];
     const frontmatter = doc.frontmatter;
     if (!frontmatter) return [];
     // `scalars` walks the whole YAML document, so a nested key matches too.
@@ -33,3 +36,5 @@ export default {
       );
   },
 };
+
+export default rule;

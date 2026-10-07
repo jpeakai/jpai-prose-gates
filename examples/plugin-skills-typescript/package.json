@@ -1,0 +1,12 @@
+{
+  "name": "prose-gates-plugin-skills-typescript",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Template plugin in TypeScript: holds the frontmatter of agent skills to a sentence budget and rewrites long descriptions as folded blocks",
+  "type": "module",
+  "main": "index.ts",
+  "keywords": ["prose-gates-plugin"],
+  "peerDependencies": {
+    "@jpeakai/prose-gates": ">=0.2.0"
+  }
+}

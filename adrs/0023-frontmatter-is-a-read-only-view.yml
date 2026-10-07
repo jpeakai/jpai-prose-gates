@@ -26,6 +26,9 @@ relates_to:
   - relation: depends_on
     target: PRS-0001
     note: the view is derived from the tree parsed once
+  - relation: extended_by
+    target: PRS-0028
+    note: a frontmatter edit is now allowed when the data is unchanged
 
 problem:
   symptom: Frontmatter parsed to an opaque yaml node and no rule could read a key or report its line.

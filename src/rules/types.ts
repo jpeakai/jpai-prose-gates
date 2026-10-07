@@ -86,6 +86,9 @@ export type Expectation =
   | { kind: "same-tree" }
   // Glyphs swapped inside text: the tree keeps its shape and every word.
   | { kind: "same-shape" }
+  // The frontmatter is written differently and means the same: the YAML parses to
+  // identical data before and after, and nothing outside it moves.
+  | { kind: "same-frontmatter-data" }
   // One paragraph becomes the blocks parsed from `fragment`, and nothing else
   // in the document moves.
   | { kind: "replace-paragraph"; view: ParagraphView; fragment: string; listItems: number };

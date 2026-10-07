@@ -96,6 +96,7 @@ erDiagram
     PARAGRAPH_VIEW ||--o{ DIRECT_TEXT : directTexts
     TEXT_VIEW }o--o| BLOCK_NODE : block
     FRONTMATTER_VIEW ||--o{ ENTRY : entries
+    FRONTMATTER_VIEW ||--o{ SCALAR : scalars
 
     DOCMODEL {
         string src "the exact source"
@@ -131,6 +132,16 @@ erDiagram
     }
     FRONTMATTER_VIEW {
         string format "yaml"
+        Document document "the whole parsed YAML"
+        number offset "where the YAML starts in the source"
+    }
+    SCALAR {
+        string path "keys and indexes from the root"
+        string key "nearest map key, at any depth"
+        string value "the string as YAML reads it"
+        number line "where the value starts"
+        string style "plain, double, single, literal or folded"
+        number indent "leading spaces of the key line"
     }
     ENTRY {
         string key "top level only"
@@ -146,7 +157,7 @@ erDiagram
 | `paragraphs` | Read running prose with its line and offsets | Find text in headings or list markers, which are not paragraphs |
 | `texts` | Find a glyph anywhere prose appears, headings included | Split text, because only a direct text of a paragraph carries separators |
 | `fences` | See embedded markdown templates | Read ordinary code, which is exempt |
-| `frontmatter` | Read the top-level string keys of a YAML block | Read nested keys, numbers or TOML |
+| `frontmatter` | Walk the whole YAML block, at any depth, with lines and offsets | Read numbers or TOML, which are left out |
 | `tree` | Reach a node a view does not cover | Compute offsets, since a view already holds them |
 
 ## What each context holds
@@ -196,7 +207,7 @@ erDiagram
         string text "the replacement"
     }
     EXPECTATION {
-        string kind "same-tree, same-shape or replace-paragraph"
+        string kind "same-tree, same-shape, same-frontmatter-data or replace-paragraph"
     }
 ```
 
@@ -322,6 +333,7 @@ The two comparisons read the tree before and after the edit.
 | Fingerprint | Text, inline code, code, html, yaml, toml values, and every url, alt and title | The list of words is identical, ignoring `and`, `or` and enumeration markers |
 | `same-tree` | The normalised tree | Equal once text whitespace is collapsed |
 | `same-shape` | The tree with every text value blanked | Equal, so only glyphs inside text changed |
+| `same-frontmatter-data` | The YAML parsed before and after, and the tree without its frontmatter | Identical data, and the rest of the tree equal |
 | `replace-paragraph` | The tree with one paragraph swapped for the declared fragment | Equal to the reparsed result, and the fragment is one list with the declared item count |
 
 A failed fingerprint throws because it means a fixer lost content, which is a bug.

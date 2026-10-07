@@ -34,6 +34,9 @@ relates_to:
   - relation: depended_on_by
     target: PRS-0020
     note: a plugin fixer meets the same fingerprint and shape proof
+  - relation: depended_on_by
+    target: PRS-0028
+    note: a new expectation compares YAML data before and after
 
 problem:
   symptom: A fixer bug could drop a word, create emphasis from a stray asterisk, or split one paragraph into two.

@@ -190,7 +190,7 @@ export const loadLocal = async (sources: PluginSource[], runtime?: RuntimeInfo):
 const validFinding = (f: unknown): f is { line: number; message: string } =>
   isRecord(f) && Number.isInteger(f.line) && (f.line as number) >= 1 && typeof f.message === "string";
 
-const EXPECTATIONS = new Set(["same-tree", "same-shape", "replace-paragraph"]);
+const EXPECTATIONS = new Set(["same-tree", "same-shape", "same-frontmatter-data", "replace-paragraph"]);
 
 // A plugin rule becomes a Rule whose id is namespace/key. The plugin function may
 // be synchronous or return a promise, and the wrapper awaits it. Its check cannot

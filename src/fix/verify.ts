@@ -5,6 +5,7 @@
 
 import type { Node, Parent, Root } from "mdast";
 import { visitParents as visit } from "unist-util-visit-parents";
+import { parse as parseYaml } from "yaml";
 import { parse } from "../model.ts";
 import type { Edit } from "../rules/types.ts";
 
@@ -105,6 +106,26 @@ const fragmentShapeOk = (nodes: Node[], listItems: number): boolean => {
   return items.length === listItems && items.every((i) => i.children[0]?.type === "paragraph");
 };
 
+const INVALID = Symbol("invalid frontmatter");
+
+// What the leading YAML block means: its data as the yaml package reads it, so a
+// rewrite that only changes how the data is written compares equal. Absent
+// frontmatter is `undefined`, and a block that does not parse is INVALID.
+const frontmatterData = (tree: Root): unknown => {
+  const first = tree.children[0];
+  if (first?.type !== "yaml") return undefined;
+  try {
+    return parseYaml(first.value);
+  } catch {
+    return INVALID;
+  }
+};
+
+// The tree with its leading frontmatter node taken off, so everything else can
+// be compared on its own.
+const withoutFrontmatter = (tree: Root): Root =>
+  tree.children[0]?.type === "yaml" ? { ...tree, children: tree.children.slice(1) } : tree;
+
 export type Verdict = "accept" | "refuse";
 
 export const verify = (edit: Edit, before: { src: string; tree: Root }, afterTree: Root): Verdict => {
@@ -121,6 +142,14 @@ export const verify = (edit: Edit, before: { src: string; tree: Root }, afterTre
   const expect = edit.expect;
   if (expect.kind === "same-tree") {
     return sameJson(normalise(before.tree), normalise(afterTree)) ? "accept" : "refuse";
+  }
+  if (expect.kind === "same-frontmatter-data") {
+    const was = frontmatterData(before.tree);
+    const now = frontmatterData(afterTree);
+    if (was === INVALID || now === INVALID || !sameJson(was, now)) return "refuse";
+    return sameJson(normalise(withoutFrontmatter(before.tree)), normalise(withoutFrontmatter(afterTree)))
+      ? "accept"
+      : "refuse";
   }
   if (expect.kind === "same-shape") {
     return sameJson(normalise(before.tree, { blankText: true }), normalise(afterTree, { blankText: true }))

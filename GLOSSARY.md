@@ -21,12 +21,12 @@ When a new domain term enters the code or the conversation, add it here in the s
 | Validation run | A run of --validate-plugins, which loads every plugin, reports every failure, and runs no check or fix. |
 | Error code | The stable kebab-case name of a failure, such as unknown-rule or plugin-contract, shown as error[code] and carried on the error class. |
 | Loaded line | The one stderr line a run prints naming each plugin namespace it loaded and how many rules it brought. |
-| Frontmatter view | The top-level string keys of a leading YAML block, with a line and source offsets, read by plugin rules only. |
+| Frontmatter view | A leading YAML block as its parsed document plus every string in it at any depth, with a path, a line and source offsets, read by plugin rules only. |
 | Rule id | The name of a prose gate, written category-short-name, such as sentence-one-per-line. The category is one lower-case word and the short name is three or four words. |
 | Finding | One reported violation of a prose gate, with a file, a line, a rule id and a message. |
 | Fixer | The optional fix function of a rule. It proposes edits and never writes files itself. |
 | Edit | A proposed change: a start offset, an end offset, replacement text and an expectation. |
-| Expectation | What an edit claims about the reparsed tree: same-tree, same-shape or replace-paragraph. |
+| Expectation | What an edit claims about the reparsed tree: same-tree, same-shape, same-frontmatter-data or replace-paragraph. |
 | Stable text | The text a fix run ends at. No fixer, asked again after the last accepted edit, has a verifiable edit left, so fixing it again changes nothing. |
 | Refusal | A fixer or the verifier declining an edit. The source is untouched and the finding stays. |
 | Fixpoint | The engine's loop of applying verified edits in a fixed rule order until nothing changes. |

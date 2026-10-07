@@ -6,7 +6,15 @@ export { type Config, loadConfig, type PluginLoading, parseConfig, type RuleSett
 export * from "./errors.ts";
 export { type FixReport, fixMarkdown, fixMarkdownReport } from "./fix/engine.ts";
 export { FixInvariantError } from "./fix/verify.ts";
-export { buildDocModel, type DocModel, type FrontmatterEntry, type FrontmatterView } from "./model.ts";
+export {
+  buildDocModel,
+  type DocModel,
+  type FrontmatterEntry,
+  type FrontmatterScalar,
+  type FrontmatterView,
+  type ScalarStyle,
+} from "./model.ts";
+export type { Plugin, PluginEdit, PluginFinding, PluginMeta, PluginRule } from "./plugins/contract.ts";
 export { findProjectRoot, setUp } from "./project.ts";
 export { FIX_ORDER, RULES } from "./rules/index.ts";
 export {

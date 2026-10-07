@@ -81,6 +81,7 @@ Every edit is verified before it is written.
 |---|---|---|
 | `same-tree` | Only whitespace moves | The tree is equal once text whitespace is collapsed |
 | `same-shape` | A glyph is swapped inside text | The tree keeps its shape and every word |
+| `same-frontmatter-data` | Frontmatter is written differently and means the same | The YAML parses to identical data before and after, and nothing outside it moves |
 | `replace-paragraph` | One paragraph becomes other blocks | The new blocks are exactly the fragment, and nothing else moves |
 
 A fix that changes a word, adds one, or loses a url or a code value stops the run.
@@ -119,15 +120,44 @@ Built-in rules never read frontmatter.
 A plugin rule reads it through `doc.frontmatter`, which is `null` or a list of entries.
 
 ```js
-{ format: "yaml", entries: [{ key: "description", value: "…", line: 3, start: 24, end: 62 }] }
+{
+  format: "yaml",
+  entries: [{ key: "description", value: "…", line: 3, start: 24, end: 62 }], // top level only
+  scalars: [/* every string at any depth, in document order */],
+  document: /* the whole parsed YAML document, from the yaml package */,
+  offset: 4, // where the YAML text starts in the source
+  lineOf: (absoluteOffset) => 3, // the file line of an offset
+}
 ```
 
-- **Top level only.** An entry is a top-level key whose value is a string, so numbers, lists and nested maps are left out.
-- **Real lines.** `line` is the file line where the value starts, even for a folded or quoted value.
-- **Read on first use.** Invalid YAML throws, and a check that throws becomes a finding for that rule.
-- **Check-only.** No expectation kind fits an edit inside frontmatter, so such an edit is refused.
+You can iterate the whole document in three ways.
 
-[`examples/plugin-skills`](../examples/plugin-skills) applies the sentence budget to the `description` of an agent skill.
+- **`scalars`.** Every string value at any depth, found by walking maps and lists in document order.
+- **`document`.** The `yaml` package's parsed `Document`, so you can call `visit`, `getIn`, `toJS` or read any node's range.
+- **`entries`.** The flat top-level case, kept because it is all most rules need.
+
+A scalar carries what a rule needs to report on it and to rewrite it.
+
+| Field | What it holds |
+|---|---|
+| `path` | The keys and list indexes from the root, such as `["metadata", "description"]` |
+| `key` | The nearest map key above it at any depth, so a list item belongs to the key above the list |
+| `keyLine` | The file line of that key |
+| `value` | The string as YAML reads it, so a folded block arrives joined |
+| `line`, `start`, `end` | Where the value is in the file, quotes included |
+| `style` | `plain`, `double`, `single`, `literal` or `folded` |
+| `indent` | The leading spaces of the line the key sits on, which a rewrite needs to indent a block |
+| `node` | The `yaml` `Scalar`, for anything else |
+
+- **Any depth.** A rule that matches the key `description` checks one in a nested map or a list too.
+- **Real lines.** `line` is the file line where the value starts, even for a folded or quoted value.
+- **Strings only.** A number, a boolean or an alias is not in `scalars`, and an alias is not followed.
+- **Read on first use.** Invalid YAML throws, and a check that throws becomes a finding for that rule.
+- **Fixable.** A fixer may rewrite frontmatter if it declares `same-frontmatter-data`, which proves the data is unchanged.
+
+[`examples/plugin-skills`](../examples/plugin-skills) and [`examples/plugin-skills-typescript`](../examples/plugin-skills-typescript) hold the same two rules.
+One applies the sentence budget to every `description`, at any depth.
+The other has a fixer that rewrites a multi-sentence description as a folded block scalar, which is the worked example of a frontmatter fix.
 
 ## A plugin package
 

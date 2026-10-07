@@ -69,7 +69,8 @@ A config at the project root switches rules off and sets options.
 Plugins are trusted code with no sandbox.
 Running the CLI in a repository runs that repository's local rules and declared plugins, so use `--no-plugins` on one you do not trust.
 [docs/plugins.md](docs/plugins.md) is the authoring guide, and [docs/engines.md](docs/engines.md) shows what the tree provides at each step of a check and a fix.
-[`examples/plugin-skills`](examples/plugin-skills) holds a working plugin.
+[`examples/plugin-skills`](examples/plugin-skills) and [`examples/plugin-skills-typescript`](examples/plugin-skills-typescript) hold the same working plugin in JavaScript and TypeScript.
+It checks any `description` in a file's frontmatter at any depth, and has a fixer that rewrites a long one as a folded block.
 
 ## Consuming it
 

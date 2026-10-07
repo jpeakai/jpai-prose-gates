@@ -4,6 +4,7 @@
 
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
+import { isScalar, visit } from "yaml";
 import { buildDocModel, checkMarkdown, setUp } from "../src/index.ts";
 import { PROJECT_ROOT, tempProject } from "./helpers.ts";
 
@@ -181,10 +182,124 @@ describe("the skills description rule as a packaged plugin", () => {
       "node_modules/prose-gates-plugin-skills/package.json": await read("package.json"),
       "node_modules/prose-gates-plugin-skills/index.mjs": await read("index.mjs"),
       [`node_modules/prose-gates-plugin-skills/rules/${RULE_ID}.mjs`]: await read(`rules/${RULE_ID}.mjs`),
+      "node_modules/prose-gates-plugin-skills/rules/frontmatter-description-multiline-string.mjs": await read(
+        "rules/frontmatter-description-multiline-string.mjs",
+      ),
     });
     const { registry } = await setUp({ cwd: root });
     expect(registry.categories.get("frontmatter")).toBe("Keys in the leading metadata block of a file");
     const src = `---\ndescription: ${words(30)}.\n---\n`;
     expect((await checkMarkdown(src, "doc.md", undefined, registry)).map((f) => f.rule)).toEqual([`skills/${RULE_ID}`]);
+  });
+});
+
+describe("DocModel.frontmatter.scalars: the whole YAML document", () => {
+  const src = [
+    "---",
+    "name: demo",
+    "description: Top level.",
+    "metadata:",
+    "  description: 'Nested one.'",
+    "  tags:",
+    "    - first",
+    "    - second",
+    "  deeper:",
+    "    description: >-",
+    "      Folded value.",
+    "      Two lines.",
+    "list:",
+    "  - description: In a list.",
+    "count: 5",
+    "---",
+    "",
+    "Body.",
+    "",
+  ].join("\n");
+  const fm = buildDocModel(src).frontmatter;
+
+  test("lists every string at any depth, in document order, with its path", () => {
+    expect(fm?.scalars.map((s) => s.path.join("."))).toEqual([
+      "name",
+      "description",
+      "metadata.description",
+      "metadata.tags.0",
+      "metadata.tags.1",
+      "metadata.deeper.description",
+      "list.0.description",
+    ]);
+  });
+
+  test("carries the nearest key at any depth, so a list item belongs to the key above it", () => {
+    const keys = Object.fromEntries(fm?.scalars.map((s) => [s.path.join("."), s.key]) ?? []);
+    expect(keys["metadata.tags.0"]).toBe("tags");
+    expect(keys["metadata.deeper.description"]).toBe("description");
+    expect(keys["list.0.description"]).toBe("description");
+  });
+
+  test("every description at every depth can be found by key", () => {
+    const found = fm?.scalars.filter((s) => s.key === "description").map((s) => s.value);
+    expect(found).toEqual(["Top level.", "Nested one.", "Folded value. Two lines.", "In a list."]);
+  });
+
+  test("says how each value is written", () => {
+    const styles = Object.fromEntries(fm?.scalars.map((s) => [s.path.join("."), s.style]) ?? []);
+    expect(styles).toMatchObject({
+      name: "plain",
+      "metadata.description": "single",
+      "metadata.deeper.description": "folded",
+    });
+    const quoted = buildDocModel('---\na: "x"\nb: |\n  y\n---\n').frontmatter;
+    expect(quoted?.scalars.map((s) => s.style)).toEqual(["double", "literal"]);
+  });
+
+  test("gives the file line of each value and of its key, and the indent of its line", () => {
+    const nested = fm?.scalars.find((s) => s.path.join(".") === "metadata.description");
+    expect([nested?.line, nested?.keyLine, nested?.indent]).toEqual([5, 5, 2]);
+    const folded = fm?.scalars.find((s) => s.path.join(".") === "metadata.deeper.description");
+    expect([folded?.line, folded?.keyLine, folded?.indent]).toEqual([10, 10, 4]);
+  });
+
+  test("offsets point at the value in the source, quotes included", () => {
+    for (const s of fm?.scalars ?? []) expect(src.slice(s.start, s.end)).not.toBe("");
+    const nested = fm?.scalars.find((s) => s.path.join(".") === "metadata.description");
+    expect(src.slice(nested?.start, nested?.end)).toBe("'Nested one.'");
+  });
+
+  test("leaves out values that are not strings, and keeps the top-level entries as before", () => {
+    expect(fm?.scalars.some((s) => s.path.join(".") === "count")).toBe(false);
+    expect(fm?.entries.map((e) => e.key)).toEqual(["name", "description"]);
+  });
+
+  test("gives full access to the parsed YAML document, so an implementer can iterate it any way", () => {
+    expect(fm?.document.toJS()).toMatchObject({ name: "demo", metadata: { tags: ["first", "second"] }, count: 5 });
+    const seen: string[] = [];
+    visit(fm?.document as NonNullable<typeof fm>["document"], {
+      Pair(_key, pair) {
+        if (isScalar(pair.key)) seen.push(String(pair.key.value));
+      },
+    });
+    expect(seen).toContain("deeper");
+    expect(seen).toContain("count");
+  });
+
+  test("a node range from the document maps to the source through offset", () => {
+    const node = fm?.document.getIn(["name"], true);
+    const [from, to] = (node as { range: [number, number, number] }).range;
+    expect(src.slice((fm?.offset ?? 0) + from, (fm?.offset ?? 0) + to)).toBe("demo");
+    expect(fm?.lineOf((fm?.offset ?? 0) + from)).toBe(2);
+  });
+
+  test("an alias is not followed, so a value is not reported twice", () => {
+    const aliased = buildDocModel("---\nbase: &d Shared text.\ncopy: *d\n---\n").frontmatter;
+    expect(aliased?.scalars.map((s) => s.path.join("."))).toEqual(["base"]);
+  });
+
+  test("a top-level list has no entries but still has scalars", () => {
+    const list = buildDocModel("---\n- one\n- two\n---\n").frontmatter;
+    expect(list?.entries).toEqual([]);
+    expect(list?.scalars.map((s) => [s.path.join("."), s.key])).toEqual([
+      ["0", null],
+      ["1", null],
+    ]);
   });
 });

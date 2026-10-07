@@ -3,15 +3,31 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "types": ["bun"],
+    "types": [
+      "bun"
+    ],
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@jpeakai/prose-gates": [
+        "./src/index.ts"
+      ],
+      "@jpeakai/prose-gates/testing": [
+        "./src/testing.ts"
+      ]
+    }
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts",
+    "examples/plugin-skills-typescript/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

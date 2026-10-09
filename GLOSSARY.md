@@ -27,6 +27,8 @@ When a new domain term enters the code or the conversation, add it here in the s
 | Fixer | The optional fix function of a rule. It proposes edits and never writes files itself. |
 | Edit | A proposed change: a start offset, an end offset, replacement text and an expectation. |
 | Expectation | What an edit claims about the reparsed tree: same-tree, same-shape, same-frontmatter-data or replace-paragraph. |
+| Docs site | The MkDocs Material site on GitHub Pages, built from the real documents and deployed only from main. |
+| Site source | The untracked copy of the documents at `tmp/site-src` that MkDocs reads, rebuilt by `scripts/assemble-site.ts` and never edited. |
 | Stable text | The text a fix run ends at. No fixer, asked again after the last accepted edit, has a verifiable edit left, so fixing it again changes nothing. |
 | Refusal | A fixer or the verifier declining an edit. The source is untouched and the finding stays. |
 | Fixpoint | The engine's loop of applying verified edits in a fixed rule order until nothing changes. |

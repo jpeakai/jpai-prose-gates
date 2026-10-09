@@ -20,7 +20,13 @@ make build     # bundle src into dist for Node, which git ignores
 make test      # build, then run the test suite once
 make ci        # fix, typecheck, coverage gate, then assert the tree is clean
 make docs-ci   # gate every markdown file with this repo's own source
+make docs      # build the docs site into tmp/site, failing on a broken link
+make docs-serve  # serve the docs site locally with live reload
 ```
+
+The docs site is built from the real documents, per [PRS-0029](adrs/0029-the-docs-site-is-assembled-from-the-real-documents.md).
+Edit the documents themselves, never `tmp/site-src`.
+A new page needs an entry in the `nav` of `mkdocs.yml`.
 
 `dist/` holds the Node bundles and is never committed.
 The test targets rebuild it first, so the Node tests never run a stale bundle.

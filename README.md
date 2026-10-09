@@ -3,7 +3,7 @@
 Reading markdown should not be hard.
 Keep AI accountable one anti-slop rule at a time.
 
-**[Rules](RULES.md)** | **[GitHub](https://github.com/jpeakai/jpai-prose-gates)** | **[npm](https://www.npmjs.com/package/@jpeakai/prose-gates)**
+**[Docs](https://jpeakai.github.io/jpai-prose-gates/)** | **[Rules](RULES.md)** | **[GitHub](https://github.com/jpeakai/jpai-prose-gates)** | **[npm](https://www.npmjs.com/package/@jpeakai/prose-gates)**
 
 | Package Index | Published Version | Downloads | Node | CI | License |
 |---|---|---|---|---|---|

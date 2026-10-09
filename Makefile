@@ -1,4 +1,4 @@
-.PHONY: install build fix check ci typecheck test test-cov-ts docs-ci
+.PHONY: install build fix check ci typecheck test test-cov-ts docs-ci docs docs-serve
 
 install:
 	uv sync
@@ -42,7 +42,7 @@ test-cov-ts: build
 
 # Regenerate, gate, then assert the tree is clean: a generated file that
 # differs means someone hand-edited it, or a source changed without it.
-ci: fix typecheck test-cov-ts
+ci: fix typecheck test-cov-ts docs
 	@test -z "$$(git status --porcelain)" || { \
 		git status --short; \
 		echo "ERROR: regenerate left the tree dirty - commit the generated files"; \
@@ -54,6 +54,16 @@ DOCS := $(wildcard *.md) $(wildcard docs/*.md) $(wildcard adrs/*.md)
 
 docs-ci:
 	bun run src/bin.ts $(DOCS)
+
+# The docs group alone, so a build needs neither the private meta CLI nor the
+# dev group.
+docs:
+	bun run scripts/assemble-site.ts
+	uv run --only-group docs mkdocs build --strict
+
+docs-serve:
+	bun run scripts/assemble-site.ts
+	uv run --only-group docs mkdocs serve
 
 clean:
 	rm -rf dist tmp node_modules

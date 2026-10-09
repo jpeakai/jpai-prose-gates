@@ -32,6 +32,7 @@
 | [PRS-0026](0026-typescript-local-rules-need-a-runtime-that-imports-them.md) | A local rule may be TypeScript where the runtime can import it | accepted |
 | [PRS-0027](0027-rules-may-be-async.md) | Rules may be async, checks run concurrently, and fixers run in priority order | accepted |
 | [PRS-0028](0028-frontmatter-edits-are-verified-by-data-equality.md) | A frontmatter edit is verified by comparing the YAML data before and after | accepted |
+| [PRS-0029](0029-the-docs-site-is-assembled-from-the-real-documents.md) | The docs site is assembled from the real documents and deploys only from main | accepted |
 # By group
 
 ## architecture
@@ -42,6 +43,9 @@
 ## config
 
 * [PRS-0018](0018-config-file-and-rule-control.md) - A config is checked against the loaded rules, and a rule that is off loses both its halves
+## documentation
+
+* [PRS-0029](0029-the-docs-site-is-assembled-from-the-real-documents.md) - MkDocs Material builds from a copy of the repo's own layout, so the prose gates keep reading the real files
 ## engine
 
 * [PRS-0027](0027-rules-may-be-async.md) - The engines are async, checks overlap, fixers are awaited one at a time, and the order stays a hand-kept list

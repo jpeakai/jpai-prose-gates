@@ -1,0 +1,80 @@
+name: Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "README.md"
+      - "RULES.md"
+      - "GLOSSARY.md"
+      - "CONTRIBUTING.md"
+      - "docs/**"
+      - "adrs/**"
+      - "scripts/assemble-site.ts"
+      - "mkdocs.yml"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/docs.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "README.md"
+      - "RULES.md"
+      - "GLOSSARY.md"
+      - "CONTRIBUTING.md"
+      - "docs/**"
+      - "adrs/**"
+      - "scripts/assemble-site.ts"
+      - "mkdocs.yml"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+# A pull request builds and never deploys, per PRS-0014 and PRS-0029.
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build site
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - uses: astral-sh/setup-uv@v7
+
+      - name: Build
+        run: |
+          bun run scripts/assemble-site.ts
+          uv run --only-group docs mkdocs build --strict
+
+      - uses: actions/upload-pages-artifact@v4
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        with:
+          path: tmp/site
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    name: Deploy to GitHub Pages
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

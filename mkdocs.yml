@@ -1,0 +1,80 @@
+site_name: jpai-prose-gates
+site_description: Deterministic markdown gates and fixers for prose, with a plugin contract.
+site_url: https://jpeakai.github.io/jpai-prose-gates/
+repo_url: https://github.com/jpeakai/jpai-prose-gates
+repo_name: jpeakai/jpai-prose-gates
+edit_uri: edit/main/
+
+# scripts/assemble-site.ts copies the repo's documents here with their layout
+# intact. Edit the real files, never this directory.
+docs_dir: tmp/site-src
+site_dir: tmp/site
+
+validation:
+  nav:
+    omitted_files: info
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - search.highlight
+    - search.share
+    - toc.follow
+    - toc.integrate
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: README.md
+  - Rules:
+      - RULES.md
+  - Guides:
+      - Plugins and local rules: docs/plugins.md
+      - Check and fix engines: docs/engines.md
+  - Reference:
+      - Data model: docs/DATA_MODEL.md
+      - Glossary: GLOSSARY.md
+  - Decisions:
+      - Index: adrs/index.md
+      - Graph: adrs/graph.md
+  - Contributing:
+      - Setup and review: CONTRIBUTING.md
+      - Documentation conventions: docs/CONVENTIONS.md
+      - Publishing: docs/PUBLISHING.md

@@ -274,10 +274,10 @@ A rule that waits on a tool therefore overlaps with the others.
 flowchart LR
     SRC["Markdown<br/>source"]:::source --> MODEL["Build<br/>model"]:::build --> CTX["Build<br/>context"]:::build --> RULES["Run every<br/>rule at once"]:::gate --> OUT["Findings,<br/>sorted"]:::out
 
-    classDef source fill:#2563eb,stroke:#bfdbfe,color:#ffffff
-    classDef build  fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
-    classDef gate   fill:#047857,stroke:#a7f3d0,color:#ffffff
-    classDef out    fill:#fef3c7,stroke:#b45309,color:#1e293b
+    classDef source fill:#2563eb36,stroke:#3b82f6
+    classDef build  fill:#7c3aed36,stroke:#8b5cf6
+    classDef gate   fill:#05966936,stroke:#10b981
+    classDef out    fill:#b4530936,stroke:#d97706
 ```
 
 *Overview: source to model to context, then every rule, then sorted findings.*
@@ -321,16 +321,16 @@ flowchart TB
     FENCE --> WAIT
     WAIT --> SORT --> OUT
 
-    classDef source fill:#2563eb,stroke:#bfdbfe,color:#ffffff
-    classDef build  fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
-    classDef view   fill:#c4b5fd,stroke:#7c3aed,color:#1e293b
-    classDef gate   fill:#047857,stroke:#a7f3d0,color:#ffffff
-    classDef ext    fill:#334155,stroke:#cbd5e1,color:#ffffff
-    classDef out    fill:#fef3c7,stroke:#b45309,color:#1e293b
+    classDef source fill:#2563eb36,stroke:#3b82f6
+    classDef build  fill:#7c3aed36,stroke:#8b5cf6
+    classDef view   fill:#7c3aed36,stroke:#8b5cf6
+    classDef gate   fill:#05966936,stroke:#10b981
+    classDef ext    fill:#52525b36,stroke:#94a3b8
+    classDef out    fill:#b4530936,stroke:#d97706
 
-    style model fill:#ede9fe,stroke:#6d28d9,color:#1e293b
-    style ctx fill:#f1f5f9,stroke:#334155,color:#1e293b
-    style rules fill:#d1fae5,stroke:#065f46,color:#1e293b
+    style model fill:#7c3aed36,stroke:#8b5cf6
+    style ctx fill:#52525b36,stroke:#94a3b8
+    style rules fill:#05966936,stroke:#10b981
 ```
 
 *Detail: 13 nodes in three groups.*
@@ -355,10 +355,10 @@ flowchart LR
     VERIFY -- "accept: restart" --> BUILD
     ASK -- "none left" --> DONE(["Stable<br/>text"]):::out
 
-    classDef source fill:#2563eb,stroke:#bfdbfe,color:#ffffff
-    classDef build  fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
-    classDef decide fill:#334155,stroke:#cbd5e1,color:#ffffff
-    classDef out    fill:#fef3c7,stroke:#b45309,color:#1e293b
+    classDef source fill:#2563eb36,stroke:#3b82f6
+    classDef build  fill:#7c3aed36,stroke:#8b5cf6
+    classDef decide fill:#52525b36,stroke:#94a3b8
+    classDef out    fill:#b4530936,stroke:#d97706
 ```
 
 *Overview: build, ask, verify, and restart on every accepted edit.*
@@ -393,12 +393,12 @@ flowchart TB
     VERIFY -- "fingerprint changed" --> THROW
     ASK -- "no fixer left" --> DONE
 
-    classDef source fill:#2563eb,stroke:#bfdbfe,color:#ffffff
-    classDef build  fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
-    classDef decide fill:#334155,stroke:#cbd5e1,color:#ffffff
-    classDef ok     fill:#047857,stroke:#a7f3d0,color:#ffffff
-    classDef bad    fill:#b91c1c,stroke:#fecaca,color:#ffffff
-    classDef out    fill:#fef3c7,stroke:#b45309,color:#1e293b
+    classDef source fill:#2563eb36,stroke:#3b82f6
+    classDef build  fill:#7c3aed36,stroke:#8b5cf6
+    classDef decide fill:#52525b36,stroke:#94a3b8
+    classDef ok     fill:#05966936,stroke:#10b981
+    classDef bad    fill:#dc262636,stroke:#ef4444
+    classDef out    fill:#b4530936,stroke:#d97706
 ```
 
 *Detail: 12 nodes, the fixpoint loop.*
@@ -422,10 +422,10 @@ flowchart LR
     EXP -- "yes" --> OK(["Accept"]):::ok
     EXP -- "no" --> NO(["Refuse"]):::bad
 
-    classDef source fill:#2563eb,stroke:#bfdbfe,color:#ffffff
-    classDef decide fill:#334155,stroke:#cbd5e1,color:#ffffff
-    classDef ok     fill:#047857,stroke:#a7f3d0,color:#ffffff
-    classDef bad    fill:#b91c1c,stroke:#fecaca,color:#ffffff
+    classDef source fill:#2563eb36,stroke:#3b82f6
+    classDef decide fill:#52525b36,stroke:#94a3b8
+    classDef ok     fill:#05966936,stroke:#10b981
+    classDef bad    fill:#dc262636,stroke:#ef4444
 ```
 
 *Overview: two obligations, in order.*
@@ -462,11 +462,11 @@ flowchart TB
     FMD --> NO
     REPL --> NO
 
-    classDef source fill:#2563eb,stroke:#bfdbfe,color:#ffffff
-    classDef build  fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
-    classDef decide fill:#334155,stroke:#cbd5e1,color:#ffffff
-    classDef ok     fill:#047857,stroke:#a7f3d0,color:#ffffff
-    classDef bad    fill:#b91c1c,stroke:#fecaca,color:#ffffff
+    classDef source fill:#2563eb36,stroke:#3b82f6
+    classDef build  fill:#7c3aed36,stroke:#8b5cf6
+    classDef decide fill:#52525b36,stroke:#94a3b8
+    classDef ok     fill:#05966936,stroke:#10b981
+    classDef bad    fill:#dc262636,stroke:#ef4444
 ```
 
 *Detail: 9 nodes.*
@@ -497,10 +497,10 @@ Plugin fixers are asked after every built-in, in load order.
 flowchart LR
     S["Structure<br/>5 list gates"]:::list --> G["Glyphs<br/>2 punctuation gates"]:::punc --> L["Layout<br/>1 reflow gate"]:::sent --> P["Plugin<br/>fixers"]:::ext
 
-    classDef list fill:#047857,stroke:#a7f3d0,color:#ffffff
-    classDef punc fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
-    classDef sent fill:#2563eb,stroke:#bfdbfe,color:#ffffff
-    classDef ext  fill:#334155,stroke:#cbd5e1,color:#ffffff
+    classDef list fill:#05966936,stroke:#10b981
+    classDef punc fill:#7c3aed36,stroke:#8b5cf6
+    classDef sent fill:#2563eb36,stroke:#3b82f6
+    classDef ext  fill:#52525b36,stroke:#94a3b8
 ```
 
 *Overview: the order is a priority list, structure first.*
@@ -525,14 +525,14 @@ flowchart TB
     P4 --> P1
     P1 --> PLG
 
-    classDef list fill:#047857,stroke:#a7f3d0,color:#ffffff
-    classDef punc fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
-    classDef sent fill:#2563eb,stroke:#bfdbfe,color:#ffffff
-    classDef ext  fill:#334155,stroke:#cbd5e1,color:#ffffff
+    classDef list fill:#05966936,stroke:#10b981
+    classDef punc fill:#7c3aed36,stroke:#8b5cf6
+    classDef sent fill:#2563eb36,stroke:#3b82f6
+    classDef ext  fill:#52525b36,stroke:#94a3b8
 
-    style structure fill:#d1fae5,stroke:#065f46,color:#1e293b
-    style glyphs fill:#ede9fe,stroke:#6d28d9,color:#1e293b
-    style layout fill:#dbeafe,stroke:#1d4ed8,color:#1e293b
+    style structure fill:#05966936,stroke:#10b981
+    style glyphs fill:#7c3aed36,stroke:#8b5cf6
+    style layout fill:#2563eb36,stroke:#3b82f6
 ```
 
 *Detail: 9 nodes in three groups. `FIX_ORDER` is in `src/rules/index.ts`.*
@@ -552,11 +552,11 @@ flowchart LR
     GUARD -- "yes" --> EDIT(["Edit"]):::ok
     GUARD -- "no" --> NULL(["null"]):::bad
 
-    classDef gate   fill:#047857,stroke:#a7f3d0,color:#ffffff
-    classDef build  fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
-    classDef decide fill:#334155,stroke:#cbd5e1,color:#ffffff
-    classDef ok     fill:#fef3c7,stroke:#b45309,color:#1e293b
-    classDef bad    fill:#b91c1c,stroke:#fecaca,color:#ffffff
+    classDef gate   fill:#05966936,stroke:#10b981
+    classDef build  fill:#7c3aed36,stroke:#8b5cf6
+    classDef decide fill:#52525b36,stroke:#94a3b8
+    classDef ok     fill:#b4530936,stroke:#d97706
+    classDef bad    fill:#dc262636,stroke:#ef4444
 ```
 
 *Overview: every list gate hands its list to `promote`, which returns an edit or null.*
@@ -588,13 +588,13 @@ flowchart TB
     GUARD -- "no: table, quote, break,<br/>few items, unsafe start" --> NULL
     GUARD -- "yes" --> EDIT
 
-    classDef gate   fill:#047857,stroke:#a7f3d0,color:#ffffff
-    classDef build  fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
-    classDef decide fill:#334155,stroke:#cbd5e1,color:#ffffff
-    classDef ok     fill:#fef3c7,stroke:#b45309,color:#1e293b
-    classDef bad    fill:#b91c1c,stroke:#fecaca,color:#ffffff
+    classDef gate   fill:#05966936,stroke:#10b981
+    classDef build  fill:#7c3aed36,stroke:#8b5cf6
+    classDef decide fill:#52525b36,stroke:#94a3b8
+    classDef ok     fill:#b4530936,stroke:#d97706
+    classDef bad    fill:#dc262636,stroke:#ef4444
 
-    style gates fill:#d1fae5,stroke:#065f46,color:#1e293b
+    style gates fill:#05966936,stroke:#10b981
 ```
 
 *Detail: 9 nodes.*
@@ -615,11 +615,11 @@ flowchart LR
     REG --> CHK["Check<br/>engine"]:::gate
     REG --> FIX["Fix<br/>engine"]:::gate
 
-    classDef core   fill:#2563eb,stroke:#bfdbfe,color:#ffffff
-    classDef build  fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
-    classDef ext    fill:#334155,stroke:#cbd5e1,color:#ffffff
-    classDef source fill:#b45309,stroke:#fde68a,color:#ffffff
-    classDef gate   fill:#047857,stroke:#a7f3d0,color:#ffffff
+    classDef core   fill:#2563eb36,stroke:#3b82f6
+    classDef build  fill:#7c3aed36,stroke:#8b5cf6
+    classDef ext    fill:#52525b36,stroke:#94a3b8
+    classDef source fill:#b4530936,stroke:#d97706
+    classDef gate   fill:#05966936,stroke:#10b981
 ```
 
 *Overview: three sources feed one registry, and both engines read it.*
@@ -650,13 +650,13 @@ flowchart TB
     FAIL -- "none" --> MERGE
     MERGE --> BUILD --> REG
 
-    classDef build  fill:#7c3aed,stroke:#ddd6fe,color:#ffffff
-    classDef source fill:#b45309,stroke:#fde68a,color:#ffffff
-    classDef ext    fill:#334155,stroke:#cbd5e1,color:#ffffff
-    classDef decide fill:#1e293b,stroke:#94a3b8,color:#ffffff
-    classDef bad    fill:#b91c1c,stroke:#fecaca,color:#ffffff
-    classDef out    fill:#fef3c7,stroke:#b45309,color:#1e293b
-    classDef gate   fill:#047857,stroke:#a7f3d0,color:#ffffff
+    classDef build  fill:#7c3aed36,stroke:#8b5cf6
+    classDef source fill:#b4530936,stroke:#d97706
+    classDef ext    fill:#52525b36,stroke:#94a3b8
+    classDef decide fill:#52525b36,stroke:#94a3b8
+    classDef bad    fill:#dc262636,stroke:#ef4444
+    classDef out    fill:#b4530936,stroke:#d97706
+    classDef gate   fill:#05966936,stroke:#10b981
 ```
 
 *Detail: 13 nodes.*

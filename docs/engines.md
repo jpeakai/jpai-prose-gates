@@ -320,10 +320,10 @@ flowchart TB
     EX -->|no| R2["Refused,<br/>the finding stays"]:::del
     EX -->|yes| A["Applied, and the pass restarts"]:::add
 
-    classDef core fill:#1e40af,stroke:#93c5fd,color:#ffffff,stroke-width:2px
-    classDef add fill:#047857,stroke:#6ee7b7,color:#ffffff,stroke-width:2px
-    classDef del fill:#b91c1c,stroke:#fecaca,color:#ffffff,stroke-width:2px
-    classDef ext fill:#6d28d9,stroke:#c4b5fd,color:#ffffff,stroke-width:2px
+    classDef core fill:#2563eb36,stroke:#3b82f6,stroke-width:2px
+    classDef add fill:#05966936,stroke:#10b981,stroke-width:2px
+    classDef del fill:#dc262636,stroke:#ef4444,stroke-width:2px
+    classDef ext fill:#7c3aed36,stroke:#8b5cf6,stroke-width:2px
 ```
 
 The two comparisons read the tree before and after the edit.

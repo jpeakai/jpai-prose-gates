@@ -34,7 +34,9 @@ Agents and humans: consult this before creating, moving or renaming any doc.
 | `docs/plugins.md` | How to write a local rule or a plugin package, and what each part of the contract does | Plugin authors | The plugin contract, the loader or the config changes |
 | `examples/` | Working plugins that authors copy and the tests exercise | Plugin authors | The plugin contract changes |
 | `docs/PUBLISHING.md` | The release speed run, the one-time npm setup and the failure table | Maintainers | The release workflow or npm setup changes |
-| `.github/workflows/` | CI on every push, and the manually triggered Publish workflow | Maintainers | The gate or the release process changes |
+| `.github/workflows/` | CI on every push, the Docs workflow that builds and deploys the site, and the manually triggered Publish workflow | Maintainers | The gate, the site build or the release process changes |
+| `mkdocs.yml` | The site theme, the navigation and the extensions | Maintainers | A page is added to the site or the theme changes |
+| `scripts/` | Build helpers, such as the script that assembles the site source | Maintainers | The site build changes |
 | `LICENSE` | The MIT license | Consumers | Never, short of relicensing |
 | `dist/` | Generated Node bundles of the CLI and library, ignored by git and shipped in the npm package | Consumers | Never edited, only rebuilt |
 | `tests/fixtures/` | Test inputs, not documentation, and never gated | Contributors | A rule's fix behaviour changes |
@@ -51,7 +53,8 @@ Agents and humans: consult this before creating, moving or renaming any doc.
 
 - ADR directory: `adrs/`
 - Parent bundle: `jpai-library/adrs/`, which holds where this tool sits rather than how it works
-- Docs site source: none
+- Docs site source: the real documents, copied into `tmp/site-src` by `scripts/assemble-site.ts` and built by `mkdocs.yml`, per [PRS-0029](../adrs/0029-the-docs-site-is-assembled-from-the-real-documents.md)
+- Docs site: <https://jpeakai.github.io/jpai-prose-gates/>, deployed from main by `.github/workflows/docs.yml`
 
 ## Required cross-links
 
@@ -62,4 +65,5 @@ Agents and humans: consult this before creating, moving or renaming any doc.
 ## Split and merge triggers
 
 - `docs/` adopts Diátaxis folders when the sectioned README passes roughly ten topics.
+- The docs site navigation supplies the grouping, so the files stay flat until a section outgrows its tab.
 - A rule earns its own how-to page when its refusal cases no longer fit one section of `RULES.md`.

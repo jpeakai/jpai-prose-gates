@@ -10,6 +10,12 @@ dev = [
     # Renders this repo's okf-yaml decision bundle (uv run meta adr render).
     "jpai-meta-cli",
 ]
+docs = [
+    # Builds the documentation site (make docs), which GitHub Pages serves.
+    # Pinned below 2: MkDocs 2.0 removes the plugin and theming systems Material needs.
+    "mkdocs>=1.6,<2",
+    "mkdocs-material",
+]
 
 [tool.uv]
 package = false

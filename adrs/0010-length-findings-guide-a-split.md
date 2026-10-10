@@ -20,6 +20,7 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 ## Relates to
 
 - Extends [PRS-0006](0006-sentence-length-is-never-autofixed.md) (the rule stays report-only, and its message now carries the guidance a human or agent needs)
+- Extended by [PRS-0031](0031-a-finding-carries-evidence-instruction-and-preserve.md) (every tell finding doubles as an instruction, with its parts kept apart in the JSON)
 
 ## Problem
 

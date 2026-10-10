@@ -33,6 +33,12 @@
 | [PRS-0027](0027-rules-may-be-async.md) | Rules may be async, checks run concurrently, and fixers run in priority order | accepted |
 | [PRS-0028](0028-frontmatter-edits-are-verified-by-data-equality.md) | A frontmatter edit is verified by comparing the YAML data before and after | accepted |
 | [PRS-0029](0029-the-docs-site-is-assembled-from-the-real-documents.md) | The docs site is assembled from the real documents and deploys only from main | accepted |
+| [PRS-0030](0030-a-rule-may-start-off-and-the-config-decides.md) | A rule may start off, and the config turns any rule on or off | accepted |
+| [PRS-0031](0031-a-finding-carries-evidence-instruction-and-preserve.md) | A finding carries optional evidence, instruction and preserve fields beside its message | accepted |
+| [PRS-0032](0032-tell-rules-only-report-and-read-prose-outside-quotes.md) | Tell rules only report, read prose outside code and quotations, and sit in three new categories | accepted |
+| [PRS-0033](0033-a-fixer-never-changes-a-word-without-allow-rephrase.md) | A fixer never changes a word unless the run passes an explicit --allow-rephrase flag | accepted |
+| [PRS-0034](0034-lexicons-are-our-own-dated-data-with-ideas-credited.md) | Lexicons are our own dated data, with ideas credited and no dependency on another tool's lists | accepted |
+| [PRS-0035](0035-there-are-no-warnings-a-finding-fails-the-run.md) | There are no warnings, so a finding fails the run and a rule not worth failing on is off | accepted |
 # By group
 
 ## architecture
@@ -43,6 +49,8 @@
 ## config
 
 * [PRS-0018](0018-config-file-and-rule-control.md) - A config is checked against the loaded rules, and a rule that is off loses both its halves
+* [PRS-0030](0030-a-rule-may-start-off-and-the-config-decides.md) - A rule carries a default of on or off, the config overrides it, and off rules are listed
+* [PRS-0035](0035-there-are-no-warnings-a-finding-fails-the-run.md) - A rule is on and its findings exit non-zero, or it is off, and no level reports without failing
 ## documentation
 
 * [PRS-0029](0029-the-docs-site-is-assembled-from-the-real-documents.md) - MkDocs Material builds from a copy of the repo's own layout, so the prose gates keep reading the real files
@@ -52,17 +60,24 @@
 ## errors
 
 * [PRS-0024](0024-failures-are-named-errors-with-codes.md) - Usage errors exit 2 and plugin errors exit 1, each class carrying a code and the fields to act on
+## findings
+
+* [PRS-0031](0031-a-finding-carries-evidence-instruction-and-preserve.md) - The parts of an instruction travel apart in the JSON, and the message stays one line that ends in advice
 ## fixing
 
 * [PRS-0003](0003-splice-source-never-restringify.md) - An edit replaces a byte range with text built from source slices, so untouched bytes stay identical
 * [PRS-0004](0004-a-fixer-refuses-when-unsure.md) - An unfixable case leaves the source untouched and the finding reported, never a best guess
 * [PRS-0005](0005-every-fix-is-verified.md) - A lost word throws, and an unexpected tree shape refuses the edit before it is applied
+* [PRS-0033](0033-a-fixer-never-changes-a-word-without-allow-rephrase.md) - Deleting or swapping words stays out of --fix, and the first fixer that does it adds the flag
 ## frontmatter
 
 * [PRS-0028](0028-frontmatter-edits-are-verified-by-data-equality.md) - A fixer may rewrite frontmatter if the YAML data is unchanged, and the view walks the whole document
 ## gates
 
 * [PRS-0002](0002-generated-markdown-is-gated.md) - Rendered output passes the same gates, and a finding there is fixed in its source or template
+## lexicon
+
+* [PRS-0034](0034-lexicons-are-our-own-dated-data-with-ideas-credited.md) - Each phrase list names its review date and sources, and stays out of any package we do not control
 ## model
 
 * [PRS-0023](0023-frontmatter-is-a-read-only-view.md) - DocModel.frontmatter lists the top-level string keys of a YAML block, and built-in rules stay exempt
@@ -91,6 +106,7 @@
 * [PRS-0010](0010-length-findings-guide-a-split.md) - PG002 reports potential clauses and a target sentence count, steering a rewrite away from compression
 * [PRS-0011](0011-rules-carry-a-category.md) - Rules are tagged sentence, list or punctuation, and their documented examples run through the real fixer
 * [PRS-0017](0017-rule-ids-are-category-and-short-name.md) - Rules are named category-short-name, such as sentence-one-per-line, instead of by a number
+* [PRS-0032](0032-tell-rules-only-report-and-read-prose-outside-quotes.md) - Stock phrasing, chat residue and decorative structure are reported with advice and never edited
 ## testing
 
 * [PRS-0009](0009-adversarial-and-property-tests-gate-fixes.md) - Fix behaviour is proven by exact fixtures, hostile inputs and generated documents, all without mocks
@@ -108,12 +124,14 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0004 --extended_by--> PRS-0005
 * PRS-0004 --depended_on_by--> PRS-0007
 * PRS-0004 --tested_by--> PRS-0009
+* PRS-0004 --extended_by--> PRS-0032
 * PRS-0005 --depends_on--> PRS-0003
 * PRS-0005 --extends--> PRS-0004
 * PRS-0005 --depended_on_by--> PRS-0006
 * PRS-0005 --tested_by--> PRS-0009
 * PRS-0005 --depended_on_by--> PRS-0020
 * PRS-0005 --depended_on_by--> PRS-0028
+* PRS-0005 --extended_by--> PRS-0033
 * PRS-0006 --depends_on--> PRS-0005
 * PRS-0006 --extended_by--> PRS-0010
 * PRS-0007 --depends_on--> PRS-0004
@@ -125,9 +143,11 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0009 --tests--> PRS-0004
 * PRS-0009 --tests--> PRS-0005
 * PRS-0010 --extends--> PRS-0006
+* PRS-0010 --extended_by--> PRS-0031
 * PRS-0011 --extends--> PRS-0008
 * PRS-0011 --extended_by--> PRS-0017
 * PRS-0011 --extended_by--> PRS-0021
+* PRS-0011 --extended_by--> PRS-0032
 * PRS-0012 --depends_on--> PRS-0001
 * PRS-0012 --depended_on_by--> PRS-0013
 * PRS-0012 --depended_on_by--> PRS-0022
@@ -150,6 +170,8 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0018 --depended_on_by--> PRS-0019
 * PRS-0018 --depended_on_by--> PRS-0022
 * PRS-0018 --depended_on_by--> PRS-0024
+* PRS-0018 --extended_by--> PRS-0030
+* PRS-0018 --extended_by--> PRS-0035
 * PRS-0019 --depends_on--> PRS-0018
 * PRS-0019 --depends_on--> PRS-0008
 * PRS-0019 --depends_on--> PRS-0017
@@ -183,3 +205,13 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0027 --depends_on--> PRS-0020
 * PRS-0028 --extends--> PRS-0023
 * PRS-0028 --depends_on--> PRS-0005
+* PRS-0030 --extends--> PRS-0018
+* PRS-0030 --depended_on_by--> PRS-0035
+* PRS-0031 --extends--> PRS-0010
+* PRS-0032 --extends--> PRS-0004
+* PRS-0032 --extends--> PRS-0011
+* PRS-0032 --depended_on_by--> PRS-0034
+* PRS-0033 --extends--> PRS-0005
+* PRS-0034 --depends_on--> PRS-0032
+* PRS-0035 --extends--> PRS-0018
+* PRS-0035 --depends_on--> PRS-0030

@@ -18,12 +18,16 @@ import {
   type RuleContext,
   type RuleId,
   type RuleOptions,
+  type Severity,
 } from "./types.ts";
 
 export const BUILTIN_CATEGORIES: ReadonlyMap<string, string> = new Map([
   ["sentence", "How a sentence is laid out and how long it runs"],
   ["list", "A list hidden in running prose, promoted to a real markdown list"],
   ["punctuation", "A glyph that reads as generated text"],
+  ["residue", "Text left over from a chat or a draft, such as tool markup, a wrapper sentence or a placeholder"],
+  ["phrase", "Stock phrasing that signals importance or authority instead of stating a fact"],
+  ["structure", "Headings, rules and lists that decorate a document instead of organising it"],
 ]);
 
 export const TEXT_HELPERS = { words, sentences, lengthMessage } as const;
@@ -37,9 +41,14 @@ export interface LoadedSource {
 }
 
 export interface Registry {
+  // The rules a run uses: those that are on.
   rules: Rule[];
+  // Every rule loaded, on or off, so a listing can show what a config switched off.
+  catalogue: Rule[];
   fixOrder: Rule[];
   enabled: ReadonlySet<RuleId>;
+  // Whether each rule in the catalogue is on or off: the config, then the rule's default, then on.
+  levels: ReadonlyMap<RuleId, Severity>;
   options: ReadonlyMap<RuleId, RuleOptions>;
   categories: ReadonlyMap<string, string>;
   sources: LoadedSource[];
@@ -84,7 +93,7 @@ const checkOptions = (where: string, rule: Rule, options: RuleOptions): void => 
 
 export const buildRegistry = (input: RegistryInput): Registry => {
   const { rules, fixOrder, categories, sources = [], config, ignoreUnknownPluginIds = false } = input;
-  const off = new Set<string>();
+  const configured = new Map<string, Severity>();
   const options = new Map<RuleId, RuleOptions>();
   const ignored: string[] = [];
   const where = config?.file ?? "config";
@@ -104,14 +113,19 @@ export const buildRegistry = (input: RegistryInput): Registry => {
       );
     }
     checkOptions(where, rule, setting.options);
-    if (setting.severity === "off") off.add(id);
-    else options.set(rule.id, setting.options);
+    configured.set(id, setting.severity);
+    if (setting.severity !== "off") options.set(rule.id, setting.options);
   }
-  const active = rules.filter((r) => !off.has(r.id));
+  const levels = new Map<RuleId, Severity>(
+    rules.map((r) => [r.id, configured.get(r.id) ?? r.defaultSeverity ?? "error"]),
+  );
+  const active = rules.filter((r) => levels.get(r.id) !== "off");
   return {
     rules: active,
-    fixOrder: fixOrder.filter((r) => !off.has(r.id)),
+    catalogue: rules,
+    fixOrder: fixOrder.filter((r) => levels.get(r.id) !== "off"),
     enabled: new Set(active.map((r) => r.id)),
+    levels,
     options,
     categories,
     sources,

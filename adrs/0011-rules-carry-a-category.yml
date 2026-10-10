@@ -29,6 +29,10 @@ relates_to:
     target: PRS-0021
     note: a plugin adds a category by declaring it
 
+  - relation: extended_by
+    target: PRS-0032
+    note: residue, phrase and structure join the built-in categories
+
 problem:
   symptom: The README listed nine rules in id order with a one-line fix each.
   pain_point: A one-line summary cannot show what a fix writes, and a hand-written example drifts from the code.

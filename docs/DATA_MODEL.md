@@ -734,10 +734,12 @@ The CLI help, the category grouping and the documentation test all read the cata
 
 The expectation is the strongest claim the edit can honestly make.
 
-Reach for `same-tree` when the edit only moves whitespace.
-Reach for `same-shape` when the edit swaps glyphs inside text and leaves node boundaries alone.
-Reach for `same-frontmatter-data` when frontmatter is written differently and means the same.
-Reach for `replace-paragraph` when one paragraph becomes several blocks.
+Pick the first of these that fits the edit.
+
+- `same-tree` when the edit only moves whitespace.
+- `same-shape` when the edit swaps glyphs inside text and leaves node boundaries alone.
+- `same-frontmatter-data` when frontmatter is written differently and means the same.
+- `replace-paragraph` when one paragraph becomes several blocks.
 
 A weaker claim is not safer.
 `same-shape` blanks text before comparing, so it would wave through an edit that changed a word.

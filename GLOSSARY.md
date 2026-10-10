@@ -29,6 +29,11 @@ When a new domain term enters the code or the conversation, add it here in the s
 | Expectation | What an edit claims about the reparsed tree: same-tree, same-shape, same-frontmatter-data or replace-paragraph. |
 | Docs site | The MkDocs Material site on GitHub Pages, built from the real documents and deployed only from main. |
 | Site source | The untracked copy of the documents at `tmp/site-src` that MkDocs reads, rebuilt by `scripts/assemble-site.ts` and never edited. |
+| Severity | Whether a rule is on or off: error means its findings fail the run, and off turns the rule off. There is no level between. A rule has a default, and the config overrides it. |
+| Tell | A phrase, glyph or layout that signals more than it states, such as a chat wrapper or a stock opener. A tell is a sign for a human to weigh and never proof of who wrote the text. |
+| Residue | Text left over from a chat or a draft, such as tool markup, a wrapper sentence or an unfilled placeholder. |
+| Lexicon | A dated, sourced list of phrases that a tell rule reads as data. It holds our own wording, with the ideas credited. |
+| Instruction | The part of a finding that says what to do, in the imperative, kept apart from the evidence and from what a rewrite must preserve. |
 | Stable text | The text a fix run ends at. No fixer, asked again after the last accepted edit, has a verifiable edit left, so fixing it again changes nothing. |
 | Refusal | A fixer or the verifier declining an edit. The source is untouched and the finding stays. |
 | Fixpoint | The engine's loop of applying verified edits in a fixed rule order until nothing changes. |

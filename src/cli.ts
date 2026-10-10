@@ -38,6 +38,7 @@ Plugins load on their own from .prose-gates/rules and from dependencies named pr
 --lenient-plugins skips a plugin that fails to load and says so, instead of stopping the run.
 --validate-plugins loads and checks every plugin, reports every failure, and runs no check or fix.
 --list-rules prints every active rule by category, including plugin rules, and where each plugin came from.
+A rule is on or off, and the config sets "error" or "off" for each rule. There are no warnings.
 Exits 1 when findings remain or a plugin fails to load, 2 on usage error.`;
 
 interface Parsed {
@@ -106,6 +107,11 @@ export const listRules = (registry: Registry): string => {
     if (rules.length === 0) continue;
     lines.push(`${category}: ${description}`);
     for (const r of rules) lines.push(`  ${r.id}${r.fix ? "*" : " "} ${r.summary}`);
+  }
+  const off = registry.catalogue.filter((r) => registry.levels.get(r.id) === "off");
+  if (off.length > 0) {
+    lines.push("", 'off (set "error" in the config to turn one on):');
+    for (const r of off) lines.push(`  ${r.id}${r.fix ? "*" : " "} ${r.summary}`);
   }
   if (registry.sources.length > 0) {
     lines.push("", "plugins:");
@@ -228,6 +234,7 @@ const run = async (argv: string[], cwd: string): Promise<number> => {
     for (const f of all) console.log(`${f.file}:${f.line} ${f.rule} ${f.message}`);
     console.log(`${all.length} finding(s) in ${positionals.length} file(s)`);
   }
+  // Any finding fails the run. There is no level for a finding that does not.
   return all.length > 0 ? 1 : 0;
 };
 

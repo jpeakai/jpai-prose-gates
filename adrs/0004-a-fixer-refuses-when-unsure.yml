@@ -28,6 +28,10 @@ relates_to:
     target: PRS-0009
     note: the refuses helper asserts untouched output
 
+  - relation: extended_by
+    target: PRS-0032
+    note: a tell rule that cannot repair a case without guessing is check-only, and these never repair
+
 problem:
   symptom: Heuristics that looked right on typical prose rewrote paired cross-references into a numbered list.
   pain_point: The fix passed every gate, so the changed meaning shipped without anyone reading it.

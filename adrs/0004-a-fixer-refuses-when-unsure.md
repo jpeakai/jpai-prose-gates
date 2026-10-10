@@ -22,6 +22,7 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 - Extended by [PRS-0005](0005-every-fix-is-verified.md) (the engine refuses on behalf of a fixer that did not)
 - Depended on by [PRS-0007](0007-em-dash-becomes-parentheses-or-colon.md) (the em-dash fixer refuses every shape outside two)
 - Tested by [PRS-0009](0009-adversarial-and-property-tests-gate-fixes.md) (the refuses helper asserts untouched output)
+- Extended by [PRS-0032](0032-tell-rules-only-report-and-read-prose-outside-quotes.md) (a tell rule that cannot repair a case without guessing is check-only, and these never repair)
 
 ## Problem
 

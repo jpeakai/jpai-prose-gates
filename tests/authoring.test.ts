@@ -100,13 +100,15 @@ describe("--list-rules", () => {
     expect(stdout).toContain("plugins:\n  local (local) .prose-gates/rules");
   });
 
-  test("leaves out a rule that is switched off", async () => {
+  test("moves a rule that is switched off to the off section", async () => {
     const root = tempProject({
       "package.json": "{}",
       "prose-gates.config.json": JSON.stringify({ rules: { "sentence-one-per-line": "off" } }),
     });
     const { stdout } = await runCli(root, ["--list-rules"]);
-    expect(stdout).not.toContain("sentence-one-per-line");
+    const [active = "", off = ""] = stdout.split("off (set");
+    expect(active).not.toContain("sentence-one-per-line");
+    expect(off).toContain("sentence-one-per-line");
   });
 
   test("listRules gives the same text in process", async () => {

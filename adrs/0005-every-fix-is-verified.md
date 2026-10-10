@@ -26,6 +26,7 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 - Tested by [PRS-0009](0009-adversarial-and-property-tests-gate-fixes.md) (properties assert the fingerprint is preserved)
 - Depended on by [PRS-0020](0020-plugin-fixers-stay-under-verification.md) (a plugin fixer meets the same fingerprint and shape proof)
 - Depended on by [PRS-0028](0028-frontmatter-edits-are-verified-by-data-equality.md) (a new expectation compares YAML data before and after)
+- Extended by [PRS-0033](0033-a-fixer-never-changes-a-word-without-allow-rephrase.md) (the word fingerprint stays the default, and an explicit flag is the only way to relax it)
 
 ## Problem
 

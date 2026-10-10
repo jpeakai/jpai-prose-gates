@@ -10,7 +10,7 @@ export const API_VERSION = 1;
 
 // What a plugin returns. The engine adds the rule id and the file to a finding,
 // and the rule id to an edit, so a plugin cannot report as another rule.
-export type PluginFinding = Pick<Finding, "line" | "message">;
+export type PluginFinding = Pick<Finding, "line" | "message" | "evidence" | "instruction" | "preserve">;
 
 export type PluginEdit = Omit<Edit, "rule">;
 

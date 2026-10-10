@@ -22,6 +22,10 @@ relates_to:
     target: PRS-0006
     note: the rule stays report-only, and its message now carries the guidance a human or agent needs
 
+  - relation: extended_by
+    target: PRS-0031
+    note: every tell finding doubles as an instruction, with its parts kept apart in the JSON
+
 problem:
   symptom: A PG002 message gave only a word count and a budget.
   pain_point: The cheapest way to meet a word budget is to delete words, so rewrites lost articles, connectives and meaning.

@@ -33,6 +33,8 @@
 | [PRS-0027](0027-rules-may-be-async.md) | Rules may be async, checks run concurrently, and fixers run in priority order | accepted |
 | [PRS-0028](0028-frontmatter-edits-are-verified-by-data-equality.md) | A frontmatter edit is verified by comparing the YAML data before and after | accepted |
 | [PRS-0029](0029-the-docs-site-is-assembled-from-the-real-documents.md) | The docs site is assembled from the real documents and deploys only from main | accepted |
+| [PRS-0030](0030-a-rule-reports-as-error-warning-or-off.md) | A rule reports as an error, a warning or not at all, and a rule may start at warn or off | accepted |
+| [PRS-0031](0031-a-finding-carries-evidence-instruction-and-preserve.md) | A finding carries optional evidence, instruction and preserve fields beside its message | accepted |
 # By group
 
 ## architecture
@@ -43,6 +45,7 @@
 ## config
 
 * [PRS-0018](0018-config-file-and-rule-control.md) - A config is checked against the loaded rules, and a rule that is off loses both its halves
+* [PRS-0030](0030-a-rule-reports-as-error-warning-or-off.md) - Severity gains a warn level and a per-rule default, so a heuristic can ship without failing an existing build
 ## documentation
 
 * [PRS-0029](0029-the-docs-site-is-assembled-from-the-real-documents.md) - MkDocs Material builds from a copy of the repo's own layout, so the prose gates keep reading the real files
@@ -52,6 +55,9 @@
 ## errors
 
 * [PRS-0024](0024-failures-are-named-errors-with-codes.md) - Usage errors exit 2 and plugin errors exit 1, each class carrying a code and the fields to act on
+## findings
+
+* [PRS-0031](0031-a-finding-carries-evidence-instruction-and-preserve.md) - The parts of an instruction travel apart in the JSON, and the message stays one line that ends in advice
 ## fixing
 
 * [PRS-0003](0003-splice-source-never-restringify.md) - An edit replaces a byte range with text built from source slices, so untouched bytes stay identical
@@ -125,6 +131,7 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0009 --tests--> PRS-0004
 * PRS-0009 --tests--> PRS-0005
 * PRS-0010 --extends--> PRS-0006
+* PRS-0010 --extended_by--> PRS-0031
 * PRS-0011 --extends--> PRS-0008
 * PRS-0011 --extended_by--> PRS-0017
 * PRS-0011 --extended_by--> PRS-0021
@@ -150,6 +157,7 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0018 --depended_on_by--> PRS-0019
 * PRS-0018 --depended_on_by--> PRS-0022
 * PRS-0018 --depended_on_by--> PRS-0024
+* PRS-0018 --extended_by--> PRS-0030
 * PRS-0019 --depends_on--> PRS-0018
 * PRS-0019 --depends_on--> PRS-0008
 * PRS-0019 --depends_on--> PRS-0017
@@ -183,3 +191,5 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0027 --depends_on--> PRS-0020
 * PRS-0028 --extends--> PRS-0023
 * PRS-0028 --depends_on--> PRS-0005
+* PRS-0030 --extends--> PRS-0018
+* PRS-0031 --extends--> PRS-0010

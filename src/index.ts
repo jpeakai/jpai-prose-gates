@@ -32,6 +32,7 @@ export type {
   Edit,
   Expectation,
   Finding,
+  FindingSeverity,
   FixContext,
   OptionSpec,
   OptionType,

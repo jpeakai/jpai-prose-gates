@@ -210,8 +210,10 @@ The config sets them, and a wrong name or type is a usage error with exit code 2
 }
 ```
 
-The severity is `"error"` or `"off"`.
+The severity is `"error"`, `"warn"` or `"off"`.
+An error fails the run, and a warning is reported and leaves the exit code alone.
 A rule that is off loses its check and its fixer.
+A built-in rule may start at warn or off, and the config moves it either way.
 An id that matches no loaded rule is a usage error, so a typo cannot silently do nothing.
 
 ## Testing a rule

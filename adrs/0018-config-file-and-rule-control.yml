@@ -37,6 +37,10 @@ relates_to:
     target: PRS-0024
     note: the config failures it raises are named errors with codes
 
+  - relation: extended_by
+    target: PRS-0030
+    note: the config accepts warn beside error and off, and a rule may carry a default severity
+
 problem:
   symptom: The CLI took four flags and had no place to say that one rule does not suit a project.
   pain_point: Switching a rule off meant forking, and a rule that others defer to could hide findings if it were switched off naively.

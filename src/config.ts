@@ -7,11 +7,10 @@ import { access, readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { AmbiguousConfigError, ConfigFileError, ConfigShapeError, RuleSettingError, UsageError } from "./errors.ts";
-import type { RuleOptions } from "./rules/types.ts";
+import type { RuleOptions, Severity } from "./rules/types.ts";
 
+export type { Severity };
 export { UsageError };
-
-export type Severity = "error" | "off";
 
 // How a plugin that fails to load is treated. Strict stops the run. Lenient
 // skips that plugin, says so, and carries on with the rest.
@@ -41,10 +40,10 @@ const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "obj
 const parseSetting = (file: string, id: string, raw: unknown): RuleSetting => {
   const [severity, options = {}] = Array.isArray(raw) ? raw : [raw];
   if (Array.isArray(raw) && (raw.length < 1 || raw.length > 2)) {
-    throw new RuleSettingError(file, id, 'must be "error", "off" or [severity, options]');
+    throw new RuleSettingError(file, id, 'must be "error", "warn", "off" or [severity, options]');
   }
-  if (severity !== "error" && severity !== "off") {
-    throw new RuleSettingError(file, id, `has severity ${JSON.stringify(severity)}; use "error" or "off"`);
+  if (severity !== "error" && severity !== "warn" && severity !== "off") {
+    throw new RuleSettingError(file, id, `has severity ${JSON.stringify(severity)}; use "error", "warn" or "off"`);
   }
   if (!isRecord(options)) throw new RuleSettingError(file, id, "options must be an object");
   return { severity, options };

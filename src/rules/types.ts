@@ -15,6 +15,32 @@ export const RULE = {
   INLINE_ENUM: "list-inline-enumeration-markers",
   LABELLED_RUN: "list-comma-labelled-run",
   STACKED_RUNS: "list-stacked-interpunct-runs",
+  TOOL_MARKUP: "residue-tool-markup-artifact",
+  CHATBOT_WRAPPER: "residue-chatbot-wrapper-phrase",
+  PLACEHOLDER: "residue-unfilled-placeholder-text",
+  AI_WORD: "phrase-ai-overused-word",
+  STAGED_RUN_UP: "phrase-staged-run-up",
+  STOCK_CLOSER: "phrase-stock-closer-line",
+  INFLATED: "phrase-inflated-significance-claim",
+  SALES: "phrase-sales-language-claim",
+  NEGATIVE_CONTRAST: "phrase-negative-contrast-pair",
+  ARGUING: "phrase-arguing-with-no-one",
+  VAGUE_LINK: "phrase-vague-connection-link",
+  AUTHORITY: "phrase-borrowed-authority-claim",
+  SAYING: "phrase-sayings-sound-deep",
+  SELF_REFERENCE: "phrase-document-self-reference",
+  COPULA: "phrase-avoided-copula-verb",
+  RIDER: "phrase-shallow-participle-rider",
+  EMOJI_HEADING: "structure-emoji-in-heading",
+  RULE_BETWEEN: "structure-thematic-break-density",
+  TITLE_CASE: "structure-title-case-heading",
+  HEADING_RESTATED: "structure-heading-restating-sentence",
+  BOLD_LABELS: "structure-bold-label-list-item",
+  OPENING_RUN: "sentence-repeated-opening-run",
+  SPACED_DASH: "punctuation-spaced-dash-in-prose",
+  CURLY_QUOTE: "punctuation-curly-quote-in-prose",
+  HEDGE_RUN: "phrase-stacked-hedge-run",
+  FRAGMENT_RUN: "sentence-short-fragment-run",
 } as const;
 
 // A core id has no slash. A plugin id is always namespace/name, so the slash
@@ -31,11 +57,24 @@ export const isPluginRuleId = (id: string): id is PluginRuleId => id.includes("/
 
 export type RuleId = CoreRuleId | PluginRuleId;
 
+// How a rule's findings count. An error fails the run, a warning is reported and
+// leaves the exit code alone, and off switches the rule off.
+export type Severity = "error" | "warn" | "off";
+
+export type FindingSeverity = Exclude<Severity, "off">;
+
 export interface Finding {
   file: string;
   line: number;
   rule: RuleId;
   message: string;
+  // Set by the engine from the registry, so a rule cannot report at another level.
+  severity?: FindingSeverity;
+  // The structured parts of an instruction, for a tool or an agent that reads the JSON.
+  // The message already carries the same advice as one line of prose (PRS-0010).
+  evidence?: string; // the exact text the finding is about
+  instruction?: string; // what to do, in the imperative
+  preserve?: string; // what a rewrite must keep
 }
 
 // The data every rule shares, computed once per document and handed to it.
@@ -106,7 +145,7 @@ export interface Edit {
 // list: a list hidden in running prose, promoted to a real markdown list.
 // punctuation: a glyph that reads as generated text.
 // A plugin may add a category of its own by declaring it.
-export const CATEGORIES = ["sentence", "list", "punctuation"] as const;
+export const CATEGORIES = ["sentence", "list", "punctuation", "residue", "phrase", "structure"] as const;
 
 export type Category = (typeof CATEGORIES)[number];
 
@@ -114,6 +153,9 @@ export interface Rule {
   id: RuleId;
   category: string;
   summary: string;
+  // The severity a run uses until the config says otherwise. Absent means error, so a
+  // rule written before severities existed keeps failing the run.
+  defaultSeverity?: Severity;
   // The options the rule accepts. Absent when it takes none.
   options?: OptionSpec;
   check: (ctx: CheckContext) => Awaitable<Finding[]>;

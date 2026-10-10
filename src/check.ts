@@ -26,13 +26,16 @@ export const checkModel = async (
   const shared = ruleContext(doc, registry);
   const perRule = registry.rules.map(async (rule) => {
     const options = registry.options.get(rule.id) ?? {};
-    return rule.check({
+    const found = await rule.check({
       ...shared,
       file,
       maxWords: budgetFor(maxWords, options.maxWords),
       options,
       helpers: TEXT_HELPERS,
     });
+    // The engine, not the rule, says how a finding counts.
+    const severity = registry.severities.get(rule.id) ?? "error";
+    return found.map((f) => ({ ...f, severity }));
   });
   // The fence body starts one line below the opening fence.
   const perFence = doc.fences.map(async (fence) => {

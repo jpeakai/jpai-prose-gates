@@ -30,8 +30,12 @@ describe("parseConfig", () => {
     ["an unknown top-level key", { rulez: {} }, /unknown key "rulez"/],
     ["plugins that are not strings", { plugins: [1] }, /"plugins" must be a list of strings, or false/],
     ["rules that are not an object", { rules: [] }, /"rules" must be an object/],
-    ["a severity that is not error or off", { rules: { x: "warn" } }, /use "error" or "off"/],
-    ["a setting array of the wrong length", { rules: { x: [] } }, /must be "error", "off" or \[severity, options\]/],
+    ["a severity that is not error, warn or off", { rules: { x: "fatal" } }, /use "error", "warn" or "off"/],
+    [
+      "a setting array of the wrong length",
+      { rules: { x: [] } },
+      /must be "error", "warn", "off" or \[severity, options\]/,
+    ],
     ["options that are not an object", { rules: { x: ["error", 5] } }, /options must be an object/],
   ])("rejects %s", (_name, raw, message) => {
     expect(() => parseConfig("c.json", raw)).toThrow(message);

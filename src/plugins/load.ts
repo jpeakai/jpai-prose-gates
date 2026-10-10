@@ -187,8 +187,14 @@ export const loadLocal = async (sources: PluginSource[], runtime?: RuntimeInfo):
   return { plugin, failures };
 };
 
+const FINDING_EXTRAS = ["evidence", "instruction", "preserve"] as const;
+
 const validFinding = (f: unknown): f is { line: number; message: string } =>
-  isRecord(f) && Number.isInteger(f.line) && (f.line as number) >= 1 && typeof f.message === "string";
+  isRecord(f) &&
+  Number.isInteger(f.line) &&
+  (f.line as number) >= 1 &&
+  typeof f.message === "string" &&
+  FINDING_EXTRAS.every((key) => f[key] === undefined || typeof f[key] === "string");
 
 const EXPECTATIONS = new Set(["same-tree", "same-shape", "same-frontmatter-data", "replace-paragraph"]);
 
@@ -210,7 +216,18 @@ export const toRule = (namespace: string, key: string, rule: PluginRule): Rule =
     if (!Array.isArray(found) || !found.every(validFinding)) {
       return report("returned something other than a list of { line, message } findings");
     }
-    return found.map((f) => ({ file: ctx.file, line: f.line, rule: id, message: f.message }));
+    return found.map((f) => ({
+      file: ctx.file,
+      line: f.line,
+      rule: id,
+      message: f.message,
+      ...Object.fromEntries(
+        FINDING_EXTRAS.flatMap((key) => {
+          const value = (f as Record<string, unknown>)[key];
+          return value === undefined ? [] : [[key, value]];
+        }),
+      ),
+    }));
   };
   const fix: Rule["fix"] = rule.fix
     ? async (ctx) => {

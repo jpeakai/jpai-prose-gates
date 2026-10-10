@@ -74,7 +74,7 @@ describe("every failure is a named class with a stable code", () => {
     expect(shape).toBeInstanceOf(ConfigShapeError);
     expect([shape.code, shape.key, shape.file]).toEqual(["config-shape", "rulez", "c.json"]);
 
-    const setting = (await caught(() => parseConfig("c.json", { rules: { x: "warn" } }))) as RuleSettingError;
+    const setting = (await caught(() => parseConfig("c.json", { rules: { x: "fatal" } }))) as RuleSettingError;
     expect(setting).toBeInstanceOf(RuleSettingError);
     expect([setting.code, setting.rule]).toEqual(["rule-setting", "x"]);
 

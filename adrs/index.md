@@ -35,6 +35,8 @@
 | [PRS-0029](0029-the-docs-site-is-assembled-from-the-real-documents.md) | The docs site is assembled from the real documents and deploys only from main | accepted |
 | [PRS-0030](0030-a-rule-reports-as-error-warning-or-off.md) | A rule reports as an error, a warning or not at all, and a rule may start at warn or off | accepted |
 | [PRS-0031](0031-a-finding-carries-evidence-instruction-and-preserve.md) | A finding carries optional evidence, instruction and preserve fields beside its message | accepted |
+| [PRS-0032](0032-tell-rules-only-report-and-read-prose-outside-quotes.md) | Tell rules only report, read prose outside code and quotations, and sit in three new categories | accepted |
+| [PRS-0034](0034-lexicons-are-our-own-dated-data-with-ideas-credited.md) | Lexicons are our own dated data, with ideas credited and no dependency on another tool's lists | accepted |
 # By group
 
 ## architecture
@@ -69,6 +71,9 @@
 ## gates
 
 * [PRS-0002](0002-generated-markdown-is-gated.md) - Rendered output passes the same gates, and a finding there is fixed in its source or template
+## lexicon
+
+* [PRS-0034](0034-lexicons-are-our-own-dated-data-with-ideas-credited.md) - Each phrase list names its review date and sources, and stays out of any package we do not control
 ## model
 
 * [PRS-0023](0023-frontmatter-is-a-read-only-view.md) - DocModel.frontmatter lists the top-level string keys of a YAML block, and built-in rules stay exempt
@@ -97,6 +102,7 @@
 * [PRS-0010](0010-length-findings-guide-a-split.md) - PG002 reports potential clauses and a target sentence count, steering a rewrite away from compression
 * [PRS-0011](0011-rules-carry-a-category.md) - Rules are tagged sentence, list or punctuation, and their documented examples run through the real fixer
 * [PRS-0017](0017-rule-ids-are-category-and-short-name.md) - Rules are named category-short-name, such as sentence-one-per-line, instead of by a number
+* [PRS-0032](0032-tell-rules-only-report-and-read-prose-outside-quotes.md) - Stock phrasing, chat residue and decorative structure are reported with advice and never edited
 ## testing
 
 * [PRS-0009](0009-adversarial-and-property-tests-gate-fixes.md) - Fix behaviour is proven by exact fixtures, hostile inputs and generated documents, all without mocks
@@ -114,6 +120,7 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0004 --extended_by--> PRS-0005
 * PRS-0004 --depended_on_by--> PRS-0007
 * PRS-0004 --tested_by--> PRS-0009
+* PRS-0004 --extended_by--> PRS-0032
 * PRS-0005 --depends_on--> PRS-0003
 * PRS-0005 --extends--> PRS-0004
 * PRS-0005 --depended_on_by--> PRS-0006
@@ -135,6 +142,7 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0011 --extends--> PRS-0008
 * PRS-0011 --extended_by--> PRS-0017
 * PRS-0011 --extended_by--> PRS-0021
+* PRS-0011 --extended_by--> PRS-0032
 * PRS-0012 --depends_on--> PRS-0001
 * PRS-0012 --depended_on_by--> PRS-0013
 * PRS-0012 --depended_on_by--> PRS-0022
@@ -193,3 +201,7 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0028 --depends_on--> PRS-0005
 * PRS-0030 --extends--> PRS-0018
 * PRS-0031 --extends--> PRS-0010
+* PRS-0032 --extends--> PRS-0004
+* PRS-0032 --extends--> PRS-0011
+* PRS-0032 --depended_on_by--> PRS-0034
+* PRS-0034 --depends_on--> PRS-0032

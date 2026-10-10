@@ -3,7 +3,10 @@
 
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { checkMarkdown } from "../src/index.ts";
+import { checkMarkdown, parseConfig } from "../src/index.ts";
+import { FIX_ORDER, RULES } from "../src/rules/index.ts";
+import { BUILTIN_CATEGORIES, buildRegistry, type Registry } from "../src/rules/registry.ts";
+import type { Finding } from "../src/rules/types.ts";
 
 export const PROJECT_ROOT = resolve(import.meta.dir, "..");
 const TMP = join(PROJECT_ROOT, "tmp", "tests");
@@ -46,3 +49,22 @@ export const runCli = async (
   ]);
   return { code, stdout, stderr };
 };
+
+// A registry with every rule on, so a rule that starts off or at warn can be tested like any other. Extra
+// settings go on top, to test an option or a severity.
+export const tellsOn = (extra: Record<string, unknown> = {}): Registry =>
+  buildRegistry({
+    rules: RULES,
+    fixOrder: FIX_ORDER,
+    categories: BUILTIN_CATEGORIES,
+    config: parseConfig("tests", {
+      rules: {
+        ...Object.fromEntries(RULES.filter((r) => r.defaultSeverity === "off").map((r) => [r.id, "warn"])),
+        ...extra,
+      },
+    }),
+  });
+
+// The findings of one rule over a document, with every rule on.
+export const tell = async (src: string, rule: string, extra: Record<string, unknown> = {}): Promise<Finding[]> =>
+  (await checkMarkdown(src, "doc.md", undefined, tellsOn(extra))).filter((f) => f.rule === rule);

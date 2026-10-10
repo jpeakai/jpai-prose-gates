@@ -29,6 +29,7 @@ Agents and humans: consult this before creating, moving or renaming any doc.
 | `adrs/*.yml` | Immutable accepted decisions about how the tool works, authored as data | Both | A binding decision is made |
 | `adrs/*.md` | Generated reading surface for those records | Both | Never edited, only regenerated |
 | `docs/CONVENTIONS.md` | This dialect declaration | Both | A documentation convention changes |
+| `src/lexicons/` | The phrase lists tell rules read, each dated and sourced, kept as data apart from the rules | Contributors | A list is reviewed, or a source is added |
 | `docs/DATA_MODEL.md` | The document model, the rule contract and the pipelines, with diagrams and an extension guide | Contributors | A model, an expectation kind or the fix order changes |
 | `docs/engines.md` | What the markdown tree provides at each point of the check and fix engines, as entity and sequence diagrams | Plugin authors | A view, a context, an engine step or the load modes change |
 | `docs/plugins.md` | How to write a local rule or a plugin package, and what each part of the contract does | Plugin authors | The plugin contract, the loader or the config changes |

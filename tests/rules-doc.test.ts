@@ -1,13 +1,14 @@
 // RULES.md is documentation that the code must keep true. Every `text before`
 // block is fixed and compared with the `text after` block that follows it,
-// and every `text reported` block must fire its rule and survive a fix run.
+// and every `text reported` block must fire its rule and survive a fix run. A rule that starts off
+// or at warn is checked with every rule on, so its documentation is held to the code as well.
 
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
 import type { Code, Heading, RootContent } from "mdast";
 import { fromMarkdown } from "mdast-util-from-markdown";
 import { CATEGORIES, checkMarkdown, fixMarkdown, RULES } from "../src/index.ts";
-import { PROJECT_ROOT } from "./helpers.ts";
+import { PROJECT_ROOT, tellsOn } from "./helpers.ts";
 
 interface Example {
   rule: string;
@@ -64,13 +65,13 @@ describe("RULES.md", () => {
   });
 
   test.each(pairs)("$rule: the fixer turns before into after", async ({ rule: id, before, after }) => {
-    expect((await checkMarkdown(before, "RULES.md")).map((f): string => f.rule)).toContain(id);
+    expect((await checkMarkdown(before, "RULES.md", undefined, tellsOn())).map((f): string => f.rule)).toContain(id);
     expect(await fixMarkdown(before)).toBe(after);
     expect(await checkMarkdown(after, "RULES.md")).toEqual([]);
   });
 
   test.each(reported)("$rule: a reported case fires and is left alone", async ({ rule: id, body }) => {
-    expect((await checkMarkdown(body, "RULES.md")).map((f): string => f.rule)).toContain(id);
+    expect((await checkMarkdown(body, "RULES.md", undefined, tellsOn())).map((f): string => f.rule)).toContain(id);
     expect(await fixMarkdown(body)).toBe(body);
   });
 });

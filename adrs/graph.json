@@ -537,6 +537,19 @@
     },
     {
       "data": {
+        "id": "PRS-0033",
+        "label": "0033",
+        "parent": "group-fixing",
+        "colour": "#0284c7",
+        "file": "0033-a-fixer-never-changes-a-word-without-allow-rephrase.md",
+        "title": "A fixer never changes a word unless the run passes an explicit --allow-rephrase flag",
+        "description": "Deleting or swapping words stays out of --fix, and the first fixer that does it adds the flag",
+        "status": "accepted",
+        "tags": "fixing, verification, cli"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0034",
         "label": "0034",
         "parent": "group-lexicon",
@@ -706,6 +719,16 @@
         "label": "depended on by",
         "relation": "depended_on_by",
         "note": "a new expectation compares YAML data before and after"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0005-extended_by-PRS-0033",
+        "source": "PRS-0005",
+        "target": "PRS-0033",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "the word fingerprint stays the default, and an explicit flag is the only way to relax it"
       }
     },
     {
@@ -1476,6 +1499,16 @@
         "label": "depended on by",
         "relation": "depended_on_by",
         "note": "the phrase lists these rules read are our own dated data"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0033-extends-PRS-0005",
+        "source": "PRS-0033",
+        "target": "PRS-0005",
+        "label": "extends",
+        "relation": "extends",
+        "note": "the word fingerprint stays the default, and a flag is the only way to relax it"
       }
     },
     {

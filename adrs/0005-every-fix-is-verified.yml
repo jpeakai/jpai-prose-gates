@@ -38,6 +38,10 @@ relates_to:
     target: PRS-0028
     note: a new expectation compares YAML data before and after
 
+  - relation: extended_by
+    target: PRS-0033
+    note: the word fingerprint stays the default, and an explicit flag is the only way to relax it
+
 problem:
   symptom: A fixer bug could drop a word, create emphasis from a stray asterisk, or split one paragraph into two.
   pain_point: The damage looked like formatting, so nothing downstream noticed it.

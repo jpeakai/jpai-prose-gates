@@ -36,6 +36,7 @@
 | [PRS-0030](0030-a-rule-reports-as-error-warning-or-off.md) | A rule reports as an error, a warning or not at all, and a rule may start at warn or off | accepted |
 | [PRS-0031](0031-a-finding-carries-evidence-instruction-and-preserve.md) | A finding carries optional evidence, instruction and preserve fields beside its message | accepted |
 | [PRS-0032](0032-tell-rules-only-report-and-read-prose-outside-quotes.md) | Tell rules only report, read prose outside code and quotations, and sit in three new categories | accepted |
+| [PRS-0033](0033-a-fixer-never-changes-a-word-without-allow-rephrase.md) | A fixer never changes a word unless the run passes an explicit --allow-rephrase flag | accepted |
 | [PRS-0034](0034-lexicons-are-our-own-dated-data-with-ideas-credited.md) | Lexicons are our own dated data, with ideas credited and no dependency on another tool's lists | accepted |
 # By group
 
@@ -65,6 +66,7 @@
 * [PRS-0003](0003-splice-source-never-restringify.md) - An edit replaces a byte range with text built from source slices, so untouched bytes stay identical
 * [PRS-0004](0004-a-fixer-refuses-when-unsure.md) - An unfixable case leaves the source untouched and the finding reported, never a best guess
 * [PRS-0005](0005-every-fix-is-verified.md) - A lost word throws, and an unexpected tree shape refuses the edit before it is applied
+* [PRS-0033](0033-a-fixer-never-changes-a-word-without-allow-rephrase.md) - Deleting or swapping words stays out of --fix, and the first fixer that does it adds the flag
 ## frontmatter
 
 * [PRS-0028](0028-frontmatter-edits-are-verified-by-data-equality.md) - A fixer may rewrite frontmatter if the YAML data is unchanged, and the view walks the whole document
@@ -127,6 +129,7 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0005 --tested_by--> PRS-0009
 * PRS-0005 --depended_on_by--> PRS-0020
 * PRS-0005 --depended_on_by--> PRS-0028
+* PRS-0005 --extended_by--> PRS-0033
 * PRS-0006 --depends_on--> PRS-0005
 * PRS-0006 --extended_by--> PRS-0010
 * PRS-0007 --depends_on--> PRS-0004
@@ -204,4 +207,5 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0032 --extends--> PRS-0004
 * PRS-0032 --extends--> PRS-0011
 * PRS-0032 --depended_on_by--> PRS-0034
+* PRS-0033 --extends--> PRS-0005
 * PRS-0034 --depends_on--> PRS-0032

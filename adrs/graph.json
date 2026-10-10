@@ -502,9 +502,9 @@
         "label": "0030",
         "parent": "group-config",
         "colour": "#0891b2",
-        "file": "0030-a-rule-reports-as-error-warning-or-off.md",
-        "title": "A rule reports as an error, a warning or not at all, and a rule may start at warn or off",
-        "description": "Severity gains a warn level and a per-rule default, so a heuristic can ship without failing an existing build",
+        "file": "0030-a-rule-may-start-off-and-the-config-decides.md",
+        "title": "A rule may start off, and the config turns any rule on or off",
+        "description": "A rule carries a default of on or off, the config overrides it, and off rules are listed",
         "status": "accepted",
         "tags": "config, rules, cli"
       }
@@ -559,6 +559,19 @@
         "description": "Each phrase list names its review date and sources, and stays out of any package we do not control",
         "status": "accepted",
         "tags": "lexicon, tells, dependencies"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0035",
+        "label": "0035",
+        "parent": "group-config",
+        "colour": "#0891b2",
+        "file": "0035-there-are-no-warnings-a-finding-fails-the-run.md",
+        "title": "There are no warnings, so a finding fails the run and a rule not worth failing on is off",
+        "description": "A rule is on and its findings exit non-zero, or it is off, and no level reports without failing",
+        "status": "accepted",
+        "tags": "config, rules, cli, principle"
       }
     },
     {
@@ -1118,7 +1131,17 @@
         "target": "PRS-0030",
         "label": "extended by",
         "relation": "extended_by",
-        "note": "the config accepts warn beside error and off, and a rule may carry a default severity"
+        "note": "a rule may start off, and the config turns any rule on or off"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0018-extended_by-PRS-0035",
+        "source": "PRS-0018",
+        "target": "PRS-0035",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "there is no warning level anywhere, so a finding fails the run or its rule is off"
       }
     },
     {
@@ -1458,7 +1481,17 @@
         "target": "PRS-0018",
         "label": "extends",
         "relation": "extends",
-        "note": "the config now accepts \"warn\" beside \"error\" and \"off\", and a rule may carry its own default"
+        "note": "a rule may start off, and the config turns any rule on or off, built-in or plugin"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0030-depended_on_by-PRS-0035",
+        "source": "PRS-0030",
+        "target": "PRS-0035",
+        "label": "depended on by",
+        "relation": "depended_on_by",
+        "note": "a rule that is not worth failing a build on starts off, and never ships as a warning"
       }
     },
     {
@@ -1519,6 +1552,26 @@
         "label": "depends on",
         "relation": "depends_on",
         "note": "the lists feed the tell rules, which report and never edit"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0035-extends-PRS-0018",
+        "source": "PRS-0035",
+        "target": "PRS-0018",
+        "label": "extends",
+        "relation": "extends",
+        "note": "that record had no warning tier, and this makes that a principle for every rule and every default"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0035-depends_on-PRS-0030",
+        "source": "PRS-0035",
+        "target": "PRS-0030",
+        "label": "depends on",
+        "relation": "depends_on",
+        "note": "a rule that is not worth failing a build on starts off, and never ships as a warning"
       }
     }
   ],

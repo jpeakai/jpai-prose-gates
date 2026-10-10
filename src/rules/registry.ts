@@ -11,7 +11,6 @@ import { sentences, words } from "../text.ts";
 import { FIX_ORDER, RULES } from "./index.ts";
 import { lengthMessage } from "./sentence-word-budget-exceeded.ts";
 import {
-  type FindingSeverity,
   isPluginRuleId,
   type OptionType,
   RULE,
@@ -42,15 +41,13 @@ export interface LoadedSource {
 }
 
 export interface Registry {
-  // The rules a run uses: those whose severity is error or warn.
+  // The rules a run uses: those that are on.
   rules: Rule[];
   // Every rule loaded, on or off, so a listing can show what a config switched off.
   catalogue: Rule[];
   fixOrder: Rule[];
   enabled: ReadonlySet<RuleId>;
-  // The severity of each active rule, from the config, then the rule's default, then error.
-  severities: ReadonlyMap<RuleId, FindingSeverity>;
-  // The severity of every rule in the catalogue, on or off.
+  // Whether each rule in the catalogue is on or off: the config, then the rule's default, then on.
   levels: ReadonlyMap<RuleId, Severity>;
   options: ReadonlyMap<RuleId, RuleOptions>;
   categories: ReadonlyMap<string, string>;
@@ -123,15 +120,11 @@ export const buildRegistry = (input: RegistryInput): Registry => {
     rules.map((r) => [r.id, configured.get(r.id) ?? r.defaultSeverity ?? "error"]),
   );
   const active = rules.filter((r) => levels.get(r.id) !== "off");
-  const severities = new Map<RuleId, FindingSeverity>(
-    active.map((r) => [r.id, levels.get(r.id) === "warn" ? "warn" : "error"]),
-  );
   return {
     rules: active,
     catalogue: rules,
     fixOrder: fixOrder.filter((r) => levels.get(r.id) !== "off"),
     enabled: new Set(active.map((r) => r.id)),
-    severities,
     levels,
     options,
     categories,

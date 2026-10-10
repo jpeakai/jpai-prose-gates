@@ -1,5 +1,5 @@
 // Language that reads as an advertisement, usually about a place or an organisation (humanizer pattern
-// 16). A product README may use some of it on purpose, which is why the rule warns and does not fail.
+// 16). A product README may use some of it on purpose, and a project that does turns the rule off.
 
 import type { Lexicon } from "../lexicon.ts";
 

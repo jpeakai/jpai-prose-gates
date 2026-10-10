@@ -8,7 +8,7 @@ export const phraseAvoidedCopulaVerb = lexiconRule({
   id: RULE.COPULA,
   category: "phrase",
   summary: 'a longer verb phrase where "is", "are" or "has" would do',
-  defaultSeverity: "warn",
+  defaultSeverity: "off",
   lexicon: COPULA,
   what: "longer verb for is, are or has",
   instruction: 'Use "is", "are" or "has".',

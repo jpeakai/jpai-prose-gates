@@ -45,8 +45,8 @@ decision:
     - A tell rule has no fixer.
     - A tell rule reads prose in paragraphs, headings and list items, and skips code, tables and quotations.
     - A quotation shows a phrase and does not use it, so a document about stock phrases can quote them.
-    - Tool markup is the only tell that is an error by default, because no person types it.
-    - Every other tell warns or starts off, and the config can raise or lower it.
+    - Eight tells are on by default, because a hit is a defect in nearly any document and rewording clears it.
+    - Every other tell starts off, and a project turns on the ones it wants, when it fails the run like any other.
     - Each rule is documented in RULES.md with a reported example, and tests pass the real rule over real strings.
     - A rule is calibrated against human text before it ships, and the evidence goes in the pull request.
     - The rules live in core for now, and moving the word lists to a plugin package is a later decision.
@@ -57,4 +57,5 @@ consequences:
     - No rule can change a word, so the proof of every fix stays as strong as before.
   cons:
     - A finding the author must fix by hand costs more than an autofix.
-    - A heuristic will sometimes warn on text a person wrote on purpose.
+    - A rule that is on will sometimes fail on text a person wrote on purpose.
+    - The answer is to reword the text or switch the rule off.

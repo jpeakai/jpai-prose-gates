@@ -265,7 +265,7 @@ describe("the hedge option", () => {
     const src = "This may possibly be wrong.\n";
     expect(await tell(src, "phrase-stacked-hedge-run")).toEqual([]);
     expect(
-      await tell(src, "phrase-stacked-hedge-run", { "phrase-stacked-hedge-run": ["warn", { min: 2 }] }),
+      await tell(src, "phrase-stacked-hedge-run", { "phrase-stacked-hedge-run": ["error", { min: 2 }] }),
     ).toHaveLength(1);
   });
 
@@ -274,26 +274,27 @@ describe("the hedge option", () => {
   });
 });
 
-describe("default severity of every new rule", () => {
-  const OFF = [
-    "phrase-vague-connection-link",
-    "phrase-sayings-sound-deep",
-    "phrase-document-self-reference",
-    "structure-bold-label-list-item",
-    "punctuation-curly-quote-in-prose",
-  ];
-  const ERROR = ["residue-tool-markup-artifact"];
-  const WARN = [
+describe("which new rules are on by default", () => {
+  // A rule is on only when a hit is a defect in nearly any document and rewording clears it. That is
+  // true of a stock phrase and of markup no person types. A heuristic or a style choice starts off, and
+  // a project that wants it turns it on, when it fails the run like any other (PRS-0035).
+  const ON = [
+    "residue-tool-markup-artifact",
     "residue-chatbot-wrapper-phrase",
-    "residue-unfilled-placeholder-text",
     "phrase-ai-overused-word",
     "phrase-staged-run-up",
     "phrase-stock-closer-line",
     "phrase-inflated-significance-claim",
     "phrase-sales-language-claim",
+    "phrase-borrowed-authority-claim",
+  ];
+  const OFF = [
+    "residue-unfilled-placeholder-text",
     "phrase-negative-contrast-pair",
     "phrase-arguing-with-no-one",
-    "phrase-borrowed-authority-claim",
+    "phrase-vague-connection-link",
+    "phrase-sayings-sound-deep",
+    "phrase-document-self-reference",
     "phrase-avoided-copula-verb",
     "phrase-shallow-participle-rider",
     "phrase-stacked-hedge-run",
@@ -301,20 +302,34 @@ describe("default severity of every new rule", () => {
     "structure-thematic-break-density",
     "structure-title-case-heading",
     "structure-heading-restating-sentence",
+    "structure-bold-label-list-item",
     "sentence-repeated-opening-run",
     "sentence-short-fragment-run",
     "punctuation-spaced-dash-in-prose",
+    "punctuation-curly-quote-in-prose",
   ];
 
+  test.each(ON)("%s fails the run", (id) => expect(BUILTIN.levels.get(id as never)).toBe("error"));
   test.each(OFF)("%s starts off", (id) => expect(BUILTIN.levels.get(id as never)).toBe("off"));
-  test.each(ERROR)("%s fails the run", (id) => expect(BUILTIN.levels.get(id as never)).toBe("error"));
-  test.each(WARN)("%s warns", (id) => expect(BUILTIN.levels.get(id as never)).toBe("warn"));
 
-  test("no listed rule is missing from the catalogue, and none is left unlisted", () => {
-    const listed = new Set([...OFF, ...ERROR, ...WARN]);
-    const fresh = BUILTIN.catalogue
-      .filter((r) => r.defaultSeverity !== undefined || listed.has(r.id))
-      .map((r) => r.id as string);
-    expect(new Set(fresh)).toEqual(listed);
+  test("every new rule is listed once, and no rule is left out", () => {
+    const original = new Set([
+      "sentence-one-per-line",
+      "sentence-word-budget-exceeded",
+      "list-semicolon-delimited-run",
+      "list-interpunct-joined-run",
+      "list-inline-enumeration-markers",
+      "list-comma-labelled-run",
+      "list-stacked-interpunct-runs",
+      "punctuation-em-dash-in-prose",
+      "punctuation-interpunct-in-prose",
+    ]);
+    const fresh = BUILTIN.catalogue.map((r) => r.id as string).filter((id) => !original.has(id));
+    expect(new Set([...ON, ...OFF])).toEqual(new Set(fresh));
+    expect(ON.length + OFF.length).toBe(fresh.length);
+  });
+
+  test("no rule reports at a level between on and off", () => {
+    for (const level of BUILTIN.levels.values()) expect(["error", "off"]).toContain(level);
   });
 });

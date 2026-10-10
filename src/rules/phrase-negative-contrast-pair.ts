@@ -8,7 +8,7 @@ export const phraseNegativeContrastPair = lexiconRule({
   id: RULE.NEGATIVE_CONTRAST,
   category: "phrase",
   summary: 'a "not X but Y" contrast that names something nobody claimed',
-  defaultSeverity: "warn",
+  defaultSeverity: "off",
   lexicon: NEGATIVE_CONTRAST,
   what: "negative contrast",
   instruction:

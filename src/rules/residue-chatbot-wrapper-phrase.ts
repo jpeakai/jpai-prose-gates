@@ -9,7 +9,6 @@ export const residueChatbotWrapperPhrase = lexiconRule({
   id: RULE.CHATBOT_WRAPPER,
   category: "residue",
   summary: "a chat greeting, offer or knowledge note left in the text",
-  defaultSeverity: "warn",
   lexicon: CHATBOT_WRAPPER,
   what: "chat wrapper left in the text",
   instruction: "Delete the wrapper sentence and keep the content it introduced.",

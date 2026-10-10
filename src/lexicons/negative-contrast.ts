@@ -1,6 +1,6 @@
 // "Not X but Y": the negative half names something nobody claimed, so the positive half sounds larger
 // (humanizer pattern 1). Some contrasts correct a real belief and are fine, which is why the rule
-// warns. These patterns are broad on purpose and read inside one paragraph, so a contrast split across
+// starts off. These patterns are broad on purpose and read inside one paragraph, so a contrast split across
 // two sentences is caught too.
 
 import type { Lexicon } from "../lexicon.ts";

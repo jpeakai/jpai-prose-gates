@@ -44,7 +44,7 @@ export const sentenceShortFragmentRun: Rule = {
   id: RULE.FRAGMENT_RUN,
   category: "sentence",
   summary: "three or more very short sentences in a row",
-  defaultSeverity: "warn",
+  defaultSeverity: "off",
   options: { minRun: "number" },
   check,
 };

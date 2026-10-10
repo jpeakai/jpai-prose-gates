@@ -59,7 +59,7 @@ export const tellsOn = (extra: Record<string, unknown> = {}): Registry =>
     categories: BUILTIN_CATEGORIES,
     config: parseConfig("tests", {
       rules: {
-        ...Object.fromEntries(RULES.filter((r) => r.defaultSeverity === "off").map((r) => [r.id, "warn"])),
+        ...Object.fromEntries(RULES.filter((r) => r.defaultSeverity === "off").map((r) => [r.id, "error"])),
         ...extra,
       },
     }),

@@ -23,8 +23,9 @@ Installed as a dev dependency, the command is `prose-gates`, and `--json` gives 
 `--no-plugins` runs the built-in rules only, and `--lenient-plugins` skips a plugin that fails to load and says so.
 `--validate-plugins` loads and checks every plugin, reports every failure, and runs no check or fix.
 `--list-rules` prints every active rule by category, including plugin rules, and lists the rules that are off.
-Exit codes are 0 for clean or warnings only, 1 when an error remains, and 2 for a usage error.
-A rule reports as an error, a warning or not at all, and the config sets `"error"`, `"warn"` or `"off"` for each.
+Exit codes are 0 for clean, 1 for findings, and 2 for a usage error.
+A rule is on or off, and the config sets `"error"` or `"off"` for each.
+There are no warnings, so every finding fails the run.
 
 ## The rules
 
@@ -50,7 +51,8 @@ The residue, phrase and structure rules only report.
 They flag text that signals more than it states, such as a chat wrapper or a stock opener.
 Each message says what to do about it.
 The JSON adds the evidence, the instruction and what a rewrite must keep.
-Most warn, a few start off, and tool markup left by a chat tool is the one that fails the run.
+A few fail the run by default, such as tool markup left by a chat tool and a stock chat wrapper.
+The rest start off, and a project turns on the ones it wants.
 A finding is a sign that something needs a look, not proof of who wrote the text.
 
 Code blocks are exempt.

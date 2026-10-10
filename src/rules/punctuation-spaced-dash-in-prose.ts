@@ -8,7 +8,7 @@ export const punctuationSpacedDashInProse = lexiconRule({
   id: RULE.SPACED_DASH,
   category: "punctuation",
   summary: "a spaced en dash or double hyphen used as a dash",
-  defaultSeverity: "warn",
+  defaultSeverity: "off",
   lexicon: SPACED_DASH,
   what: "dash used as a connector",
   instruction: "Use a period, a comma, a colon or parentheses, or rewrite the sentence.",

@@ -33,11 +33,12 @@
 | [PRS-0027](0027-rules-may-be-async.md) | Rules may be async, checks run concurrently, and fixers run in priority order | accepted |
 | [PRS-0028](0028-frontmatter-edits-are-verified-by-data-equality.md) | A frontmatter edit is verified by comparing the YAML data before and after | accepted |
 | [PRS-0029](0029-the-docs-site-is-assembled-from-the-real-documents.md) | The docs site is assembled from the real documents and deploys only from main | accepted |
-| [PRS-0030](0030-a-rule-reports-as-error-warning-or-off.md) | A rule reports as an error, a warning or not at all, and a rule may start at warn or off | accepted |
+| [PRS-0030](0030-a-rule-may-start-off-and-the-config-decides.md) | A rule may start off, and the config turns any rule on or off | accepted |
 | [PRS-0031](0031-a-finding-carries-evidence-instruction-and-preserve.md) | A finding carries optional evidence, instruction and preserve fields beside its message | accepted |
 | [PRS-0032](0032-tell-rules-only-report-and-read-prose-outside-quotes.md) | Tell rules only report, read prose outside code and quotations, and sit in three new categories | accepted |
 | [PRS-0033](0033-a-fixer-never-changes-a-word-without-allow-rephrase.md) | A fixer never changes a word unless the run passes an explicit --allow-rephrase flag | accepted |
 | [PRS-0034](0034-lexicons-are-our-own-dated-data-with-ideas-credited.md) | Lexicons are our own dated data, with ideas credited and no dependency on another tool's lists | accepted |
+| [PRS-0035](0035-there-are-no-warnings-a-finding-fails-the-run.md) | There are no warnings, so a finding fails the run and a rule not worth failing on is off | accepted |
 # By group
 
 ## architecture
@@ -48,7 +49,8 @@
 ## config
 
 * [PRS-0018](0018-config-file-and-rule-control.md) - A config is checked against the loaded rules, and a rule that is off loses both its halves
-* [PRS-0030](0030-a-rule-reports-as-error-warning-or-off.md) - Severity gains a warn level and a per-rule default, so a heuristic can ship without failing an existing build
+* [PRS-0030](0030-a-rule-may-start-off-and-the-config-decides.md) - A rule carries a default of on or off, the config overrides it, and off rules are listed
+* [PRS-0035](0035-there-are-no-warnings-a-finding-fails-the-run.md) - A rule is on and its findings exit non-zero, or it is off, and no level reports without failing
 ## documentation
 
 * [PRS-0029](0029-the-docs-site-is-assembled-from-the-real-documents.md) - MkDocs Material builds from a copy of the repo's own layout, so the prose gates keep reading the real files
@@ -169,6 +171,7 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0018 --depended_on_by--> PRS-0022
 * PRS-0018 --depended_on_by--> PRS-0024
 * PRS-0018 --extended_by--> PRS-0030
+* PRS-0018 --extended_by--> PRS-0035
 * PRS-0019 --depends_on--> PRS-0018
 * PRS-0019 --depends_on--> PRS-0008
 * PRS-0019 --depends_on--> PRS-0017
@@ -203,9 +206,12 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0028 --extends--> PRS-0023
 * PRS-0028 --depends_on--> PRS-0005
 * PRS-0030 --extends--> PRS-0018
+* PRS-0030 --depended_on_by--> PRS-0035
 * PRS-0031 --extends--> PRS-0010
 * PRS-0032 --extends--> PRS-0004
 * PRS-0032 --extends--> PRS-0011
 * PRS-0032 --depended_on_by--> PRS-0034
 * PRS-0033 --extends--> PRS-0005
 * PRS-0034 --depends_on--> PRS-0032
+* PRS-0035 --extends--> PRS-0018
+* PRS-0035 --depends_on--> PRS-0030

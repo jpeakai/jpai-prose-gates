@@ -33,6 +33,5 @@ export const phraseStockCloserLine: Rule = {
   id: RULE.STOCK_CLOSER,
   category: "phrase",
   summary: 'a stock one-line closer such as "That is the real win."',
-  defaultSeverity: "warn",
   check,
 };

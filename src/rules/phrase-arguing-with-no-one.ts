@@ -8,7 +8,7 @@ export const phraseArguingWithNoOne = lexiconRule({
   id: RULE.ARGUING,
   category: "phrase",
   summary: "a reply to an objection nobody raised",
-  defaultSeverity: "warn",
+  defaultSeverity: "off",
   lexicon: ARGUING,
   what: "objection nobody raised",
   instruction: "Remove the defence. If it holds a real claim, state the claim.",

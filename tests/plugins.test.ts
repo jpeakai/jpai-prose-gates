@@ -273,7 +273,7 @@ describe("a hostile plugin check", () => {
       'export default { category: "sentence", summary: "x", check: () => [{ line: 1, message: "m", rule: "list-comma-labelled-run", file: "other.md" }] };\n',
     );
     const [finding] = await checkMarkdown("Fine.\n", "doc.md", undefined, await registryOf(files));
-    expect(finding).toEqual({ file: "doc.md", line: 1, rule: "local/sentence-liar", message: "m", severity: "error" });
+    expect(finding).toEqual({ file: "doc.md", line: 1, rule: "local/sentence-liar", message: "m" });
   });
 });
 

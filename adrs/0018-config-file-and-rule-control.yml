@@ -39,7 +39,10 @@ relates_to:
 
   - relation: extended_by
     target: PRS-0030
-    note: the config accepts warn beside error and off, and a rule may carry a default severity
+    note: a rule may start off, and the config turns any rule on or off
+  - relation: extended_by
+    target: PRS-0035
+    note: there is no warning level anywhere, so a finding fails the run or its rule is off
 
 problem:
   symptom: The CLI took four flags and had no place to say that one rule does not suit a project.

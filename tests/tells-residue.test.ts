@@ -11,9 +11,10 @@ const WRAPPER = "residue-chatbot-wrapper-phrase";
 const PLACEHOLDER = "residue-unfilled-placeholder-text";
 
 describe(MARKUP, () => {
-  test("is the one tell rule that fails the run by default", () => {
+  test("fails the run by default, as the chat wrapper does and a placeholder does not", () => {
     expect(BUILTIN.levels.get(MARKUP as never)).toBe("error");
-    expect(BUILTIN.levels.get(WRAPPER as never)).toBe("warn");
+    expect(BUILTIN.levels.get(WRAPPER as never)).toBe("error");
+    expect(BUILTIN.levels.get(PLACEHOLDER as never)).toBe("off");
   });
 
   test.each([
@@ -34,7 +35,6 @@ describe(MARKUP, () => {
   ])("reports %s", async (_name, src) => {
     const found = await tell(src, MARKUP);
     expect(found).toHaveLength(1);
-    expect(found[0]?.severity).toBe("error");
   });
 
   test("reads the address of a link, where a tracking parameter lives", async () => {
@@ -106,7 +106,7 @@ describe(MARKUP, () => {
 
   test("fails a plain run, because it is on by default", async () => {
     const found = await checkMarkdown("A claim [cite: 4].\n", "doc.md");
-    expect(found.map((f) => [f.rule, f.severity])).toEqual([[MARKUP, "error"]]);
+    expect(found.map((f) => f.rule)).toEqual([MARKUP]);
   });
 });
 

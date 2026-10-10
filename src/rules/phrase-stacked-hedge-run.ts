@@ -51,7 +51,7 @@ export const phraseStackedHedgeRun: Rule = {
   id: RULE.HEDGE_RUN,
   category: "phrase",
   summary: "three or more hedging words within one stretch of a sentence",
-  defaultSeverity: "warn",
+  defaultSeverity: "off",
   options: { min: "number" },
   check,
 };

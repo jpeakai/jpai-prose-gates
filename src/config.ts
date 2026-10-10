@@ -40,10 +40,14 @@ const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "obj
 const parseSetting = (file: string, id: string, raw: unknown): RuleSetting => {
   const [severity, options = {}] = Array.isArray(raw) ? raw : [raw];
   if (Array.isArray(raw) && (raw.length < 1 || raw.length > 2)) {
-    throw new RuleSettingError(file, id, 'must be "error", "warn", "off" or [severity, options]');
+    throw new RuleSettingError(file, id, 'must be "error", "off" or [severity, options]');
   }
-  if (severity !== "error" && severity !== "warn" && severity !== "off") {
-    throw new RuleSettingError(file, id, `has severity ${JSON.stringify(severity)}; use "error", "warn" or "off"`);
+  if (severity !== "error" && severity !== "off") {
+    const why =
+      severity === "warn" || severity === "warning"
+        ? "; this tool has no warnings, so a rule fails the run or is off"
+        : "";
+    throw new RuleSettingError(file, id, `has severity ${JSON.stringify(severity)}; use "error" or "off"${why}`);
   }
   if (!isRecord(options)) throw new RuleSettingError(file, id, "options must be an object");
   return { severity, options };

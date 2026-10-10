@@ -1,5 +1,5 @@
 // A longer verb phrase where "is", "are" or "has" would do (humanizer pattern 18). "Serves as" has
-// honest uses in technical writing, so the rule warns.
+// honest uses in technical writing, so the rule starts off.
 
 import type { Lexicon } from "../lexicon.ts";
 

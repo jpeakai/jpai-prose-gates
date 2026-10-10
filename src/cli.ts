@@ -38,8 +38,8 @@ Plugins load on their own from .prose-gates/rules and from dependencies named pr
 --lenient-plugins skips a plugin that fails to load and says so, instead of stopping the run.
 --validate-plugins loads and checks every plugin, reports every failure, and runs no check or fix.
 --list-rules prints every active rule by category, including plugin rules, and where each plugin came from.
-A rule reports as an error, a warning or not at all; the config sets "error", "warn" or "off" for each rule.
-Exits 1 when an error remains or a plugin fails to load, 0 with only warnings, 2 on usage error.`;
+A rule is on or off, and the config sets "error" or "off" for each rule. There are no warnings.
+Exits 1 when findings remain or a plugin fails to load, 2 on usage error.`;
 
 interface Parsed {
   values: {
@@ -106,15 +106,11 @@ export const listRules = (registry: Registry): string => {
     const rules = registry.rules.filter((r) => r.category === category);
     if (rules.length === 0) continue;
     lines.push(`${category}: ${description}`);
-    for (const r of rules) {
-      const level = registry.levels.get(r.id);
-      const tag = level === undefined || level === "error" ? "" : ` (${level})`;
-      lines.push(`  ${r.id}${r.fix ? "*" : " "} ${r.summary}${tag}`);
-    }
+    for (const r of rules) lines.push(`  ${r.id}${r.fix ? "*" : " "} ${r.summary}`);
   }
   const off = registry.catalogue.filter((r) => registry.levels.get(r.id) === "off");
   if (off.length > 0) {
-    lines.push("", 'off (set "warn" or "error" in the config to turn one on):');
+    lines.push("", 'off (set "error" in the config to turn one on):');
     for (const r of off) lines.push(`  ${r.id}${r.fix ? "*" : " "} ${r.summary}`);
   }
   if (registry.sources.length > 0) {
@@ -223,8 +219,6 @@ const run = async (argv: string[], cwd: string): Promise<number> => {
     }),
   );
   const all = perFile.flat();
-  const warnings = all.filter((f) => f.severity === "warn").length;
-  const errors = all.length - warnings;
 
   if (values.json) {
     const skippedPlugins = failures.map((f) => ({
@@ -234,20 +228,14 @@ const run = async (argv: string[], cwd: string): Promise<number> => {
       message: reasonOf(f),
     }));
     console.log(
-      JSON.stringify(
-        { findings: all, errors, warnings, files: positionals.length, plugins: registry.sources, skippedPlugins },
-        null,
-        2,
-      ),
+      JSON.stringify({ findings: all, files: positionals.length, plugins: registry.sources, skippedPlugins }, null, 2),
     );
   } else {
-    for (const f of all)
-      console.log(`${f.file}:${f.line} ${f.rule}${f.severity === "warn" ? " (warn)" : ""} ${f.message}`);
-    const split = warnings > 0 ? ` (${plural(errors, "error")}, ${plural(warnings, "warning")})` : "";
-    console.log(`${all.length} finding(s) in ${positionals.length} file(s)${split}`);
+    for (const f of all) console.log(`${f.file}:${f.line} ${f.rule} ${f.message}`);
+    console.log(`${all.length} finding(s) in ${positionals.length} file(s)`);
   }
-  // A warning is reported and never fails the run, so only an error sets the exit code.
-  return errors > 0 ? 1 : 0;
+  // Any finding fails the run. There is no level for a finding that does not.
+  return all.length > 0 ? 1 : 0;
 };
 
 // The line printed for a failure: its stable code, then the reason.

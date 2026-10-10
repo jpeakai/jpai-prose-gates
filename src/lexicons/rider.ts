@@ -1,6 +1,6 @@
 // A participle phrase bolted onto a plain fact to make it sound deeper (humanizer pattern 15). The
 // pattern is a comma followed by one of the participles, because the same word at the start of a
-// clause is ordinary. A participle in technical writing is often honest, so the rule warns.
+// clause is ordinary. A participle in technical writing is often honest, so the rule starts off.
 
 import type { Lexicon } from "../lexicon.ts";
 

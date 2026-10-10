@@ -1,6 +1,6 @@
 // A reply to an objection nobody raised, or the rejection of an option nobody offered (humanizer
 // pattern 5). Usually a leftover from an earlier draft. "To be clear" is sometimes honest, so the
-// rule warns.
+// rule starts off.
 
 import type { Lexicon } from "../lexicon.ts";
 

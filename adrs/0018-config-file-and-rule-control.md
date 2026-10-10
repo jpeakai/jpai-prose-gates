@@ -26,7 +26,8 @@ generated: { by: human:maintainer, at: 2026-10-06T00:00:00Z }
 - Depended on by [PRS-0019](0019-plugin-contract-and-namespace.md) (plugin rules are switched off and given options through the same file)
 - Depended on by [PRS-0022](0022-plugins-load-automatically.md) (the config can list extra plugins or turn all of them off)
 - Depended on by [PRS-0024](0024-failures-are-named-errors-with-codes.md) (the config failures it raises are named errors with codes)
-- Extended by [PRS-0030](0030-a-rule-reports-as-error-warning-or-off.md) (the config accepts warn beside error and off, and a rule may carry a default severity)
+- Extended by [PRS-0030](0030-a-rule-may-start-off-and-the-config-decides.md) (a rule may start off, and the config turns any rule on or off)
+- Extended by [PRS-0035](0035-there-are-no-warnings-a-finding-fails-the-run.md) (there is no warning level anywhere, so a finding fails the run or its rule is off)
 
 ## Problem
 

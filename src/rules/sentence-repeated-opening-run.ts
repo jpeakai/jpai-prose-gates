@@ -1,5 +1,5 @@
 // sentence-repeated-opening-run: several sentences in a row that begin with the same word. A person repeats an
-// opening on purpose for rhythm, so the rule warns. It skips "the", "a" and "an", which technical prose
+// opening on purpose for rhythm, so the rule starts off. It skips "the", "a" and "an", which technical prose
 // repeats constantly, and counts only runs of at least three, a number the config can change.
 
 import { lineWithin, tellFinding, tellParagraphs } from "../tells.ts";
@@ -46,7 +46,7 @@ export const sentenceRepeatedOpeningRun: Rule = {
   id: RULE.OPENING_RUN,
   category: "sentence",
   summary: "three or more sentences in a row that begin with the same word",
-  defaultSeverity: "warn",
+  defaultSeverity: "off",
   options: { minRun: "number" },
   check,
 };

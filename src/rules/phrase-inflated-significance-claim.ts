@@ -8,7 +8,6 @@ export const phraseInflatedSignificanceClaim = lexiconRule({
   id: RULE.INFLATED,
   category: "phrase",
   summary: "an ordinary fact dressed as a turning point or a legacy",
-  defaultSeverity: "warn",
   lexicon: INFLATED,
   what: "inflated significance",
   instruction: "Keep the fact and drop the claim that it matters. End on the last concrete fact.",

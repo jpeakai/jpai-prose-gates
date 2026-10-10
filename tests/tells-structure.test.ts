@@ -51,7 +51,7 @@ describe("structure-thematic-break-density", () => {
   test("leaves two alone, and lets a project change the count", async () => {
     const src = `Intro.\n\n${section(1)}${section(2)}`;
     expect(await tell(src, RULE)).toEqual([]);
-    expect(await tell(src, RULE, { [RULE]: ["warn", { min: 2 }] })).toHaveLength(1);
+    expect(await tell(src, RULE, { [RULE]: ["error", { min: 2 }] })).toHaveLength(1);
   });
 
   test("counts only a rule right before a heading", async () => {
@@ -178,7 +178,7 @@ describe("sentence-repeated-opening-run", () => {
   test("leaves two alone, and lets a project change the length", async () => {
     const src = "She came. She saw.\n";
     expect(await tell(src, RULE)).toEqual([]);
-    expect(await tell(src, RULE, { [RULE]: ["warn", { minRun: 2 }] })).toHaveLength(1);
+    expect(await tell(src, RULE, { [RULE]: ["error", { minRun: 2 }] })).toHaveLength(1);
   });
 
   test("does not run across paragraphs or list items", async () => {
@@ -212,7 +212,7 @@ describe("sentence-short-fragment-run", () => {
   test("lets a project change the run length", async () => {
     const src = "No prior. No taste.\n";
     expect(await tell(src, RULE)).toEqual([]);
-    expect(await tell(src, RULE, { [RULE]: ["warn", { minRun: 2 }] })).toHaveLength(1);
+    expect(await tell(src, RULE, { [RULE]: ["error", { minRun: 2 }] })).toHaveLength(1);
   });
 });
 

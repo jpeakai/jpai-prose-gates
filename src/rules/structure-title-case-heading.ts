@@ -1,7 +1,7 @@
 // structure-title-case-heading: a heading in title case, where every main word is capitalised. The tell is
 // a small word such as "And" or "Of" written with a capital, which a proper name rarely has, together
 // with at least two main words that are capitalised too. A heading of proper names, such as a product
-// name, can still match, which is why the rule warns.
+// name, can still match, which is why the rule starts off.
 
 import type { Heading, Node } from "mdast";
 import { SKIP, visitParents } from "unist-util-visit-parents";
@@ -65,6 +65,6 @@ export const structureTitleCaseHeading: Rule = {
   id: RULE.TITLE_CASE,
   category: "structure",
   summary: "a heading that capitalises every main word",
-  defaultSeverity: "warn",
+  defaultSeverity: "off",
   check,
 };

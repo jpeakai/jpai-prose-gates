@@ -71,6 +71,6 @@ export const structureHeadingRestatingSentence: Rule = {
   id: RULE.HEADING_RESTATED,
   category: "structure",
   summary: "a first sentence whose every content word is already in the heading",
-  defaultSeverity: "warn",
+  defaultSeverity: "off",
   check,
 };

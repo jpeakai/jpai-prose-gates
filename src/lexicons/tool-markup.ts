@@ -1,6 +1,6 @@
 // Markup a chat tool leaves behind when its output is pasted as text: citation objects, tracking
 // parameters and wrapper tags. Each form is a string no person types, so a match is a certainty that
-// text was copied out of a tool, which is why this is the one tell rule that fails the run by default.
+// text was copied out of a tool, which is why a match fails the run and the rule is on by default.
 // The list follows the vendor sections of Wikipedia's "Signs of AI writing", in our own wording.
 
 import type { Lexicon } from "../lexicon.ts";

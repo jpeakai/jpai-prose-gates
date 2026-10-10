@@ -27,7 +27,7 @@ export const structureThematicBreakDensity: Rule = {
   id: RULE.RULE_BETWEEN,
   category: "structure",
   summary: "a horizontal rule directly before several headings",
-  defaultSeverity: "warn",
+  defaultSeverity: "off",
   options: { min: "number" },
   check,
 };

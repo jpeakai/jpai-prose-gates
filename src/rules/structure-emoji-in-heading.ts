@@ -33,6 +33,6 @@ export const structureEmojiInHeading: Rule = {
   id: RULE.EMOJI_HEADING,
   category: "structure",
   summary: "an emoji or decorative arrow in a heading",
-  defaultSeverity: "warn",
+  defaultSeverity: "off",
   check,
 };

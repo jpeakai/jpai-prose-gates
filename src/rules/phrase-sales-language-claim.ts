@@ -8,7 +8,6 @@ export const phraseSalesLanguageClaim = lexiconRule({
   id: RULE.SALES,
   category: "phrase",
   summary: "language that reads as an advertisement",
-  defaultSeverity: "warn",
   lexicon: SALES,
   what: "sales language",
   instruction: "State what the thing is, without the adjective.",

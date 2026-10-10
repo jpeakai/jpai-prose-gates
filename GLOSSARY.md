@@ -29,7 +29,7 @@ When a new domain term enters the code or the conversation, add it here in the s
 | Expectation | What an edit claims about the reparsed tree: same-tree, same-shape, same-frontmatter-data or replace-paragraph. |
 | Docs site | The MkDocs Material site on GitHub Pages, built from the real documents and deployed only from main. |
 | Site source | The untracked copy of the documents at `tmp/site-src` that MkDocs reads, rebuilt by `scripts/assemble-site.ts` and never edited. |
-| Severity | How a rule's findings count: error fails the run, warn is reported and leaves the exit code alone, off turns the rule off. A rule has a default, and the config overrides it. |
+| Severity | Whether a rule is on or off: error means its findings fail the run, and off turns the rule off. There is no level between. A rule has a default, and the config overrides it. |
 | Tell | A phrase, glyph or layout that signals more than it states, such as a chat wrapper or a stock opener. A tell is a sign for a human to weigh and never proof of who wrote the text. |
 | Residue | Text left over from a chat or a draft, such as tool markup, a wrapper sentence or an unfilled placeholder. |
 | Lexicon | A dated, sourced list of phrases that a tell rule reads as data. It holds our own wording, with the ideas credited. |

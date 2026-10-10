@@ -57,19 +57,15 @@ export const isPluginRuleId = (id: string): id is PluginRuleId => id.includes("/
 
 export type RuleId = CoreRuleId | PluginRuleId;
 
-// How a rule's findings count. An error fails the run, a warning is reported and
-// leaves the exit code alone, and off switches the rule off.
-export type Severity = "error" | "warn" | "off";
-
-export type FindingSeverity = Exclude<Severity, "off">;
+// A rule is on, and its findings fail the run, or it is off. There is no level between,
+// because a finding that does not fail the run is a finding nobody reads (PRS-0035).
+export type Severity = "error" | "off";
 
 export interface Finding {
   file: string;
   line: number;
   rule: RuleId;
   message: string;
-  // Set by the engine from the registry, so a rule cannot report at another level.
-  severity?: FindingSeverity;
   // The structured parts of an instruction, for a tool or an agent that reads the JSON.
   // The message already carries the same advice as one line of prose (PRS-0010).
   evidence?: string; // the exact text the finding is about
@@ -153,8 +149,9 @@ export interface Rule {
   id: RuleId;
   category: string;
   summary: string;
-  // The severity a run uses until the config says otherwise. Absent means error, so a
-  // rule written before severities existed keeps failing the run.
+  // Whether a run uses the rule until the config says otherwise. Absent means on, so a rule
+  // written before this existed keeps failing the run. A rule that is not worth failing a build
+  // on by default says "off", and a project that wants it turns it on (PRS-0030).
   defaultSeverity?: Severity;
   // The options the rule accepts. Absent when it takes none.
   options?: OptionSpec;

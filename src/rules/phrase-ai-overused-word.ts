@@ -8,7 +8,6 @@ export const phraseAiOverusedWord = lexiconRule({
   id: RULE.AI_WORD,
   category: "phrase",
   summary: "a word that models use far more often than people do",
-  defaultSeverity: "warn",
   lexicon: AI_WORD,
   what: "word that models overuse",
   instruction: "Replace it with the plain word, or state the specific fact it stands in for.",

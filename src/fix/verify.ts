@@ -128,36 +128,48 @@ const withoutFrontmatter = (tree: Root): Root =>
 
 export type Verdict = "accept" | "refuse";
 
-export const verify = (edit: Edit, before: { src: string; tree: Root }, afterTree: Root): Verdict => {
-  const lost = fingerprint(before.tree).join(" ");
+// No word may be lost or moved. A mismatch is a fixer bug, so it throws and
+// names the first word where the two fingerprints part.
+const assertNoWordLost = (edit: Edit, beforeTree: Root, afterTree: Root): void => {
+  const lost = fingerprint(beforeTree).join(" ");
   const kept = fingerprint(afterTree).join(" ");
-  if (lost !== kept) {
-    const a = lost.split(" ");
-    const b = kept.split(" ");
-    const diverge = a.findIndex((w, i) => w !== b[i]);
-    const at = diverge === -1 ? a.length : diverge;
-    throw new FixInvariantError(edit, `word ${at} was "${a[at] ?? ""}", now "${b[at] ?? ""}"`);
-  }
+  if (lost === kept) return;
+  const a = lost.split(" ");
+  const b = kept.split(" ");
+  const diverge = a.findIndex((w, i) => w !== b[i]);
+  const at = diverge === -1 ? a.length : diverge;
+  throw new FixInvariantError(edit, `word ${at} was "${a[at] ?? ""}", now "${b[at] ?? ""}"`);
+};
 
-  const expect = edit.expect;
-  if (expect.kind === "same-tree") {
-    return sameJson(normalise(before.tree), normalise(afterTree)) ? "accept" : "refuse";
-  }
-  if (expect.kind === "same-frontmatter-data") {
-    const was = frontmatterData(before.tree);
-    const now = frontmatterData(afterTree);
-    if (was === INVALID || now === INVALID || !sameJson(was, now)) return "refuse";
-    return sameJson(normalise(withoutFrontmatter(before.tree)), normalise(withoutFrontmatter(afterTree)))
-      ? "accept"
-      : "refuse";
-  }
-  if (expect.kind === "same-shape") {
-    return sameJson(normalise(before.tree, { blankText: true }), normalise(afterTree, { blankText: true }))
-      ? "accept"
-      : "refuse";
-  }
+const verdictOf = (ok: boolean): Verdict => (ok ? "accept" : "refuse");
+
+// The frontmatter must mean the same data, and the rest of the tree must be
+// untouched.
+const sameFrontmatterData = (beforeTree: Root, afterTree: Root): Verdict => {
+  const was = frontmatterData(beforeTree);
+  const now = frontmatterData(afterTree);
+  if (was === INVALID || now === INVALID || !sameJson(was, now)) return "refuse";
+  return verdictOf(sameJson(normalise(withoutFrontmatter(beforeTree)), normalise(withoutFrontmatter(afterTree))));
+};
+
+type ReplaceParagraph = Extract<Edit["expect"], { kind: "replace-paragraph" }>;
+
+// The paragraph must become exactly the fragment the fixer declared, parsed
+// with the document's definitions, and nothing else may change.
+const replacedParagraph = (expect: ReplaceParagraph, before: { src: string; tree: Root }, afterTree: Root): Verdict => {
   const nodes = parseFragment(expect.fragment, definitionsOf(before.src, before.tree));
   if (!fragmentShapeOk(nodes, expect.listItems)) return "refuse";
   const expected = normalise(before.tree, { swap: [expect.view.node, nodes] });
-  return sameJson(expected, normalise(afterTree)) ? "accept" : "refuse";
+  return verdictOf(sameJson(expected, normalise(afterTree)));
+};
+
+export const verify = (edit: Edit, before: { src: string; tree: Root }, afterTree: Root): Verdict => {
+  assertNoWordLost(edit, before.tree, afterTree);
+  const expect = edit.expect;
+  if (expect.kind === "same-tree") return verdictOf(sameJson(normalise(before.tree), normalise(afterTree)));
+  if (expect.kind === "same-frontmatter-data") return sameFrontmatterData(before.tree, afterTree);
+  if (expect.kind === "same-shape") {
+    return verdictOf(sameJson(normalise(before.tree, { blankText: true }), normalise(afterTree, { blankText: true })));
+  }
+  return replacedParagraph(expect, before, afterTree);
 };

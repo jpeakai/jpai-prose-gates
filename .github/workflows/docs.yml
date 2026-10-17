@@ -12,6 +12,7 @@ on:
       - "adrs/**"
       - "scripts/assemble-site.ts"
       - "mkdocs.yml"
+      - "site-theme/**"
       - "pyproject.toml"
       - "uv.lock"
       - ".github/workflows/docs.yml"
@@ -26,6 +27,7 @@ on:
       - "adrs/**"
       - "scripts/assemble-site.ts"
       - "mkdocs.yml"
+      - "site-theme/**"
       - "pyproject.toml"
       - "uv.lock"
       - ".github/workflows/docs.yml"
@@ -54,9 +56,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
 
       - name: Build
-        run: |
-          bun run scripts/assemble-site.ts
-          uv run --only-group docs mkdocs build --strict
+        run: make docs
 
       - uses: actions/upload-pages-artifact@v4
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'

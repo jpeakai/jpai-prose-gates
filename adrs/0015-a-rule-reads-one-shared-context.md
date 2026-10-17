@@ -16,41 +16,33 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 
 <!-- GENERATED from PRS-0015 by okf_render.py. Do not edit; edit the .yml and regenerate. -->
 
-> **Lens**: A check and its fix answer the same question at two moments.
-> They can only stay honest if they read the same data, not their own copy of it.
-
 ## Relates to
 
 - Depends on [PRS-0008](0008-one-file-per-rule.md) (the context is the argument the one-file-per-rule contract passes to both halves)
 - Depends on [PRS-0001](0001-parse-once-to-mdast.md) (the shared data is derived from the model parsed once)
 - Depended on by [PRS-0016](0016-modules-group-by-what-a-function-takes.md) (where the code that reads the context lives)
 - Depended on by [PRS-0018](0018-config-file-and-rule-control.md) (the registry decides which runs count as reported inside the context)
-
-## Problem
-
-### Symptom
-
-check received a context carrying the interpunct runs, while fix received only the document model.
-
-### Pain point
-
-Four fixers called interpunctRuns themselves on every pass of a loop bounded at ten thousand passes. PG005 asked the same question two different ways in its two halves.
+- Extended by [PRS-0030](0030-paragraph-length-is-reported-with-topic-guidance.md) (a rule may also read the findings of the categories it runs after)
 
 ## Decision
 
 ### The lens
 
-- **Given**: several rules depend on data derived from the whole document rather than from one paragraph
-- **We prefer**: deriving that data once per document into a RuleContext both halves receive, over letting each half compute what it needs
-- **Because**: shared data is the only way the agreement between a check and its fix is structural rather than reviewed
-- **Unless**: the data is local to one rule, which keeps it inside that module
+#### Given
 
-### In practice
+several rules depend on data derived from the whole document rather than from one paragraph
 
-- RuleContext holds the document model and the interpunct runs.
-- CheckContext extends it with the file name and the sentence budget.
-- FixContext is RuleContext, because a fixer names no file.
-- A new shared derivation is added to ruleContext, never recomputed in a rule.
+#### We prefer
+
+deriving that data once per document into a RuleContext both halves receive, over letting each half compute what it needs
+
+#### Because
+
+shared data is the only way the agreement between a check and its fix is structural rather than reviewed
+
+#### Unless
+
+the data is local to one rule, which keeps it inside that module
 
 ## Consequences
 

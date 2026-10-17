@@ -2,7 +2,9 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { main } from "../src/index.ts";
-import { PROJECT_ROOT, tempFile } from "./helpers.ts";
+import { PROJECT_ROOT, tempDirs } from "./helpers.ts";
+
+const tmp = tempDirs();
 
 type Runner = (args: string[]) => Promise<{ code: number; stdout: string; stderr: string }>;
 
@@ -25,32 +27,32 @@ const runner =
 
 describe("main", () => {
   test("exits 0 on a clean file and 1 on findings", async () => {
-    expect(await main([tempFile("One clean sentence.\n")])).toBe(0);
-    expect(await main([tempFile("A wrapped sentence goes\nonward here.\n")])).toBe(1);
+    expect(await main([tmp.file("One clean sentence.\n")])).toBe(0);
+    expect(await main([tmp.file("A wrapped sentence goes\nonward here.\n")])).toBe(1);
   });
 
   test("--fix rewrites the file in place", async () => {
-    const file = tempFile("A wrapped sentence goes\nonward here.\n");
+    const file = tmp.file("A wrapped sentence goes\nonward here.\n");
     expect(await main([file, "--fix"])).toBe(0);
     expect(readFileSync(file, "utf8")).toBe("A wrapped sentence goes onward here.\n");
   });
 
   test("--fix leaves an unfixable finding reported", async () => {
     const long = `${Array.from({ length: 30 }, (_, i) => `word${i}`).join(" ")}.\n`;
-    const file = tempFile(long);
+    const file = tmp.file(long);
     expect(await main([file, "--fix"])).toBe(1);
     expect(readFileSync(file, "utf8")).toBe(long);
   });
 
   test("--json emits parseable findings", async () => {
-    const file = tempFile("A tell — here.\n");
+    const file = tmp.file("A tell — here.\n");
     expect(await main([file, "--json"])).toBe(1);
   });
 
   test("usage errors exit 2", async () => {
     expect(await main([])).toBe(2);
     expect(await main(["--nope"])).toBe(2);
-    expect(await main([tempFile("x.\n"), "--max-words", "zero"])).toBe(2);
+    expect(await main([tmp.file("x.\n"), "--max-words", "zero"])).toBe(2);
   });
 
   test("--help exits 0", async () => {
@@ -65,7 +67,7 @@ const RUNTIMES: [string, Runner][] = [
 
 describe.each(RUNTIMES)("bin entry point: %s", (_, run) => {
   test("prints findings and a summary line", async () => {
-    const file = tempFile("A tell — here.\n");
+    const file = tmp.file("A tell — here.\n");
     const { code, stdout } = await run([file]);
     expect(code).toBe(1);
     expect(stdout).toContain(`${file}:1 punctuation-em-dash-in-prose`);
@@ -73,7 +75,7 @@ describe.each(RUNTIMES)("bin entry point: %s", (_, run) => {
   });
 
   test("--json output parses", async () => {
-    const { code, stdout } = await run([tempFile("A tell — here.\n"), "--json"]);
+    const { code, stdout } = await run([tmp.file("A tell — here.\n"), "--json"]);
     expect(code).toBe(1);
     expect(JSON.parse(stdout).findings[0].rule).toBe("punctuation-em-dash-in-prose");
   });

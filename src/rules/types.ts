@@ -15,6 +15,7 @@ export const RULE = {
   INLINE_ENUM: "list-inline-enumeration-markers",
   LABELLED_RUN: "list-comma-labelled-run",
   STACKED_RUNS: "list-stacked-interpunct-runs",
+  PARAGRAPH_LENGTH: "paragraph-sentence-budget-exceeded",
 } as const;
 
 // A core id has no slash. A plugin id is always namespace/name, so the slash
@@ -66,9 +67,12 @@ export interface TextHelpers {
 }
 
 // A check also names the file it reports against, and the sentence budget.
+// `earlier` is what the rules of the categories in its `after` reported, and
+// is empty for a rule that runs after none.
 export interface CheckContext extends RuleContext {
   file: string;
   maxWords: number;
+  earlier: readonly Finding[];
   options: RuleOptions;
   helpers: TextHelpers;
 }
@@ -105,8 +109,9 @@ export interface Edit {
 // sentence: how a sentence is laid out and how long it runs.
 // list: a list hidden in running prose, promoted to a real markdown list.
 // punctuation: a glyph that reads as generated text.
+// paragraph: how many sentences a paragraph holds before a break.
 // A plugin may add a category of its own by declaring it.
-export const CATEGORIES = ["sentence", "list", "punctuation"] as const;
+export const CATEGORIES = ["sentence", "paragraph", "list", "punctuation"] as const;
 
 export type Category = (typeof CATEGORIES)[number];
 
@@ -116,6 +121,9 @@ export interface Rule {
   summary: string;
   // The options the rule accepts. Absent when it takes none.
   options?: OptionSpec;
+  // Categories whose findings this rule reads, so its check runs after theirs.
+  // Absent for a rule that reads no other rule's findings.
+  after?: readonly string[];
   check: (ctx: CheckContext) => Awaitable<Finding[]>;
   // Absent for rules whose fix needs discretion (sentence-word-budget-exceeded).
   fix?: (ctx: FixContext) => Awaitable<Edit[]>;

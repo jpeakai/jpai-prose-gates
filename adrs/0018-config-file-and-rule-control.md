@@ -16,9 +16,6 @@ generated: { by: human:maintainer, at: 2026-10-06T00:00:00Z }
 
 <!-- GENERATED from PRS-0018 by okf_render.py. Do not edit; edit the .yml and regenerate. -->
 
-> **Lens**: A team needs to turn a rule off or tune it without forking the package.
-> A setting that names nothing must fail, or a retired id looks like it worked.
-
 ## Relates to
 
 - Depends on [PRS-0015](0015-a-rule-reads-one-shared-context.md) (the registry decides which interpunct runs count as reported, inside the shared context)
@@ -26,35 +23,28 @@ generated: { by: human:maintainer, at: 2026-10-06T00:00:00Z }
 - Depended on by [PRS-0019](0019-plugin-contract-and-namespace.md) (plugin rules are switched off and given options through the same file)
 - Depended on by [PRS-0022](0022-plugins-load-automatically.md) (the config can list extra plugins or turn all of them off)
 - Depended on by [PRS-0024](0024-failures-are-named-errors-with-codes.md) (the config failures it raises are named errors with codes)
-
-## Problem
-
-### Symptom
-
-The CLI took four flags and had no place to say that one rule does not suit a project.
-
-### Pain point
-
-Switching a rule off meant forking, and a rule that others defer to could hide findings if it were switched off naively.
+- Depended on by [PRS-0030](0030-paragraph-length-is-reported-with-topic-guidance.md) (maxSentences is checked at load like maxWords)
+- Extended by [PRS-0036](0036-a-glossary-is-read-as-the-concept-model.md) (a concept file at the project root also shapes a run, and fails it the way a bad config does)
 
 ## Decision
 
 ### The lens
 
-- **Given**: a project wants to disable a rule, tune its budget, or run extra rules
-- **We prefer**: an optional config at the project root, validated against the loaded rules, over flags alone or a silent skip of unknown names
-- **Because**: a config that is checked at load cannot drift from the rules it names
-- **Unless**: a setting needs more than a severity and a typed option, which calls for a new record
+#### Given
 
-### In practice
+a project wants to disable a rule, tune its budget, or run extra rules
 
-- The file is prose-gates.config.json or .mjs at the project root, or the path in --config, and two at one root is an error.
-- A rule is "error", "off", or [severity, options]. There is no warning tier, because the tool exits 1 on any finding.
-- A rule that is off loses its check and its fixer together, so --fix cannot apply it.
-- An id that matches no loaded rule is a usage error with exit code 2. This catches a stale PG id.
-- An option must be one the rule declares, with the declared type. maxWords must be at least 1.
-- The sentence budget is the --max-words flag, then the rule's maxWords option, then 25.
-- An interpunct run counts as reported only while its owning rule is on. The glyph rule reports a run whose owner is off.
+#### We prefer
+
+an optional config at the project root, validated against the loaded rules, over flags alone or a silent skip of unknown names
+
+#### Because
+
+a config that is checked at load cannot drift from the rules it names
+
+#### Unless
+
+a setting needs more than a severity and a typed option, which calls for a new record
 
 ## Consequences
 

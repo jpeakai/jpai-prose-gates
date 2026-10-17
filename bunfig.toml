@@ -8,6 +8,9 @@
 # for reporting, let the Makefile own the gate.
 
 [test]
+# Discovery starts at tests/, so a plain `bun test` never walks tmp/, where the
+# fixtures write and a stale run may have left thousands of directories.
+root = "tests"
 coverageReporter = ["text"]
 coverageSkipTestFiles = true
 # Plugin fixtures that tests write under tmp/, and the example plugins, are imported as real modules, so

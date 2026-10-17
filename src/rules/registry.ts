@@ -3,6 +3,7 @@
 // that is off loses its check and its fixer together. Nothing else reads the
 // catalogue directly, which is what lets a plugin rule behave as a built-in.
 
+import { type ConceptModel, NO_CONCEPTS } from "../concepts.ts";
 import type { Config } from "../config.ts";
 import { RuleOptionError, UnknownRuleError } from "../errors.ts";
 import { interpunctRuns, isFlat } from "../interpunct.ts";
@@ -22,6 +23,7 @@ import {
 
 export const BUILTIN_CATEGORIES: ReadonlyMap<string, string> = new Map([
   ["sentence", "How a sentence is laid out and how long it runs"],
+  ["paragraph", "How many sentences a paragraph holds before a break"],
   ["list", "A list hidden in running prose, promoted to a real markdown list"],
   ["punctuation", "A glyph that reads as generated text"],
 ]);
@@ -45,6 +47,8 @@ export interface Registry {
   sources: LoadedSource[];
   // Config settings dropped because they name a plugin rule that did not load.
   ignoredSettings: string[];
+  // The project's concept file, read once per run, which every document model carries.
+  concepts: ConceptModel;
 }
 
 export interface RegistryInput {
@@ -55,6 +59,7 @@ export interface RegistryInput {
   config?: Config;
   // A lenient run drops a setting for an unknown plugin rule instead of failing.
   ignoreUnknownPluginIds?: boolean;
+  concepts?: ConceptModel;
 }
 
 const typeOf = (value: unknown): OptionType | null => {
@@ -77,13 +82,17 @@ const checkOptions = (where: string, rule: Rule, options: RuleOptions): void => 
       throw new RuleOptionError(where, rule.id, name, `option "${name}" of "${rule.id}" must be a ${want}`);
     }
   }
-  if ("maxWords" in options && !((options.maxWords as number) >= 1)) {
-    throw new RuleOptionError(where, rule.id, "maxWords", `option "maxWords" of "${rule.id}" must be at least 1`);
+  // A budget below one would fail every sentence or every paragraph.
+  for (const budget of ["maxWords", "maxSentences"]) {
+    if (budget in options && !((options[budget] as number) >= 1)) {
+      throw new RuleOptionError(where, rule.id, budget, `option "${budget}" of "${rule.id}" must be at least 1`);
+    }
   }
 };
 
 export const buildRegistry = (input: RegistryInput): Registry => {
   const { rules, fixOrder, categories, sources = [], config, ignoreUnknownPluginIds = false } = input;
+  const concepts = input.concepts ?? NO_CONCEPTS;
   const off = new Set<string>();
   const options = new Map<RuleId, RuleOptions>();
   const ignored: string[] = [];
@@ -116,6 +125,7 @@ export const buildRegistry = (input: RegistryInput): Registry => {
     categories,
     sources,
     ignoredSettings: ignored,
+    concepts,
   };
 };
 

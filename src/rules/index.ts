@@ -7,6 +7,7 @@ import { listInlineEnumerationMarkers } from "./list-inline-enumeration-markers.
 import { listInterpunctJoinedRun } from "./list-interpunct-joined-run.ts";
 import { listSemicolonDelimitedRun } from "./list-semicolon-delimited-run.ts";
 import { listStackedInterpunctRuns } from "./list-stacked-interpunct-runs.ts";
+import { paragraphSentenceBudgetExceeded } from "./paragraph-sentence-budget-exceeded.ts";
 import { punctuationEmDashInProse } from "./punctuation-em-dash-in-prose.ts";
 import { punctuationInterpunctInProse } from "./punctuation-interpunct-in-prose.ts";
 import { sentenceOnePerLine } from "./sentence-one-per-line.ts";
@@ -16,6 +17,7 @@ import type { Rule } from "./types.ts";
 export const RULES: Rule[] = [
   sentenceOnePerLine,
   sentenceWordBudgetExceeded,
+  paragraphSentenceBudgetExceeded,
   listSemicolonDelimitedRun,
   punctuationEmDashInProse,
   punctuationInterpunctInProse,

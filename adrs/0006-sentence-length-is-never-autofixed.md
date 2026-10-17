@@ -14,37 +14,32 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 
 <!-- GENERATED from PRS-0006 by okf_render.py. Do not edit; edit the .yml and regenerate. -->
 
-> **Lens**: Every other rule changes punctuation or layout.
-> Shortening a sentence means choosing what to cut, and that choice belongs to the author.
-
 ## Relates to
 
 - Depends on [PRS-0005](0005-every-fix-is-verified.md) (the fingerprint forbids the word changes a length fix would need)
 - Extended by [PRS-0010](0010-length-findings-guide-a-split.md) (the message estimates clauses to guide a split)
-
-## Problem
-
-### Symptom
-
-Splitting a long sentence mechanically at a comma produces fragments, and cutting clauses drops content.
-
-### Pain point
-
-Either rewrite changes what the author said, which no gate is entitled to do.
+- Extended by [PRS-0030](0030-paragraph-length-is-reported-with-topic-guidance.md) (a long paragraph is reported the same way, with no fixer)
+- Depended on by [PRS-0035](0035-finding-messages-are-measured-by-agent-evals.md) (agent evals target the rules a fixer never touches)
 
 ## Decision
 
 ### The lens
 
-- **Given**: a sentence exceeds the word budget
-- **We prefer**: reporting the finding for a human to rewrite, over any mechanical split or trim
-- **Because**: every shortening changes words, and the fingerprint rightly rejects any fix that changes words
-- **Unless**: never
+#### Given
 
-### In practice
+a sentence exceeds the word budget
 
-- PG002 findings survive a fix run unchanged.
-- The budget is tuned with the max-words flag rather than by relaxing the rule.
+#### We prefer
+
+reporting the finding for a human to rewrite, over any mechanical split or trim
+
+#### Because
+
+every shortening changes words, and the fingerprint rightly rejects any fix that changes words
+
+#### Unless
+
+never
 
 ## Consequences
 

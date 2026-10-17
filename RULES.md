@@ -5,6 +5,7 @@ Each example is real output: `tests/rules-doc.test.ts` runs every block below th
 
 A block labelled before is followed by its after, which is exactly what `--fix` writes.
 A block labelled reported is a case the fixer leaves alone, so the finding stays for a human.
+A block labelled rewritten follows a reported one, and shows a rewrite that passes every rule.
 Rules marked with a star in `--help` have a fixer.
 
 ## Categories
@@ -12,6 +13,7 @@ Rules marked with a star in `--help` have a fixer.
 | Category | Rules | What it guards |
 |---|---|---|
 | Sentence | sentence-one-per-line, sentence-word-budget-exceeded | How a sentence is laid out and how long it runs |
+| Paragraph | paragraph-sentence-budget-exceeded | How many sentences a paragraph holds before a break |
 | List | list-semicolon-delimited-run, list-interpunct-joined-run, list-inline-enumeration-markers, list-comma-labelled-run, list-stacked-interpunct-runs | A list hidden in running prose, promoted to a real markdown list |
 | Punctuation | punctuation-em-dash-in-prose, punctuation-interpunct-in-prose | A glyph that reads as generated text |
 
@@ -21,8 +23,9 @@ The list rules run before the punctuation rules, because a promotion needs the s
 
 ### sentence-one-per-line
 
-A sentence wrapped across lines, where one sentence per line is wanted.
+A sentence wrapped across lines, or several sentences on one line, where one sentence per line is wanted.
 One sentence per line keeps diffs to the sentence that changed.
+The check reports every paragraph the fix would change, so a file that passes is left alone by `--fix`.
 The fix reflows the paragraph so each line holds one whole sentence.
 
 ```text before
@@ -48,17 +51,107 @@ The fixer reads the tree and proposes an edit because the rule fired, which the 
 The finding counts potential clauses and suggests how many sentences to split into:
 
 ```text
-sentence-word-budget-exceeded sentence has 28 words (budget 25) and 4 potential clauses; split it into about 4 shorter sentences, one idea each, rather than compressing the wording
+sentence-word-budget-exceeded sentence has 28 words (budget 25) and 6 potential clauses; split it into about 6 shorter sentences, one idea each, rather than compressing the wording
 ```
 
-The clause count is a guide, not a parse, so a human or agent decides the real split.
+The clause count is the larger of two signals.
+One is the punctuation and marker words between clauses: a semicolon, a comma before "and", or a word such as "because" or "which".
+The other is the verb phrases compromise finds, since every clause has a verb.
+Here the sentence has six verbs and only four markers, so it counts six.
+
+The count is a guide, not a parse, so a human or agent decides the real split.
 Split at the clauses and keep the connective words, rather than deleting words until the sentence fits:
 
-```text
-The fixer reads the tree and proposes an edit.
-The edit exists because the rule fired.
-The engine verifies it by reparsing the document.
+```text rewritten
+The fixer reads the tree.
+It proposes an edit because the rule fired.
+The engine verifies that edit.
+To do so, it reparses the document.
 It then compares the words it finds.
+```
+
+## Paragraph
+
+### paragraph-sentence-budget-exceeded
+
+A paragraph of more sentences than the paragraph budget, which defaults to 5.
+Short sentences still make a wall of text when there are enough of them, so this rule and the word budget catch different problems.
+It has no fixer, because where a paragraph breaks depends on its topics.
+
+The rule counts sentences, not source lines, so wrapping a paragraph never resets the count.
+A blank line, a heading, a list or a fence ends a paragraph.
+Paragraphs inside list items and blockquotes are counted too, and table cells, code and frontmatter are exempt.
+An abbreviation such as e.g. or Dr. does not end a sentence, and neither does a terminal inside inline code or a url.
+
+```text reported
+The parser reads each markdown file once.
+It builds a syntax tree that every rule shares.
+Parsing twice would let two rules disagree about the tree.
+Releases publish from GitHub Actions on main.
+A release needs a signed tag and a green build.
+The publish workflow refuses to run from a branch.
+Plugins load on their own from the project folder.
+```
+
+The finding counts the topics and names the sentences to break after:
+
+```text
+paragraph-sentence-budget-exceeded paragraph has 7 sentences (budget 5) and about 3 topics; break it after sentences 3 and 6, one topic per paragraph
+```
+
+A topic turns where two neighbouring sentences share no content word.
+A sentence that opens with a word like "it" or "this" refers back, so it stays with the one before it.
+Break at each turn and leave every sentence as it is:
+
+```text rewritten
+The parser reads each markdown file once.
+It builds a syntax tree that every rule shares.
+Parsing twice would let two rules disagree about the tree.
+
+Releases publish from GitHub Actions on main.
+A release needs a signed tag and a green build.
+The publish workflow refuses to run from a branch.
+
+Plugins load on their own from the project folder.
+```
+
+A list written as prose is often why a paragraph runs long.
+This rule runs after the list rules, so a paragraph that a list rule reports is left to that rule.
+Once the list is promoted, the paragraph is counted again, and `--fix` often settles both at once.
+This paragraph reports only list-semicolon-delimited-run, and `tests/fixtures/paragraph/semicolon-list` holds the pair to the code:
+
+```text
+A release runs from the Publish workflow on main.
+The workflow needs: a version bump; a changelog entry; a green build; and a signed tag.
+It then uploads the package to npm.
+The tag starts the GitHub release.
+The release notes come from the merged pull requests.
+Nothing in that path runs from a laptop.
+```
+
+The fix promotes the list, which leaves two short paragraphs and nothing to report:
+
+```text
+A release runs from the Publish workflow on main.
+The workflow needs:
+
+- a version bump
+- a changelog entry
+- a green build
+- a signed tag
+
+It then uploads the package to npm.
+The tag starts the GitHub release.
+The release notes come from the merged pull requests.
+Nothing in that path runs from a laptop.
+```
+
+With the list rule switched off, the paragraph is counted as it stands.
+
+The `maxSentences` option sets the budget, for a project that wants shorter or longer paragraphs:
+
+```json
+{ "rules": { "paragraph-sentence-budget-exceeded": ["error", { "maxSentences": 4 }] } }
 ```
 
 ## List

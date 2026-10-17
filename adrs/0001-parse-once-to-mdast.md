@@ -14,9 +14,6 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 
 <!-- GENERATED from PRS-0001 by okf_render.py. Do not edit; edit the .yml and regenerate. -->
 
-> **Lens**: Markdown is a grammar, not a line format.
-> A rule that guesses structure from lines disagrees with every renderer sooner or later.
-
 ## Relates to
 
 - Depended on by [PRS-0012](0012-node-runs-a-published-bundle.md) (the Node bundle inlines the same parser)
@@ -24,30 +21,25 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 - Depended on by [PRS-0015](0015-a-rule-reads-one-shared-context.md) (the shared rule context derives from the model parsed once)
 - Depended on by [PRS-0023](0023-frontmatter-is-a-read-only-view.md) (the frontmatter view is derived from the tree parsed once)
 
-## Problem
-
-### Symptom
-
-Each rule decided for itself what counted as code, a table or a list. The answers drifted between rules.
-
-### Pain point
-
-A finding inside inline code, a link url or a table cell was a false positive that no single fix could remove.
-
 ## Decision
 
 ### The lens
 
-- **Given**: several rules need to know which bytes are prose and which are structure
-- **We prefer**: parsing each file once with micromark into mdast and handing every rule the same model, over per-rule line scanning
-- **Because**: the parser already implements CommonMark and GFM exactly, so exemptions come from node types rather than heuristics
-- **Unless**: a rule needs something the tree loses, such as the original spacing, in which case it reads the source through node offsets
+#### Given
 
-### In practice
+several rules need to know which bytes are prose and which are structure
 
-- A rule reads text nodes, paragraph views and offsets from DocModel.
-- Code, inline code, html and link urls are exempt because they are never text nodes.
-- Source positions come from the tree, so a finding points at the real line.
+#### We prefer
+
+parsing each file once with micromark into mdast and handing every rule the same model, over per-rule line scanning
+
+#### Because
+
+the parser already implements CommonMark and GFM exactly, so exemptions come from node types rather than heuristics
+
+#### Unless
+
+a rule needs something the tree loses, such as the original spacing, in which case it reads the source through node offsets
 
 ## Consequences
 

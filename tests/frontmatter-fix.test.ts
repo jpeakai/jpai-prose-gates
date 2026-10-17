@@ -6,7 +6,9 @@ import { verify } from "../src/fix/verify.ts";
 import { fixMarkdownReport, setUp } from "../src/index.ts";
 import { parse } from "../src/model.ts";
 import type { Edit } from "../src/rules/types.ts";
-import { tempProject } from "./helpers.ts";
+import { tempDirs } from "./helpers.ts";
+
+const tmp = tempDirs();
 
 const SAME: Edit["expect"] = { kind: "same-frontmatter-data" };
 
@@ -81,7 +83,7 @@ export default { category: "frontmatter", summary: "edits frontmatter", check: (
   });
 
   const run = async (body: string, src: string) =>
-    fixMarkdownReport(src, (await setUp({ cwd: tempProject(fixer(body)) })).registry);
+    fixMarkdownReport(src, (await setUp({ cwd: tmp.project(fixer(body)) })).registry);
 
   const replace = (from: string, to: string): string =>
     `const i = doc.src.indexOf(${JSON.stringify(from)}); return i < 0 ? [] : [{ start: i, end: i + ${from.length}, text: ${JSON.stringify(to)}, expect: { kind: "same-frontmatter-data" } }];`;

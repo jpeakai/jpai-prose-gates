@@ -7,7 +7,9 @@ import { join } from "node:path";
 import { listRules } from "../src/cli.ts";
 import { setUp } from "../src/index.ts";
 import { checkRule, fixRule, localPlugin } from "../src/testing.ts";
-import { PROJECT_ROOT, runCli, tempProject } from "./helpers.ts";
+import { PROJECT_ROOT, runCli, tempDirs } from "./helpers.ts";
+
+const tmp = tempDirs();
 
 const KEY = "frontmatter-description-word-budget";
 const template = (await import(join(PROJECT_ROOT, "examples", "plugin-skills", "index.mjs"))).default;
@@ -78,7 +80,7 @@ describe("the testing helper", () => {
 
 describe("--list-rules", () => {
   test("lists built-in rules under their categories with no files needed", async () => {
-    const root = tempProject({ "package.json": "{}" });
+    const root = tmp.project({ "package.json": "{}" });
     const { code, stdout } = await runCli(root, ["--list-rules"]);
     expect(code).toBe(0);
     expect(stdout).toContain("sentence: How a sentence is laid out and how long it runs");
@@ -87,7 +89,7 @@ describe("--list-rules", () => {
   });
 
   test("adds plugin categories and rules, and says where each plugin came from", async () => {
-    const root = tempProject({
+    const root = tmp.project({
       "package.json": "{}",
       [`.prose-gates/rules/${KEY}.mjs`]: await Bun.file(
         join(PROJECT_ROOT, "examples", "plugin-skills", "rules", `${KEY}.mjs`),
@@ -101,7 +103,7 @@ describe("--list-rules", () => {
   });
 
   test("leaves out a rule that is switched off", async () => {
-    const root = tempProject({
+    const root = tmp.project({
       "package.json": "{}",
       "prose-gates.config.json": JSON.stringify({ rules: { "sentence-one-per-line": "off" } }),
     });
@@ -110,7 +112,7 @@ describe("--list-rules", () => {
   });
 
   test("listRules gives the same text in process", async () => {
-    const { registry } = await setUp({ cwd: tempProject({ "package.json": "{}" }) });
+    const { registry } = await setUp({ cwd: tmp.project({ "package.json": "{}" }) });
     expect(listRules(registry)).toContain("punctuation: A glyph that reads as generated text");
   });
 });

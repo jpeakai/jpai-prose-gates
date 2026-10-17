@@ -45,9 +45,10 @@ erDiagram
     DOC_MODEL ||--o{ TEXT_VIEW : texts
     DOC_MODEL ||--o{ FENCE_VIEW : fences
     DOC_MODEL ||--o| FRONTMATTER_VIEW : "frontmatter, read on first use"
+    PARAGRAPH_VIEW ||--|| LANGUAGE_VIEW : "language, read on first use"
 ```
 
-*Overview: the document model is one tree and four views.*
+*Overview: the document model is one tree and four views, and each paragraph carries a language view.*
 
 <details>
 <summary>Detail: every view and its fields</summary>
@@ -69,6 +70,7 @@ erDiagram
         boolean inTable "check rules skip table cells"
         boolean inBlockquote "fixers skip quoted prose"
         boolean inListItem "promotion is restricted here"
+        LanguageView language "read on first use"
     }
     DIRECT_TEXT {
         string value "parsed text, entities resolved"
@@ -95,6 +97,7 @@ erDiagram
     DOC_MODEL {
         string src "exact file source"
         Root tree "mdast, frontmatter and gfm enabled"
+        ConceptModel concepts "the project's, read once per run"
     }
     TEXT_VIEW {
         string value "every prose text node"
@@ -117,15 +120,70 @@ erDiagram
     }
 ```
 
-*Detail: 8 entities with their fields, in two diagrams.*
+The language view of a paragraph, read from `prose` on first use, and the project's concepts it names.
+
+```mermaid
+erDiagram
+    PARAGRAPH_VIEW ||--|| LANGUAGE_VIEW : "language, read on first use"
+    LANGUAGE_VIEW ||--o{ SENTENCE : sentences
+    SENTENCE ||--o{ WORD : words
+    SENTENCE ||--o{ MENTION : concepts
+    CONCEPT_MODEL ||--o{ CONCEPT : concepts
+    CONCEPT_MODEL ||--o{ RELATION : relations
+    MENTION }o--|| CONCEPT : names
+
+    SENTENCE {
+        string text "as prose holds it, inline code is CODE"
+        string_set terms "lemmas of its content words"
+        string opener "CODE, a content lemma, or null"
+        boolean refersBack "opens with a pronoun, adverb or connective"
+        number verbPhrases "auxiliary counted inside its verb"
+    }
+    WORD {
+        string text "as written"
+        string lemma "lower case, from compromise"
+        string_list tags "compromise part-of-speech tags"
+        boolean content "noun, verb or adjective, never CODE"
+    }
+    CONCEPT_MODEL {
+        string file "GLOSSARY.md, CONCEPTS.md or null"
+    }
+    CONCEPT {
+        string name "its H2 heading"
+        string_list kinds "what it is a kind of, nearest first"
+    }
+    RELATION {
+        string from "a concept name"
+        string verb "the edge label"
+        string to "a concept name"
+        boolean never "a dotted edge"
+    }
+    MENTION {
+        string text "as the sentence writes it"
+        number start "first word, in the sentence"
+        number length "in words"
+    }
+```
+
+*Detail: 15 entities with their fields, in three diagrams.*
 
 </details>
 
-Three distinctions carry most of the weight.
+These distinctions carry most of the weight.
 
 `raw` versus `prose`.
 `raw` is the exact source slice a fixer splices over.
 `prose` is what a check reads, with soft wraps collapsed and each inline code span replaced by the single token `CODE`.
+
+`prose` versus `language`.
+`language` is `prose` read as English: its sentences, and each sentence's words with their tags and lemmas.
+compromise splits the sentences and tags the words, pinned to an exact version so a finding never moves under an upgrade.
+Tagging is the slowest step of a check, so the view is built on first read and never for a paragraph no rule asks about.
+
+`doc.concepts` versus `sentence.concepts`.
+`doc.concepts` is the project's vocabulary, read once per run from the `GLOSSARY.md` or `CONCEPTS.md` at its root.
+`sentence.concepts` is where one sentence names those concepts, matched in any case and in the plural.
+[docs/plugins.md](plugins.md#concepts) gives the file's shape.
 
 `texts` versus `directTexts`.
 `texts` holds every prose text node in the document, including headings and list items.
@@ -216,6 +274,7 @@ erDiagram
     CHECK_CONTEXT {
         string file "reported path"
         number maxWords "flag, then option, then 25"
+        finding_list earlier "findings of its after categories"
         record options "this rule's options"
         record helpers "words, sentences, lengthMessage"
     }
@@ -258,7 +317,14 @@ erDiagram
 </details>
 
 `ruleContext` builds the shared half once per document, and both halves of every rule read it.
-A check adds the file it reports against, the sentence budget, its options and the text helpers.
+A check adds these to it:
+
+- the file it reports against
+- the sentence budget
+- the findings of the categories it runs after
+- its options
+- the text helpers
+
 A fix adds its options and the helpers, so `FixContext` is `RuleContext` plus those two.
 An interpunct run is the one piece of derived data shared between rules.
 `reported` holds the runs an enabled rule owns.
@@ -270,9 +336,13 @@ Checking never mutates anything.
 Every active rule is started at once and the engine waits for all of them.
 A rule that waits on a tool therefore overlaps with the others.
 
+The exception is a rule that names categories in `after`.
+It starts once those categories have reported, and reads their findings as `earlier`.
+paragraph-sentence-budget-exceeded runs after the list rules this way, so a list they report is promoted before its paragraph is counted.
+
 ```mermaid
 flowchart LR
-    SRC["Markdown<br/>source"]:::source --> MODEL["Build<br/>model"]:::build --> CTX["Build<br/>context"]:::build --> RULES["Run every<br/>rule at once"]:::gate --> OUT["Findings,<br/>sorted"]:::out
+    SRC["Markdown<br/>source"]:::source --> MODEL["Build<br/>model"]:::build --> CTX["Build<br/>context"]:::build --> RULES["Run rules,<br/>after ones last"]:::gate --> OUT["Findings,<br/>sorted"]:::out
 
     classDef source fill:#2563eb36,stroke:#3b82f6
     classDef build  fill:#7c3aed36,stroke:#8b5cf6
@@ -301,7 +371,7 @@ flowchart TB
     end
 
     subgraph rules["Active rules, started together"]
-        BUILTIN["Built-in gates<br/>sentence, list, punctuation"]:::gate
+        BUILTIN["Built-in gates<br/>sentence, paragraph, list, punctuation"]:::gate
         PLUGIN["Plugin rules<br/>wrapped: awaited, contained"]:::ext
     end
 
@@ -339,7 +409,8 @@ flowchart TB
 
 Every rule reads the same `CheckContext`.
 That is the shared `RuleContext` plus the file it reports against, the sentence budget, its options and the text helpers.
-A rule never writes a file, never mutates the model and never sees another rule's output.
+A rule never writes a file and never mutates the model.
+It sees another rule's output only through `earlier`, for the categories it names in `after`, and its check then waits for theirs.
 A plugin check that throws, rejects or returns the wrong shape becomes one finding for that rule.
 
 ## Fix pipeline
@@ -539,8 +610,8 @@ flowchart TB
 
 </details>
 
-sentence-word-budget-exceeded has no fixer.
-Shortening a sentence changes its words, and that needs discretion.
+sentence-word-budget-exceeded and paragraph-sentence-budget-exceeded have no fixer.
+Shortening a sentence changes its words, and where a paragraph breaks depends on its topics, so both need discretion.
 
 The five list gates share one fixer helper, `promote`, in `src/fix/promote.ts`.
 Each gate decides where the list starts and what each item is, then hands `promote` a `Promotion`.
@@ -682,6 +753,7 @@ Its fixer then meets the same verification as a built-in, and an edit outside th
 
 A rule function may be synchronous or return a promise.
 The check engine starts every check at once and waits for all of them.
+A rule with `after` is the exception, and waits for the categories it names.
 The fix engine awaits one fixer at a time, in priority order.
 [docs/engines.md](engines.md) draws both, and states the stable-text guarantee a fix run ends with.
 
@@ -716,6 +788,7 @@ export const pgNNN: Rule = { id: RULE.NAME, category: "...", summary: "...", che
 1. Pick the next free id and add it to the `RULE` map in `src/rules/types.ts`.
 2. Choose a category from `CATEGORIES`, which is what groups the rule in help and in `RULES.md`.
 3. Write `check`, reading only `CheckContext`.
+   A check that needs another category's findings names it in `after` and reads them from `earlier`.
    Read paragraphs through `proseParagraphs` or `proseSentences`, which drop the table cells, unless the rule is about a glyph.
 4. Write `fix` if the rule can be fixed without discretion, and leave it out if it cannot.
    A fix reads `FixContext`, which is the same shared data the check read.

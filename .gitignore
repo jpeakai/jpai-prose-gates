@@ -12,6 +12,8 @@ tmp/
 # There are child orchestrator repos too that are responsible for their own domain
 # Each node in the heirarchy is a git repo to implement change management processes.
 jpai-*/
+# pytest-xharness-eval build workspaces, session logs and report (make evals)
+.xharness_eval_cache/
 # python
 .venv/
 __pycache__/

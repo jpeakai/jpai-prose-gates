@@ -6,7 +6,9 @@ import { buildRegistry, checkMarkdown, fixMarkdownReport, loadConfig, setUp, Usa
 import { findProjectRoot } from "../src/project.ts";
 import { FIX_ORDER, RULES } from "../src/rules/index.ts";
 import { BUILTIN_CATEGORIES } from "../src/rules/registry.ts";
-import { runCli, tempProject } from "./helpers.ts";
+import { runCli, tempDirs } from "./helpers.ts";
+
+const tmp = tempDirs();
 
 const registryFor = (rules: unknown) =>
   buildRegistry({
@@ -112,18 +114,18 @@ describe("a switched-off rule never hides what another rule defers to it", () =>
 
 describe("findProjectRoot", () => {
   test("is the nearest ancestor with a package.json, a config or a .prose-gates directory", async () => {
-    const root = tempProject({ "package.json": "{}", "docs/deep/a.md": "x\n" });
+    const root = tmp.project({ "package.json": "{}", "docs/deep/a.md": "x\n" });
     expect(await findProjectRoot(join(root, "docs", "deep"))).toBe(root);
-    const byDir = tempProject({ ".prose-gates/rules/.keep": "", "docs/a.md": "x\n" });
+    const byDir = tmp.project({ ".prose-gates/rules/.keep": "", "docs/a.md": "x\n" });
     expect(await findProjectRoot(join(byDir, "docs"))).toBe(byDir);
-    const byConfig = tempProject({ "prose-gates.config.json": "{}", "docs/a.md": "x\n" });
+    const byConfig = tmp.project({ "prose-gates.config.json": "{}", "docs/a.md": "x\n" });
     expect(await findProjectRoot(join(byConfig, "docs"))).toBe(byConfig);
   });
 });
 
 describe("the CLI reads a config", () => {
   test("a config at the project root switches a rule off", async () => {
-    const root = tempProject({
+    const root = tmp.project({
       "package.json": "{}",
       "prose-gates.config.json": JSON.stringify({ rules: { "punctuation-em-dash-in-prose": "off" } }),
       "a.md": "A tell — here.\n",
@@ -132,7 +134,7 @@ describe("the CLI reads a config", () => {
   });
 
   test("--config points at another file", async () => {
-    const root = tempProject({
+    const root = tmp.project({
       "package.json": "{}",
       "other.json": JSON.stringify({ rules: { "punctuation-em-dash-in-prose": "off" } }),
       "a.md": "A tell — here.\n",
@@ -142,14 +144,14 @@ describe("the CLI reads a config", () => {
   });
 
   test("--config to a missing file is a usage error", async () => {
-    const root = tempProject({ "package.json": "{}", "a.md": "ok.\n" });
+    const root = tmp.project({ "package.json": "{}", "a.md": "ok.\n" });
     const { code, stderr } = await runCli(root, ["a.md", "--config", "nope.json"]);
     expect(code).toBe(2);
     expect(stderr).toContain("no such file");
   });
 
   test("a retired id in the config fails the run with exit 2", async () => {
-    const root = tempProject({
+    const root = tmp.project({
       "package.json": "{}",
       "prose-gates.config.json": JSON.stringify({ rules: { PG004: "off" } }),
       "a.md": "ok.\n",
@@ -160,18 +162,18 @@ describe("the CLI reads a config", () => {
   });
 
   test("a .mjs config works and a malformed .json one is a usage error", async () => {
-    const mjs = tempProject({
+    const mjs = tmp.project({
       "package.json": "{}",
       "prose-gates.config.mjs": 'export default { rules: { "punctuation-em-dash-in-prose": "off" } };\n',
       "a.md": "A tell — here.\n",
     });
     expect((await runCli(mjs, ["a.md"])).code).toBe(0);
-    const bad = tempProject({ "package.json": "{}", "prose-gates.config.json": "{ not json", "a.md": "ok.\n" });
+    const bad = tmp.project({ "package.json": "{}", "prose-gates.config.json": "{ not json", "a.md": "ok.\n" });
     expect((await runCli(bad, ["a.md"])).code).toBe(2);
   });
 
   test("two config files at one root are ambiguous", async () => {
-    const root = tempProject({
+    const root = tmp.project({
       "package.json": "{}",
       "prose-gates.config.json": "{}",
       "prose-gates.config.mjs": "export default {};\n",
@@ -184,7 +186,7 @@ describe("the CLI reads a config", () => {
 
   test("the --max-words flag wins over the rule option", async () => {
     const long = "One two three four five six seven eight.\n";
-    const root = tempProject({
+    const root = tmp.project({
       "package.json": "{}",
       "prose-gates.config.json": JSON.stringify({
         rules: { "sentence-word-budget-exceeded": ["error", { maxWords: 5 }] },
@@ -196,14 +198,14 @@ describe("the CLI reads a config", () => {
   });
 
   test("an unreadable config extension is a usage error", async () => {
-    const root = tempProject({ "package.json": "{}", "c.yaml": "rules: {}\n", "a.md": "ok.\n" });
+    const root = tmp.project({ "package.json": "{}", "c.yaml": "rules: {}\n", "a.md": "ok.\n" });
     expect((await runCli(root, ["a.md", "--config", "c.yaml"])).code).toBe(2);
   });
 });
 
 describe("loading a config in process", () => {
   test("reads .json and .mjs, and refuses anything else", async () => {
-    const root = tempProject({
+    const root = tmp.project({
       "c.json": JSON.stringify({ rules: { "sentence-one-per-line": "off" } }),
       "c.mjs": "export default { plugins: false };\n",
       "bad.json": "{ nope",
@@ -216,7 +218,7 @@ describe("loading a config in process", () => {
   });
 
   test("setUp reports a missing --config file as a usage error", async () => {
-    const root = tempProject({ "package.json": "{}" });
+    const root = tmp.project({ "package.json": "{}" });
     await expect(setUp({ cwd: root, configPath: "nope.json" })).rejects.toThrow(UsageError);
   });
 });

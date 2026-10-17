@@ -15,9 +15,6 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 
 <!-- GENERATED from PRS-0008 by okf_render.py. Do not edit; edit the .yml and regenerate. -->
 
-> **Lens**: A rule's check and fix must agree on what counts as a finding.
-> Keeping them side by side makes a disagreement visible in one diff.
-
 ## Relates to
 
 - Extended by [PRS-0011](0011-rules-carry-a-category.md) (rules also carry a category, as a field rather than a folder)
@@ -26,30 +23,25 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 - Extended by [PRS-0017](0017-rule-ids-are-category-and-short-name.md) (the id a rule file is named by is now category-short-name)
 - Depended on by [PRS-0019](0019-plugin-contract-and-namespace.md) (a plugin rule is the same unit, a check with an optional fix)
 
-## Problem
-
-### Symptom
-
-All nine rules and the CLI shared one file, so any change touched everything.
-
-### Pain point
-
-Adding fixers would have doubled the file, and shared helpers were impossible to test alone.
-
 ## Decision
 
 ### The lens
 
-- **Given**: the package holds several independent rules that each gain a fixer
-- **We prefer**: one module per rule named by id and slug, with shared machinery in src/fix, over grouping rules by theme in larger files
-- **Because**: the rule id is how findings, tests and fixtures are named, so the file tree mirrors it
-- **Unless**: two rules share a detector, in which case the detector moves to its own module, as interpunct.ts does
+#### Given
 
-### In practice
+the package holds several independent rules that each gain a fixer
 
-- A rule file is named pgNNN-slug.ts.
-- A fixture directory is named after the rule id it exercises.
-- src/bin.ts holds the process glue, so tests import cli.ts without exiting.
+#### We prefer
+
+one module per rule named by id and slug, with shared machinery in src/fix, over grouping rules by theme in larger files
+
+#### Because
+
+the rule id is how findings, tests and fixtures are named, so the file tree mirrors it
+
+#### Unless
+
+two rules share a detector, in which case the detector moves to its own module, as interpunct.ts does
 
 ## Consequences
 

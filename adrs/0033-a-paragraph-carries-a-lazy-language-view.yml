@@ -1,0 +1,48 @@
+id: PRS-0033
+slug: a-paragraph-carries-a-lazy-language-view
+plan_id: null
+title: A paragraph carries a language view of its sentences and words, built on first read
+description: ParagraphView.language holds sentences, words, tags and lemmas for every rule, plugins included
+status: accepted
+accepted_on: 2026-10-17
+last_changed_on: 2026-10-17
+tags: [model, plugins, language]
+
+provenance: Raised once the paragraph rule moved its sentence and word work onto compromise, and the same analysis was worth sharing
+
+enforced_in:
+  - src/language.ts, which builds the view from a paragraph's prose
+  - src/model.ts, where ParagraphView.language is a getter that builds the view once
+  - src/index.ts, which exports LanguageView, LanguageSentence and LanguageWord
+  - tests/paragraph.test.ts, which pins the view, its reuse, and the plugin guide's example rule
+
+relates_to:
+  - relation: extends
+    target: PRS-0023
+    note: the language view is read on first use, as the frontmatter view is
+  - relation: extends
+    target: PRS-0019
+    note: a plugin rule reads the view from the paragraphs it already receives, with no import
+  - relation: depends_on
+    target: PRS-0030
+    note: the paragraph rule is the first reader, and its libraries are pinned there
+  - relation: depended_on_by
+    target: PRS-0034
+    note: the length rule reads sentences and verb phrases from the view
+  - relation: extended_by
+    target: PRS-0036
+    note: each sentence of the view lists the concepts of the project it names
+
+decision:
+  given: a rule wants the sentences, words, tags or lemmas of a paragraph
+  we_prefer: a lazy language view on ParagraphView, over each rule tagging its own copy
+  because: one view is computed at most once per paragraph, and every rule reads the same answer
+  unless: a rule needs language data across paragraphs, which calls for a document-level view and a new record
+
+consequences:
+  pros:
+    - A plugin can write a language rule without adding a tagger of its own.
+    - A document that no language rule reads is never tagged.
+  cons:
+    - compromise's tags become part of what a plugin can rely on, so a tag change on upgrade can move a plugin's findings.
+    - A view built per paragraph cannot see a sentence that a paragraph break interrupts.

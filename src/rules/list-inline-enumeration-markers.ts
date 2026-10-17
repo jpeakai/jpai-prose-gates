@@ -4,7 +4,7 @@
 // every marker in order, none skipped, none from another family.
 
 import { cleanLeadIn, itemsBetween, promote } from "../fix/promote.ts";
-import type { DirectText } from "../model.ts";
+import type { DirectText, ParagraphView } from "../model.ts";
 import { proseParagraphs, sentenceSpan } from "../query.ts";
 import { first, last, type Range } from "../text.ts";
 import { type Edit, RULE, type Rule } from "./types.ts";
@@ -72,51 +72,62 @@ const check: Rule["check"] = ({ doc, file }) =>
     ];
   });
 
-const fix: Rule["fix"] = ({ doc }) => {
-  const { src } = doc;
-  const edits: Edit[] = [];
-  for (const view of doc.paragraphs) {
-    const markers = markersIn(src, view.directTexts);
-    if (markers === null || markers.length < 2) continue;
-    const sequence = sequenceFor(first(markers).label);
-    if (sequence === null || markers.some((marker, i) => marker.label !== sequence[i])) continue;
-
-    const opener = first(markers);
-    const closer = last(markers);
-    // Markers split across sentences are two references, not one list.
-    const between = view.directTexts.map((text) =>
-      src.slice(Math.max(text.start, opener.range[1]), Math.min(text.end, closer.range[0])),
-    );
-    if (between.some((slice) => /[.!?]\s/.test(slice))) continue;
-
-    const span = sentenceSpan(src, view, opener.range[0], closer.range[1]);
-    // Two markers joined only by a conjunction, with no colon to announce
-    // them, read as cross-references ("see (a) above and (b) below"). With
-    // exactly two markers the closer is also the second, so the text between
-    // them is the whole of the first item.
-    if (markers.length === 2) {
-      const announced = /:\s*$/.test(src.slice(span[0], opener.range[0]));
-      const separated = /[,;]\s*$/.test(src.slice(opener.range[1], closer.range[0]));
-      if (!announced && !separated) continue;
-    }
-
-    const edit = promote({
-      rule: RULE.INLINE_ENUM,
-      src,
-      view,
-      span,
-      leadIn: cleanLeadIn(src.slice(span[0], opener.range[0])),
-      items: itemsBetween(
-        src,
-        markers.map((marker) => marker.range),
-        span[1],
-      ).map((text) => ({ text })),
-      ordered: true,
-    });
-    if (edit) edits.push(edit);
-  }
-  return edits;
+// The paragraph's markers when they form a clean sequence: at least two, every
+// one in order from the family the first opens, none skipped. Otherwise null.
+const cleanSequence = (src: string, view: ParagraphView): Marker[] | null => {
+  const markers = markersIn(src, view.directTexts);
+  if (markers === null || markers.length < 2) return null;
+  const sequence = sequenceFor(first(markers).label);
+  if (sequence === null || markers.some((marker, i) => marker.label !== sequence[i])) return null;
+  return markers;
 };
+
+// Markers split across sentences are two references, not one list.
+const splitAcrossSentences = (src: string, view: ParagraphView, opener: Marker, closer: Marker): boolean =>
+  view.directTexts
+    .map((text) => src.slice(Math.max(text.start, opener.range[1]), Math.min(text.end, closer.range[0])))
+    .some((slice) => /[.!?]\s/.test(slice));
+
+// Two markers joined only by a conjunction, with no colon to announce
+// them, read as cross-references ("see (a) above and (b) below"). With
+// exactly two markers the closer is also the second, so the text between
+// them is the whole of the first item.
+const crossReference = (src: string, span: Range, markers: Marker[]): boolean => {
+  if (markers.length !== 2) return false;
+  const opener = first(markers);
+  const closer = last(markers);
+  const announced = /:\s*$/.test(src.slice(span[0], opener.range[0]));
+  const separated = /[,;]\s*$/.test(src.slice(opener.range[1], closer.range[0]));
+  return !announced && !separated;
+};
+
+const fixParagraph = (src: string, view: ParagraphView): Edit | null => {
+  const markers = cleanSequence(src, view);
+  if (markers === null) return null;
+  const opener = first(markers);
+  const closer = last(markers);
+  if (splitAcrossSentences(src, view, opener, closer)) return null;
+
+  const span = sentenceSpan(src, view, opener.range[0], closer.range[1]);
+  if (crossReference(src, span, markers)) return null;
+
+  return promote({
+    rule: RULE.INLINE_ENUM,
+    src,
+    view,
+    span,
+    leadIn: cleanLeadIn(src.slice(span[0], opener.range[0])),
+    items: itemsBetween(
+      src,
+      markers.map((marker) => marker.range),
+      span[1],
+    ).map((text) => ({ text })),
+    ordered: true,
+  });
+};
+
+const fix: Rule["fix"] = ({ doc }) =>
+  doc.paragraphs.map((view) => fixParagraph(doc.src, view)).filter((edit): edit is Edit => edit !== null);
 
 export const listInlineEnumerationMarkers: Rule = {
   id: RULE.INLINE_ENUM,

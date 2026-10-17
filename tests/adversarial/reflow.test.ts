@@ -2,7 +2,7 @@
 // constructs spanning the break, and line-ending encodings.
 
 import { describe, expect, test } from "bun:test";
-import { fixMarkdown } from "../../src/index.ts";
+import { checkMarkdown, fixMarkdown } from "../../src/index.ts";
 import { fixesTo, refuses } from "./harness.ts";
 
 describe("sentence-one-per-line leaves block syntax alone", () => {
@@ -49,6 +49,41 @@ describe("sentence-one-per-line joins across inline constructs", () => {
 
   test("CRLF glyph swaps keep the line ending", async () => {
     await fixesTo("One thing matters — speed.\r\n", "One thing matters: speed.\r\n", "punctuation-em-dash-in-prose");
+  });
+});
+
+// Regression: the check looked only for a break inside a sentence, while the
+// fixer splits every sentence onto its own line. A paragraph with several
+// sentences on one line passed the check and was rewritten by --fix. Found in
+// a live eval, where gpt-6-luna packed three sentences on one line.
+describe("sentence-one-per-line reports exactly what its fixer changes", () => {
+  const LUNA =
+    "The maintainers test it on macOS, Linux and Windows, under Bun and Node. They test the lowest and latest supported versions of each runtime. They run these tests before every release that the Publish workflow builds from main.\n";
+
+  test("several sentences on one line are reported, and the fix splits them", async () => {
+    const findings = await checkMarkdown(`# T\n\n${LUNA}`, "doc.md");
+    expect(findings.map((f) => [f.rule, f.line, f.message])).toEqual([
+      ["sentence-one-per-line", 3, "several sentences on one line; write one sentence per line"],
+    ]);
+    await fixesTo(LUNA, `${LUNA.replace(/\. (?=They)/g, ".\n")}`, "sentence-one-per-line");
+  });
+
+  // A refusal (a hard break, a blockquote) still reports, so a finding may stay
+  // for a human, but the fixer never changes a paragraph the check passed.
+  test.each([
+    ["two sentences on one line", "First one. Second one.\n", true],
+    ["a wrap and a packed line together", "One wraps\nhere. Two sit here.\n", true],
+    ["a question then a statement", "Is it done? It is.\n", true],
+    ["two sentences inside link text", "See [step one. Step two](u) now.\n", true],
+    ["a hard break, which the fixer refuses", "First one.  \nSecond one. Third one.\n", true],
+    ["a blockquote, which the fixer refuses", "> First one. Second one.\n", true],
+    ["one sentence per line", "First one.\nSecond one.\n", false],
+    ["an abbreviation before lower case", "Use e.g. this one.\n", false],
+    ["a terminal inside a code span", "Run `a. B` now.\n", false],
+  ])("%s", async (_, src, expected) => {
+    const reported = (await checkMarkdown(src, "doc.md")).some((f) => f.rule === "sentence-one-per-line");
+    expect(reported).toBe(expected);
+    if ((await fixMarkdown(src)) !== src) expect(reported).toBe(true);
   });
 });
 

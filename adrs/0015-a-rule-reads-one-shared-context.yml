@@ -8,10 +8,6 @@ accepted_on: 2026-09-14
 last_changed_on: 2026-09-14
 tags: [architecture, rules]
 
-lens: |-
-  A check and its fix answer the same question at two moments.
-  They can only stay honest if they read the same data, not their own copy of it.
-
 provenance: Raised during a code-quality pass over the nine rule modules, which found four rules recomputing the interpunct runs inside their fixer
 enforced_in:
   - src/rules/types.ts, which declares RuleContext, CheckContext and FixContext
@@ -32,21 +28,15 @@ relates_to:
   - relation: depended_on_by
     target: PRS-0018
     note: the registry decides which runs count as reported inside the context
-
-problem:
-  symptom: check received a context carrying the interpunct runs, while fix received only the document model.
-  pain_point: Four fixers called interpunctRuns themselves on every pass of a loop bounded at ten thousand passes. PG005 asked the same question two different ways in its two halves.
+  - relation: extended_by
+    target: PRS-0030
+    note: a rule may also read the findings of the categories it runs after
 
 decision:
   given: several rules depend on data derived from the whole document rather than from one paragraph
   we_prefer: deriving that data once per document into a RuleContext both halves receive, over letting each half compute what it needs
   because: shared data is the only way the agreement between a check and its fix is structural rather than reviewed
   unless: the data is local to one rule, which keeps it inside that module
-  in_practice:
-    - RuleContext holds the document model and the interpunct runs.
-    - CheckContext extends it with the file name and the sentence budget.
-    - FixContext is RuleContext, because a fixer names no file.
-    - A new shared derivation is added to ruleContext, never recomputed in a rule.
 
 consequences:
   pros:

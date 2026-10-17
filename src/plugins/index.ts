@@ -12,7 +12,7 @@ import { PluginConflictError, PluginLoadError } from "../errors.ts";
 import { BUILTIN_CATEGORIES, type LoadedSource } from "../rules/registry.ts";
 import type { Rule } from "../rules/types.ts";
 import type { Plugin } from "./contract.ts";
-import { discoverSources, LOCAL_RULES, type SourceKind } from "./discover.ts";
+import { discoverSources, LOCAL_RULES, type PluginSource, type SourceKind } from "./discover.ts";
 import { loadLocal, loadPackage, toRule } from "./load.ts";
 
 export type PluginMode = "off" | "strict" | "lenient" | "collect";
@@ -33,25 +33,25 @@ export interface PluginSet {
   failures: PluginFailure[];
 }
 
-export const loadPlugins = async (root: string, config: Config, mode: PluginMode): Promise<PluginSet> => {
-  const { sources: found, failures: unresolved } = await discoverSources(root, config);
-  const set: PluginSet = {
-    rules: [],
-    categories: new Map(BUILTIN_CATEGORIES),
-    sources: [],
-    skipped: [],
-    failures: [],
-  };
-  if (mode === "off") return { ...set, skipped: [...found.map((s) => s.spec), ...unresolved.map((e) => e.source)] };
+type Settle = (error: PluginLoadError, kind: SourceKind) => void;
 
-  // Strict stops at the first failure. The others record it and carry on.
-  const settle = (error: PluginLoadError, kind: SourceKind): void => {
+interface LoadedPlugin {
+  plugin: Plugin;
+  kind: SourceKind;
+  spec: string;
+}
+
+// Strict stops at the first failure. The others record it and carry on.
+const settler =
+  (mode: PluginMode, failures: PluginFailure[]): Settle =>
+  (error, kind) => {
     if (mode === "strict") throw error;
-    if (!set.failures.some((f) => f.source === error.source)) set.failures.push({ source: error.source, kind, error });
+    if (!failures.some((f) => f.source === error.source)) failures.push({ source: error.source, kind, error });
   };
-  for (const error of unresolved) settle(error, "package");
 
-  const loaded: { plugin: Plugin; kind: SourceKind; spec: string }[] = [];
+// Local files load together as one plugin, then each package loads on its own.
+const importSources = async (found: PluginSource[], settle: Settle): Promise<LoadedPlugin[]> => {
+  const loaded: LoadedPlugin[] = [];
   const locals = found.filter((s) => s.kind === "local");
   if (locals.length > 0) {
     const local = await loadLocal(locals);
@@ -66,38 +66,71 @@ export const loadPlugins = async (root: string, config: Config, mode: PluginMode
       settle(err, source.kind);
     }
   }
+  return loaded;
+};
 
-  // Namespaces and new categories are global. The first plugin to claim one
-  // keeps it, and a later claimant fails, naming both.
-  const namespaces = new Map<string, string>();
-  const declaredBy = new Map<string, string>();
-  const accepted: typeof loaded = [];
+interface Claims {
+  namespaces: Map<string, string>;
+  declaredBy: Map<string, string>;
+}
+
+// The earlier claimant and the reason, when a plugin reuses a namespace or a
+// category word another plugin already holds. Null when it claims nothing taken.
+const findClash = (plugin: Plugin, claims: Claims): { other: string; reason: string } | null => {
+  const { namespace } = plugin.meta;
+  const taken = claims.namespaces.get(namespace);
+  if (taken) return { other: taken, reason: `namespace "${namespace}" is already used by ${taken}` };
+  const clash = Object.keys(plugin.meta.categories ?? {}).find((w) => claims.declaredBy.has(w));
+  if (!clash) return null;
+  const other = claims.declaredBy.get(clash) as string;
+  return { other, reason: `category "${clash}" is already declared by ${other}` };
+};
+
+// Namespaces and new categories are global. The first plugin to claim one
+// keeps it, and a later claimant fails, naming both.
+const acceptPlugins = (loaded: LoadedPlugin[], set: PluginSet, settle: Settle): LoadedPlugin[] => {
+  const claims: Claims = { namespaces: new Map(), declaredBy: new Map() };
+  const accepted: LoadedPlugin[] = [];
   for (const entry of loaded) {
     const { plugin, spec, kind } = entry;
-    const { namespace } = plugin.meta;
-    const words = Object.keys(plugin.meta.categories ?? {});
-    const taken = namespaces.get(namespace);
-    const clash = words.find((w) => declaredBy.has(w));
-    if (taken || clash) {
-      const other = (taken ?? declaredBy.get(clash as string)) as string;
-      const reason = taken
-        ? `namespace "${namespace}" is already used by ${other}`
-        : `category "${clash}" is already declared by ${other}`;
-      settle(new PluginConflictError(spec, other, reason), kind);
+    const clash = findClash(plugin, claims);
+    if (clash) {
+      settle(new PluginConflictError(spec, clash.other, clash.reason), kind);
       continue;
     }
-    namespaces.set(namespace, spec);
+    claims.namespaces.set(plugin.meta.namespace, spec);
     for (const [word, description] of Object.entries(plugin.meta.categories ?? {})) {
-      declaredBy.set(word, spec);
+      claims.declaredBy.set(word, spec);
       set.categories.set(word, description);
     }
     accepted.push(entry);
   }
+  return accepted;
+};
 
+// Each accepted plugin's rules join the set, and the source records which ids it gave.
+const addRules = (set: PluginSet, accepted: LoadedPlugin[]): void => {
   for (const { plugin, kind, spec } of accepted) {
     const rules = Object.entries(plugin.rules).map(([key, rule]) => toRule(plugin.meta.namespace, key, rule));
     set.rules.push(...rules);
     set.sources.push({ kind, spec, namespace: plugin.meta.namespace, rules: rules.map((r) => r.id) });
   }
+};
+
+export const loadPlugins = async (root: string, config: Config, mode: PluginMode): Promise<PluginSet> => {
+  const { sources: found, failures: unresolved } = await discoverSources(root, config);
+  const set: PluginSet = {
+    rules: [],
+    categories: new Map(BUILTIN_CATEGORIES),
+    sources: [],
+    skipped: [],
+    failures: [],
+  };
+  if (mode === "off") return { ...set, skipped: [...found.map((s) => s.spec), ...unresolved.map((e) => e.source)] };
+
+  const settle = settler(mode, set.failures);
+  for (const error of unresolved) settle(error, "package");
+  const loaded = await importSources(found, settle);
+  addRules(set, acceptPlugins(loaded, set, settle));
   return set;
 };

@@ -7,9 +7,11 @@ Agents and humans: consult this before creating, moving or renaming any doc.
 
 - **Flavour:** minimal, with an ADR surface promoted to `okf-yaml`, inherited from `jpai-library`
 - **Docs taxonomy:** one sectioned README until it passes roughly ten topics, then Diátaxis folders under `docs/`
-- **Glossary:** `GLOSSARY.md` at root, one canonical term per concept, new domain terms added in the change that introduces them
+- **Glossary:** `GLOSSARY.md` at root, one canonical term per concept, new domain terms added in the change that introduces them.
+  It follows the librarian glossary template, with one alphabetical H2 per Title Case term.
+  Its relationship diagram is split by area to stay within the diagram gates
 - **ADR layout:** `okf-yaml`, with records authored in `adrs/NNNN-slug.yml` and markdown generated from them
-- **Record ids:** prefixed `PRS-` in this repo, so a citation is unambiguous across bundles
+- **Decision Record ids:** prefixed `PRS-` in this repo, so a citation is unambiguous across bundles
 - **Generated paths:** `adrs/*.md`, `adrs/index.md`, `adrs/graph.md`, `adrs/graph.json`, `adrs/graph.html`
 - **Regenerate:** `make fix`, and `make ci` asserts the tree is clean afterwards
 - **Agent files:** `CLAUDE.md` at root, with no nested agent files
@@ -37,16 +39,19 @@ Agents and humans: consult this before creating, moving or renaming any doc.
 | `.github/workflows/` | CI on every push, the Docs workflow that builds and deploys the site, and the manually triggered Publish workflow | Maintainers | The gate, the site build or the release process changes |
 | `mkdocs.yml` | The site theme, the navigation and the extensions | Maintainers | A page is added to the site or the theme changes |
 | `scripts/` | Build helpers, such as the script that assembles the site source | Maintainers | The site build changes |
+| `site-theme/osakanights/` | The OsakaNights MkDocs theme, copied from jpai-mermaidjs-lint, with its own README | Maintainers | The theme changes upstream and is copied again |
 | `LICENSE` | The MIT license | Consumers | Never, short of relicensing |
 | `dist/` | Generated Node bundles of the CLI and library, ignored by git and shipped in the npm package | Consumers | Never edited, only rebuilt |
 | `tests/fixtures/` | Test inputs, not documentation, and never gated | Contributors | A rule's fix behaviour changes |
+| `evals/` | Live agent evals of the finding messages, run by `make evals` and never by CI, with the shared skill in `SKILL.md` | Maintainers | A message, a rule without a fixer or the eval matrix changes |
+| `evals/*/evals/fixtures/` | Seed documents that fail one rule each, not documentation, and never gated | Maintainers | A rule's message or refusal changes |
 
 ## Naming
 
 - Root meta-files are UPPERCASE.
 - Runbook and dialect files inside `docs/` are UPPERCASE, like `CONVENTIONS.md` and `PUBLISHING.md`.
 - Every other file inside `docs/` is lowercase kebab-case.
-- Records are `NNNN-slug.yml`, and a number is never reused.
+- Decision Records are `NNNN-slug.yml`, and a number is never reused.
 - Rule modules are `src/rules/<rule-id>.ts`, and fixture directories start with the rule id.
 
 ## Pointers

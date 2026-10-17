@@ -73,20 +73,26 @@ const localSources = async (root: string): Promise<PluginSource[]> => {
 // way a resolver does: the exports entry, then main, then index.js.
 const pick = (target: unknown): string | null => {
   if (typeof target === "string") return target;
-  if (Array.isArray(target)) {
-    for (const item of target) {
-      const found = pick(item);
-      if (found) return found;
-    }
-    return null;
+  if (Array.isArray(target)) return pickFirst(target);
+  if (isRecord(target)) return pickCondition(target);
+  return null;
+};
+
+// A fallback array: the first entry that names a file.
+const pickFirst = (items: unknown[]): string | null => {
+  for (const item of items) {
+    const found = pick(item);
+    if (found) return found;
   }
-  if (isRecord(target)) {
-    for (const condition of ["node", "import", "default"]) {
-      if (condition in target) {
-        const found = pick(target[condition]);
-        if (found) return found;
-      }
-    }
+  return null;
+};
+
+// A conditions object: the first condition Node would match that names a file.
+const pickCondition = (target: Record<string, unknown>): string | null => {
+  for (const condition of ["node", "import", "default"]) {
+    if (!(condition in target)) continue;
+    const found = pick(target[condition]);
+    if (found) return found;
   }
   return null;
 };

@@ -39,7 +39,7 @@ test: build
 test-cov-ts: build
 	@mkdir -p tmp
 	@bun test --coverage > tmp/coverage.txt 2>&1; status=$$?; \
-	grep -E '\(fail\)|^error|^ *[0-9]+ (pass|fail)$$|^Ran |\|' tmp/coverage.txt; \
+	grep -E '\(fail\)|^error|timed out|Property failed|Counterexample|^ *[0-9]+ (pass|fail)$$|^Ran |\|' tmp/coverage.txt; \
 	test "$$status" -eq 0 || exit "$$status"; \
 	awk -F'|' '/^All files/ { if ($$2 + 0 < 90 || $$3 + 0 < 90) { print "ERROR: coverage below 90%"; exit 1 } found = 1 } \
 		END { if (!found) { print "ERROR: no coverage summary"; exit 1 } }' tmp/coverage.txt

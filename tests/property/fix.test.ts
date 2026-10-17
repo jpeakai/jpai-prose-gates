@@ -43,66 +43,94 @@ const block = fc.oneof(
 const doc = fc.array(block, { minLength: 1, maxLength: 5 }).map((blocks) => `${blocks.join("\n\n")}\n`);
 
 const RUNS = { numRuns: 400 };
+// 400 generated documents, each checked or fixed through the language view,
+// take longer than bun's 5 second default on a CI runner. The budget is for
+// the runner, so the number of runs stays as it is.
+const BUDGET_MS = 60_000;
 
 describe("fix properties", () => {
-  test("never throws, even on content the fixers cannot handle", async () => {
-    await fc.assert(
-      fc.asyncProperty(doc, async (src) => {
-        await fixMarkdown(src);
-      }),
-      RUNS,
-    );
-  });
+  test(
+    "never throws, even on content the fixers cannot handle",
+    async () => {
+      await fc.assert(
+        fc.asyncProperty(doc, async (src) => {
+          await fixMarkdown(src);
+        }),
+        RUNS,
+      );
+    },
+    BUDGET_MS,
+  );
 
-  test("is idempotent", async () => {
-    await fc.assert(
-      fc.asyncProperty(doc, async (src) => {
-        const once = await fixMarkdown(src);
-        expect(await fixMarkdown(once)).toBe(once);
-      }),
-      RUNS,
-    );
-  });
+  test(
+    "is idempotent",
+    async () => {
+      await fc.assert(
+        fc.asyncProperty(doc, async (src) => {
+          const once = await fixMarkdown(src);
+          expect(await fixMarkdown(once)).toBe(once);
+        }),
+        RUNS,
+      );
+    },
+    BUDGET_MS,
+  );
 
-  test("preserves every content word", async () => {
-    await fc.assert(
-      fc.asyncProperty(doc, async (src) => {
-        expect(fingerprint(parse(await fixMarkdown(src)))).toEqual(fingerprint(parse(src)));
-      }),
-      RUNS,
-    );
-  });
+  test(
+    "preserves every content word",
+    async () => {
+      await fc.assert(
+        fc.asyncProperty(doc, async (src) => {
+          expect(fingerprint(parse(await fixMarkdown(src)))).toEqual(fingerprint(parse(src)));
+        }),
+        RUNS,
+      );
+    },
+    BUDGET_MS,
+  );
 
-  test("never increases the finding count", async () => {
-    await fc.assert(
-      fc.asyncProperty(doc, async (src) => {
-        expect((await checkMarkdown(await fixMarkdown(src), "doc.md")).length).toBeLessThanOrEqual(
-          (await checkMarkdown(src, "doc.md")).length,
-        );
-      }),
-      RUNS,
-    );
-  });
+  test(
+    "never increases the finding count",
+    async () => {
+      await fc.assert(
+        fc.asyncProperty(doc, async (src) => {
+          expect((await checkMarkdown(await fixMarkdown(src), "doc.md")).length).toBeLessThanOrEqual(
+            (await checkMarkdown(src, "doc.md")).length,
+          );
+        }),
+        RUNS,
+      );
+    },
+    BUDGET_MS,
+  );
 
-  test("leaves fenced code byte-identical", async () => {
-    const fence = fc.tuple(paragraph, paragraph).map(([a, b]) => `${a}\n\n\`\`\`\n${b}\n\`\`\`\n`);
-    await fc.assert(
-      fc.asyncProperty(fence, async (src) => {
-        const body = src.slice(src.indexOf("```"));
-        expect((await fixMarkdown(src)).endsWith(body)).toBe(true);
-      }),
-      RUNS,
-    );
-  });
+  test(
+    "leaves fenced code byte-identical",
+    async () => {
+      const fence = fc.tuple(paragraph, paragraph).map(([a, b]) => `${a}\n\n\`\`\`\n${b}\n\`\`\`\n`);
+      await fc.assert(
+        fc.asyncProperty(fence, async (src) => {
+          const body = src.slice(src.indexOf("```"));
+          expect((await fixMarkdown(src)).endsWith(body)).toBe(true);
+        }),
+        RUNS,
+      );
+    },
+    BUDGET_MS,
+  );
 
-  test("never applies a sentence-word-budget-exceeded fix", async () => {
-    await fc.assert(
-      fc.asyncProperty(doc, async (src) => {
-        expect((await fixMarkdownReport(src)).applied.some((a) => a.rule === "sentence-word-budget-exceeded")).toBe(
-          false,
-        );
-      }),
-      RUNS,
-    );
-  });
+  test(
+    "never applies a sentence-word-budget-exceeded fix",
+    async () => {
+      await fc.assert(
+        fc.asyncProperty(doc, async (src) => {
+          expect((await fixMarkdownReport(src)).applied.some((a) => a.rule === "sentence-word-budget-exceeded")).toBe(
+            false,
+          );
+        }),
+        RUNS,
+      );
+    },
+    BUDGET_MS,
+  );
 });

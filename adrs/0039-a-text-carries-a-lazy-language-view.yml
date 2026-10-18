@@ -1,0 +1,34 @@
+id: PRS-0039
+slug: a-text-carries-a-lazy-language-view
+plan_id: null
+title: A text view carries the same lazy language view as a paragraph
+description: TextView.language reads a text node's value as English on first use, so prose outside a paragraph can be read too
+status: accepted
+accepted_on: 2026-10-18
+last_changed_on: 2026-10-18
+tags: [model, language, plugins]
+
+provenance: A heading or a table cell has text views but no paragraph view, so a rule had no language view for it
+
+enforced_in:
+  - src/model.ts, whose text views carry a language getter built from value and the project's concepts
+  - tests/paragraph.test.ts, which reads a heading, a text split by emphasis, reuse, and concepts through the text view
+
+relates_to:
+  - relation: extends
+    target: PRS-0033
+    note: the paragraph's lazy language view, given to every text node too
+
+decision:
+  given: a language view on each paragraph, and text views for every prose text node, headings and table cells included
+  we_prefer: the same lazy language view on each text view, read from its value, over a separate helper a rule must import
+  because: a rule reads one shape on either view, and a text no rule asks about is never tagged
+  unless: a rule needs whole sentences, which only a paragraph's language holds, since emphasis or a link splits a text
+
+consequences:
+  pros:
+    - A rule can read a heading's words and tags with no paragraph to read them from.
+    - Plugins get the view with no import, like the paragraph's.
+  cons:
+    - A text view is a fragment, so its sentences end wherever inline markup starts.
+    - Reading every text's language tags the prose a second time beside the paragraph's.

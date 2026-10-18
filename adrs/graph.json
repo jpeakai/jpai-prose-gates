@@ -622,6 +622,19 @@
     },
     {
       "data": {
+        "id": "PRS-0039",
+        "label": "0039",
+        "parent": "group-model",
+        "colour": "#059669",
+        "file": "0039-a-text-carries-a-lazy-language-view.md",
+        "title": "A text view carries the same lazy language view as a paragraph",
+        "description": "TextView.language reads a text node's value as English on first use, so prose outside a paragraph can be read too",
+        "status": "accepted",
+        "tags": "model, language, plugins"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0001-depended_on_by-PRS-0012",
         "source": "PRS-0001",
         "target": "PRS-0012",
@@ -1782,6 +1795,16 @@
     },
     {
       "data": {
+        "id": "PRS-0033-extended_by-PRS-0039",
+        "source": "PRS-0033",
+        "target": "PRS-0039",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "every text view carries the same lazy language view"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0034-extends-PRS-0010",
         "source": "PRS-0034",
         "target": "PRS-0010",
@@ -1938,6 +1961,16 @@
         "label": "see also",
         "relation": "see_also",
         "note": "the site copies the generated pages like any other document"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0039-extends-PRS-0033",
+        "source": "PRS-0039",
+        "target": "PRS-0033",
+        "label": "extends",
+        "relation": "extends",
+        "note": "the paragraph's lazy language view, given to every text node too"
       }
     }
   ],

@@ -306,9 +306,9 @@ Items joined by the middle dot glyph inside one paragraph.
 
 ## Language View
 
-A paragraph's sentences, and each sentence's words with tags and lemmas, from ParagraphView.language.
+The sentences of a paragraph or a text node, and each sentence's words with tags and lemmas, from ParagraphView.language or TextView.language.
 Built on first read.
-See [PRS-0033](adrs/0033-a-paragraph-carries-a-lazy-language-view.md).
+See [PRS-0033](adrs/0033-a-paragraph-carries-a-lazy-language-view.md) and [PRS-0039](adrs/0039-a-text-carries-a-lazy-language-view.md).
 
 ## Lead-in
 

@@ -46,9 +46,10 @@ erDiagram
     DOC_MODEL ||--o{ FENCE_VIEW : fences
     DOC_MODEL ||--o| FRONTMATTER_VIEW : "frontmatter, read on first use"
     PARAGRAPH_VIEW ||--|| LANGUAGE_VIEW : "language, read on first use"
+    TEXT_VIEW ||--|| LANGUAGE_VIEW : "language, read on first use"
 ```
 
-*Overview: the document model is one tree and four views, and each paragraph carries a language view.*
+*Overview: the document model is one tree and four views, and each paragraph and each text carries a language view.*
 
 <details>
 <summary>Detail: every view and its fields</summary>
@@ -103,6 +104,7 @@ erDiagram
         string value "every prose text node"
         number line "for the finding"
         Node block "nearest paragraph, heading or cell"
+        LanguageView language "read on first use"
     }
     FENCE_VIEW {
         string value "fence body, markdown or md only"
@@ -120,11 +122,12 @@ erDiagram
     }
 ```
 
-The language view of a paragraph, read from `prose` on first use, and the project's concepts it names.
+The language view of a paragraph or a text, read from `prose` or `value` on first use, and the project's concepts it names.
 
 ```mermaid
 erDiagram
     PARAGRAPH_VIEW ||--|| LANGUAGE_VIEW : "language, read on first use"
+    TEXT_VIEW ||--|| LANGUAGE_VIEW : "language, read on first use"
     LANGUAGE_VIEW ||--o{ SENTENCE : sentences
     SENTENCE ||--o{ WORD : words
     SENTENCE ||--o{ MENTION : concepts
@@ -179,6 +182,10 @@ These distinctions carry most of the weight.
 `language` is `prose` read as English: its sentences, and each sentence's words with their tags and lemmas.
 compromise splits the sentences and tags the words, pinned to an exact version so a finding never moves under an upgrade.
 Tagging is the slowest step of a check, so the view is built on first read and never for a paragraph no rule asks about.
+
+A text view has the same `language`, read from its `value`.
+A text node is a fragment, so emphasis or a link splits one sentence across several texts.
+Read a paragraph's `language` for whole sentences, and a text's for prose no paragraph holds, such as a heading.
 
 `doc.concepts` versus `sentence.concepts`.
 `doc.concepts` is the project's vocabulary, read once per run from the `GLOSSARY.md` or `CONCEPTS.md` at its root.

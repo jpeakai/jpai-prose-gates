@@ -23,6 +23,7 @@ generated: { by: human:maintainer, at: 2026-10-17T00:00:00Z }
 - Depends on [PRS-0030](0030-paragraph-length-is-reported-with-topic-guidance.md) (the paragraph rule is the first reader, and its libraries are pinned there)
 - Depended on by [PRS-0034](0034-clauses-count-verb-phrases-as-well-as-markers.md) (the length rule reads sentences and verb phrases from the view)
 - Extended by [PRS-0036](0036-a-glossary-is-read-as-the-concept-model.md) (each sentence of the view lists the concepts of the project it names)
+- Extended by [PRS-0039](0039-a-text-carries-a-lazy-language-view.md) (every text view carries the same lazy language view)
 
 ## Decision
 

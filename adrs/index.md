@@ -42,6 +42,7 @@
 | [PRS-0036](0036-a-glossary-is-read-as-the-concept-model.md) | A project's GLOSSARY.md or CONCEPTS.md is read as its concept model, and the language view names its terms | accepted |
 | [PRS-0037](0037-a-check-reports-every-line-its-fixer-changes.md) | sentence-one-per-line reports several sentences on one line, as its fixer splits them | accepted |
 | [PRS-0038](0038-example-pages-are-rendered-from-fixtures-and-a-sweep-snapshot.md) | The Example Pages are rendered from the golden fixtures and a committed Sweep Snapshot | accepted |
+| [PRS-0039](0039-a-text-carries-a-lazy-language-view.md) | A text view carries the same lazy language view as a paragraph | accepted |
 # By group
 
 ## architecture
@@ -84,6 +85,7 @@
 * [PRS-0023](0023-frontmatter-is-a-read-only-view.md) - DocModel.frontmatter lists the top-level string keys of a YAML block, and built-in rules stay exempt
 * [PRS-0033](0033-a-paragraph-carries-a-lazy-language-view.md) - ParagraphView.language holds sentences, words, tags and lemmas for every rule, plugins included
 * [PRS-0036](0036-a-glossary-is-read-as-the-concept-model.md) - Each H2 is a concept, each Mermaid edge a relation, and every sentence lists the concepts it mentions
+* [PRS-0039](0039-a-text-carries-a-lazy-language-view.md) - TextView.language reads a text node's value as English on first use, so prose outside a paragraph can be read too
 ## packaging
 
 * [PRS-0012](0012-node-runs-a-published-bundle.md) - The npm package ships Node bundles of the CLI and library that are built when it is packed, and git never tracks them
@@ -239,6 +241,7 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0033 --depends_on--> PRS-0030
 * PRS-0033 --depended_on_by--> PRS-0034
 * PRS-0033 --extended_by--> PRS-0036
+* PRS-0033 --extended_by--> PRS-0039
 * PRS-0034 --extends--> PRS-0010
 * PRS-0034 --depends_on--> PRS-0033
 * PRS-0035 --extends--> PRS-0010
@@ -255,3 +258,4 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0038 --extends--> PRS-0002
 * PRS-0038 --depends_on--> PRS-0035
 * PRS-0038 --see_also--> PRS-0029
+* PRS-0039 --extends--> PRS-0033

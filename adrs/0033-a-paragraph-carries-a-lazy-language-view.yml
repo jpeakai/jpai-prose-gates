@@ -32,6 +32,9 @@ relates_to:
   - relation: extended_by
     target: PRS-0036
     note: each sentence of the view lists the concepts of the project it names
+  - relation: extended_by
+    target: PRS-0039
+    note: every text view carries the same lazy language view
 
 decision:
   given: a rule wants the sentences, words, tags or lemmas of a paragraph

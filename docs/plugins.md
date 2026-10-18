@@ -166,14 +166,17 @@ The other has a fixer that rewrites a multi-sentence description as a folded blo
 
 ## Language
 
-Every paragraph view has a `language` view, read from `prose` on first use, like the frontmatter.
-It holds the paragraph's sentences, and each sentence's words with their part-of-speech tags and lemmas.
+Every paragraph view and every text view has a `language` view, read on first use, like the frontmatter.
+It holds the sentences, and each sentence's words with their part-of-speech tags and lemmas.
+A paragraph's is read from its `prose`, and a text's from its `value`.
+
+A text node is a fragment, so emphasis or a link splits a sentence, and a heading has a text but no paragraph.
 compromise splits the sentences and tags the words, pinned to an exact version.
 paragraph-sentence-budget-exceeded reads it, and so can a plugin rule, with no import.
 
 | Field | What it holds |
 |---|---|
-| `sentences` | Each sentence of the paragraph, in order |
+| `sentences` | Each sentence of the paragraph or text, in order |
 | `sentence.text` | The sentence as `prose` holds it, with inline code as `CODE` |
 | `sentence.words` | Each word, with its `text`, its lower-case `lemma`, its compromise `tags`, and `content` |
 | `sentence.terms` | The lemmas of its content words: nouns, verbs and adjectives that are not pronouns or auxiliaries |

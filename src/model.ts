@@ -55,6 +55,9 @@ export interface TextView {
   start: number | undefined;
   end: number | undefined;
   block: Node | undefined; // nearest paragraph, heading or table cell
+  // Its sentences, words, tags and lemmas, read from `value` on first use. A
+  // text node is a fragment, so emphasis or a link splits a sentence across texts.
+  readonly language: LanguageView;
 }
 
 // A fenced code block tagged markdown/md: a template whose body is itself
@@ -184,12 +187,17 @@ const visitParagraph = (state: WalkState, p: Paragraph, ancestors: Node[]): void
 const visitText = (state: WalkState, t: Text, ancestors: Node[], paragraph: Paragraph | undefined): void => {
   const start = t.position?.start.offset;
   const end = t.position?.end.offset;
+  let language: LanguageView | undefined;
   state.texts.push({
     value: t.value,
     line: t.position?.start.line ?? 0,
     start,
     end,
     block: ancestors.findLast((a) => a.type === "paragraph" || a.type === "heading" || a.type === "tableCell"),
+    get language() {
+      language ??= languageOf(t.value, state.concepts);
+      return language;
+    },
   });
   if (!paragraph) return;
   state.proseParts.get(paragraph)?.push(t.value);

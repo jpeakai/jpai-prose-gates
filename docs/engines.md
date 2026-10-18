@@ -96,6 +96,7 @@ erDiagram
     PARAGRAPH_VIEW ||--o{ DIRECT_TEXT : directTexts
     PARAGRAPH_VIEW ||--|| LANGUAGE_VIEW : "language, read on first use"
     TEXT_VIEW }o--o| BLOCK_NODE : block
+    TEXT_VIEW ||--|| LANGUAGE_VIEW : "language, read on first use"
     FRONTMATTER_VIEW ||--o{ ENTRY : entries
     FRONTMATTER_VIEW ||--o{ SCALAR : scalars
 

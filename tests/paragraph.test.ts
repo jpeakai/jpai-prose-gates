@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { gapCohesion, planBreaks } from "../src/cohesion.ts";
+import { parseConcepts } from "../src/concepts.ts";
 import { parseConfig } from "../src/config.ts";
 import { buildRegistry, checkMarkdown, type Finding, fixMarkdown, UsageError } from "../src/index.ts";
 import { type LanguageView, languageOf, sentenceOf, sentenceTexts } from "../src/language.ts";
@@ -328,6 +329,41 @@ describe("ParagraphView language", () => {
 
   test("an empty prose has no sentences", () => {
     expect(languageOf("").sentences).toEqual([]);
+  });
+});
+
+// The same view on every text node, so prose outside a paragraph, such as a
+// heading, can be read as English too.
+describe("TextView language", () => {
+  const doc = buildDocModel("# The parser reads files\n\nIt keeps *one tree* for every rule.\n");
+  const heading = doc.texts.find((t) => t.block?.type === "heading");
+
+  test("reads a heading, which has no paragraph view", () => {
+    expect(heading?.language.sentences.map((s) => s.text)).toEqual(["The parser reads files"]);
+    expect(heading?.language.sentences[0]?.words.find((w) => w.text === "reads")?.lemma).toBe("read");
+  });
+
+  test("reads each text node on its own, so emphasis splits a sentence", () => {
+    expect(doc.texts.map((t) => t.language.sentences.map((s) => s.text))).toEqual([
+      ["The parser reads files"],
+      ["It keeps"],
+      ["one tree"],
+      ["for every rule."],
+    ]);
+  });
+
+  test("is built once and then reused", () => {
+    expect(heading?.language).toBe(heading?.language as LanguageView);
+  });
+
+  test("equals the language of the text's value", () => {
+    for (const t of doc.texts) expect(t.language).toEqual(languageOf(t.value));
+  });
+
+  test("names the project's concepts, like a paragraph's", () => {
+    const concepts = parseConcepts("GLOSSARY.md", "# Glossary\n\n## Parser\n\nReads a file.\n");
+    const [text] = buildDocModel("# The Parser reads files\n", concepts).texts;
+    expect(text?.language.sentences[0]?.concepts.map((m) => m.concept)).toEqual(["Parser"]);
   });
 });
 

@@ -236,7 +236,7 @@ wheels = [
 [[package]]
 name = "jpai-meta-cli"
 version = "0.1.0"
-source = { git = "https://github.com/jpeakai/jpai-meta-cli.git#b54e08cbc317e2f5fe09e39d8fa82c3f6b0d1e86" }
+source = { git = "https://github.com/jpeakai/jpai-meta-cli.git#76f550174ca352b21367eb2d7844e118457e1ff8" }
 dependencies = [
     { name = "jinja2" },
     { name = "jsonschema" },

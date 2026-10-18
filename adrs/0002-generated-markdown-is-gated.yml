@@ -17,6 +17,9 @@ relates_to:
   - relation: depended_on_by
     target: PRS-0037
     note: the stricter one-per-line check was met by fixing the record template
+  - relation: extended_by
+    target: PRS-0038
+    note: the Example Pages are generated markdown, gated like the rest
 
 decision:
   given: a markdown file is produced by rendering a record or a template

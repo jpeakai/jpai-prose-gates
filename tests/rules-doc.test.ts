@@ -87,4 +87,44 @@ describe("RULES.md", () => {
     expect((await checkMarkdown(body, "RULES.md")).map((f): string => f.rule)).toContain(id);
     expect(await fixMarkdown(body)).toBe(body);
   });
+
+  test.each(RULES.flatMap((r) => Object.keys(r.options ?? {}).map((option) => ({ rule: r.id, option }))))(
+    "$rule: its section documents the $option option",
+    ({ rule: id, option }) => {
+      expect(sectionText(id)).toContain(`"${id}": ["error", { "${option}":`);
+    },
+  );
+});
+
+// A rule's section runs from its heading to the next heading of any depth at or above it.
+function sectionText(id: string): string {
+  const headings = tree.children.filter((n): n is Heading => n.type === "heading" && n.depth <= 3);
+  const at = headings.findIndex((h) => h.depth === 3 && headingText(h) === id);
+  if (at < 0) throw new Error(`RULES.md has no section for ${id}`);
+  return doc.slice(headings[at]?.position?.end.offset, headings[at + 1]?.position?.start.offset);
+}
+
+function headingText(h: Heading): string {
+  return h.children.map((c) => ("value" in c ? c.value : "")).join("");
+}
+
+// Each categories table row: the category name and the rules it lists.
+const categoryRows = (text: string): { category: string; rules: string[] }[] =>
+  [...text.matchAll(/^\| ([A-Z][a-z]+) \| ([a-z, -]+) \|/gm)].map((m) => ({
+    category: (m[1] ?? "").toLowerCase(),
+    rules: (m[2] ?? "").split(", ").sort(),
+  }));
+
+describe.each(["README.md", "RULES.md"])("the categories table in %s", (file) => {
+  test("lists every rule under its own category, and nothing else", async () => {
+    const rows = categoryRows(await Bun.file(join(PROJECT_ROOT, file)).text());
+    expect(rows).toEqual(
+      CATEGORIES.map((c) => ({
+        category: c,
+        rules: RULES.filter((r) => r.category === c)
+          .map((r) => r.id)
+          .sort(),
+      })),
+    );
+  });
 });

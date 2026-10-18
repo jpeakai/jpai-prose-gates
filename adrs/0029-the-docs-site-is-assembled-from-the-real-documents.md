@@ -20,6 +20,7 @@ generated: { by: human:maintainer, at: 2026-10-09T00:00:00Z }
 ## Relates to
 
 - Depended on by [PRS-0032](0032-the-site-theme-is-a-copy-of-osakanights.md) (the copied theme loads from custom_dir, outside the assembled docs_dir)
+- See also [PRS-0038](0038-example-pages-are-rendered-from-fixtures-and-a-sweep-snapshot.md) (the generated Example Pages are copied into the site like any document)
 
 ## Decision
 

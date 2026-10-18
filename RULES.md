@@ -70,6 +70,14 @@ To do so, it reparses the document.
 It then compares the words it finds.
 ```
 
+The `maxWords` option sets the budget, for a project that wants shorter or longer sentences:
+
+```json
+{ "rules": { "sentence-word-budget-exceeded": ["error", { "maxWords": 30 }] } }
+```
+
+The `--max-words` flag sets it for one run, and overrides the config file.
+
 ## Paragraph
 
 ### paragraph-sentence-budget-exceeded

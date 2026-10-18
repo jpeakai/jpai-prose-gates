@@ -17,6 +17,7 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 ## Relates to
 
 - Depended on by [PRS-0037](0037-a-check-reports-every-line-its-fixer-changes.md) (the stricter one-per-line check was met by fixing the record template)
+- Extended by [PRS-0038](0038-example-pages-are-rendered-from-fixtures-and-a-sweep-snapshot.md) (the Example Pages are generated markdown, gated like the rest)
 
 ## Decision
 

@@ -73,6 +73,7 @@ The report records the pass rate, the turns and the tool calls for each case and
 make evals-dry                          # list the matrix, invoke nothing, report under tmp/evals-dry
 make evals ARGS="--harness claude"      # run live, which bills every cell
 make evals-compare CACHES="a b"         # pass rate, turns and tool calls per sweep, baseline first
+make evals-snapshot                     # keep the last live sweep as evals/results/sweep.json
 ```
 
 Live runs need the `claude` and `codex` CLIs on your `PATH`, each logged in, and they cost money.

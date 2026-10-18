@@ -172,6 +172,10 @@ flowchart LR
     EVC["Eval Cell"]:::pipeline
     EVC -- hands an Agent --> SED
     AGT -- is scored in --> EVC
+    SNP["Sweep Snapshot"]:::record
+    EXP["Example Page"]:::record
+    SNP -- keeps every --> EVC
+    EXP -- is rendered from --> SNP
 
     classDef people    fill:#2563eb36,stroke:#3b82f6,stroke-width:2px
     classDef info      fill:#b4530936,stroke:#d97706,stroke-width:2px
@@ -255,6 +259,12 @@ See [PRS-0024](adrs/0024-failures-are-named-errors-with-codes.md).
 One agent run of one eval case on one model, graded by the gates and by content preservation.
 Its pass, turns and cost show how well a Finding's message closes the loop.
 See [PRS-0035](adrs/0035-finding-messages-are-measured-by-agent-evals.md).
+
+## Example Page
+
+A generated page under `docs/examples/`, rendered by `scripts/examples-pages.ts` from the golden fixtures or the Sweep Snapshot.
+Its findings are the gate's output at render time, and a test fails when a committed page differs from a fresh render.
+See [PRS-0038](adrs/0038-example-pages-are-rendered-from-fixtures-and-a-sweep-snapshot.md).
 
 ## Expectation
 
@@ -410,6 +420,11 @@ No Fixer, asked again after the last accepted Edit, has a verifiable Edit left, 
 
 Interpunct Runs on consecutive lines, each with a label.
 Promoted to a nested list.
+
+## Sweep Snapshot
+
+`evals/results/sweep.json`, the committed copy of one live sweep: each Eval Cell's verdict, turns, cost, rewrite and closing message.
+The sweep's own cache is ignored by git, so an Example Page reads the snapshot instead.
 
 ## Topic Break
 

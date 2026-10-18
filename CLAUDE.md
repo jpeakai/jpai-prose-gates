@@ -32,6 +32,7 @@ When a new domain term enters the code or the conversation, add it to the glossa
 - Never edit a generated file.
   Everything in `adrs/` except the `.yml` records is generated.
   So is `dist/`, which `make build` bundles from `src/` for Node and git ignores.
+  So is `docs/examples/`, which `make fix` renders from the fixtures and the Sweep Snapshot.
 - Never let a fixer guess.
   An ambiguous case refuses and stays reported, per [PRS-0004](adrs/0004-a-fixer-refuses-when-unsure.md).
 - Never add a fixer for sentence-word-budget-exceeded.

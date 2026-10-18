@@ -21,6 +21,9 @@ relates_to:
   - relation: depended_on_by
     target: PRS-0032
     note: the copied theme loads from custom_dir, outside the assembled docs_dir
+  - relation: see_also
+    target: PRS-0038
+    note: the generated Example Pages are copied into the site like any document
 
 decision:
   given: the documents are gated in place, the records are generated, and main changes only through pull requests

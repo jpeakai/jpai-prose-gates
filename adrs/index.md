@@ -41,6 +41,7 @@
 | [PRS-0035](0035-finding-messages-are-measured-by-agent-evals.md) | Finding messages are measured by agent evals that never gate the build | accepted |
 | [PRS-0036](0036-a-glossary-is-read-as-the-concept-model.md) | A project's GLOSSARY.md or CONCEPTS.md is read as its concept model, and the language view names its terms | accepted |
 | [PRS-0037](0037-a-check-reports-every-line-its-fixer-changes.md) | sentence-one-per-line reports several sentences on one line, as its fixer splits them | accepted |
+| [PRS-0038](0038-example-pages-are-rendered-from-fixtures-and-a-sweep-snapshot.md) | The Example Pages are rendered from the golden fixtures and a committed Sweep Snapshot | accepted |
 # By group
 
 ## architecture
@@ -54,6 +55,7 @@
 ## docs
 
 * [PRS-0032](0032-the-site-theme-is-a-copy-of-osakanights.md) - The theme folder is vendored into site-theme/, pulled in with INHERIT, and its tokens are checked on every build
+* [PRS-0038](0038-example-pages-are-rendered-from-fixtures-and-a-sweep-snapshot.md) - The site's examples of fixes and agent rewrites are generated, never written by hand, so they cannot drift from the code
 ## documentation
 
 * [PRS-0029](0029-the-docs-site-is-assembled-from-the-real-documents.md) - MkDocs Material builds from a copy of the repo's own layout, so the prose gates keep reading the real files
@@ -126,6 +128,7 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0001 --depended_on_by--> PRS-0015
 * PRS-0001 --depended_on_by--> PRS-0023
 * PRS-0002 --depended_on_by--> PRS-0037
+* PRS-0002 --extended_by--> PRS-0038
 * PRS-0003 --depends_on--> PRS-0001
 * PRS-0003 --depended_on_by--> PRS-0005
 * PRS-0004 --extended_by--> PRS-0005
@@ -222,6 +225,7 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0028 --extends--> PRS-0023
 * PRS-0028 --depends_on--> PRS-0005
 * PRS-0029 --depended_on_by--> PRS-0032
+* PRS-0029 --see_also--> PRS-0038
 * PRS-0030 --extends--> PRS-0006
 * PRS-0030 --extends--> PRS-0010
 * PRS-0030 --extends--> PRS-0015
@@ -240,6 +244,7 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0035 --extends--> PRS-0010
 * PRS-0035 --depends_on--> PRS-0006
 * PRS-0035 --see_also--> PRS-0037
+* PRS-0035 --depended_on_by--> PRS-0038
 * PRS-0036 --extends--> PRS-0033
 * PRS-0036 --extends--> PRS-0018
 * PRS-0036 --extends--> PRS-0019
@@ -247,3 +252,6 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0037 --depends_on--> PRS-0009
 * PRS-0037 --see_also--> PRS-0035
 * PRS-0037 --depends_on--> PRS-0002
+* PRS-0038 --extends--> PRS-0002
+* PRS-0038 --depends_on--> PRS-0035
+* PRS-0038 --see_also--> PRS-0029

@@ -47,16 +47,18 @@ nav:
   - Home: README.md
   - Rules:
       - RULES.md
+  - Examples:
+      - Fixes, before and after: docs/examples/fixes.md
+      - Agent evals: docs/examples/agent-evals.md
   - Guides:
       - Plugins and local rules: docs/plugins.md
       - Check and fix engines: docs/engines.md
   - Reference:
       - Data model: docs/DATA_MODEL.md
       - Glossary: GLOSSARY.md
-  - Decisions:
+  - ADRs:
       - Index: adrs/index.md
       - Graph: adrs/graph.md
-  - Contributing:
-      - Setup and review: CONTRIBUTING.md
+  - Project:
       - Documentation conventions: docs/CONVENTIONS.md
       - Publishing: docs/PUBLISHING.md

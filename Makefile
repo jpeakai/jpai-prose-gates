@@ -1,4 +1,4 @@
-.PHONY: install build fix check ci typecheck test test-cov-ts docs-ci docs docs-serve theme evals-dry evals evals-compare clean
+.PHONY: install build fix check ci typecheck test test-cov-ts docs-ci docs docs-serve theme evals-dry evals evals-snapshot evals-compare clean
 
 install:
 	uv sync
@@ -15,14 +15,15 @@ build:
 # Regenerate and autofix everything that can be: formatting, lint and the
 # decision bundle. Safe to run at any time.
 fix:
-	bunx --bun @biomejs/biome check --write src tests
+	bunx --bun @biomejs/biome check --write src tests scripts
 	uv run meta adr render
+	bun run scripts/examples-pages.ts
 
 # The package gates, with no autofix and no private tooling, so GitHub Actions
 # and npm prepublishOnly can run them with Bun alone. make ci adds the
 # decision bundle render, whose meta CLI lives in a private repo.
 check: typecheck test-cov-ts docs-ci
-	bunx --bun @biomejs/biome check src tests
+	bunx --bun @biomejs/biome check src tests scripts
 
 typecheck:
 	bunx --bun tsc --project tsconfig.json --noEmit
@@ -54,7 +55,7 @@ ci: fix typecheck test-cov-ts docs
 
 # Prose gates over every markdown file, generated output included. This repo
 # gates its own docs with its own source, never a published copy.
-DOCS := $(wildcard *.md) $(wildcard docs/*.md) $(wildcard adrs/*.md) site-theme/osakanights/README.md $(wildcard evals/*/*.md)
+DOCS := $(wildcard *.md) $(wildcard docs/*.md) $(wildcard docs/examples/*.md) $(wildcard adrs/*.md) site-theme/osakanights/README.md $(wildcard evals/*/*.md)
 
 docs-ci:
 	bun run src/bin.ts $(DOCS)
@@ -66,6 +67,7 @@ docs:
 	bun run site-theme/osakanights/tokens.ts --check
 	bun run scripts/assemble-site.ts
 	uv run --only-group docs mkdocs build --strict
+	bun run scripts/check-site.ts
 
 # Write the theme's colour tokens from design-tokens.json into its stylesheet.
 theme:
@@ -87,6 +89,11 @@ EVALS := evals/prose-gates/evals
 
 evals-dry:
 	uv run --only-group evals pytest $(EVALS) --dry-run -o xharness_cache_dir=tmp/evals-dry
+
+# Keep the last live sweep as evals/results/sweep.json, the Sweep Snapshot that
+# docs/examples/agent-evals.md is rendered from. Run make fix after it.
+evals-snapshot:
+	uv run --only-group evals evals/snapshot.py
 
 evals:
 	uv run --only-group evals pytest $(EVALS) -v $(ARGS)

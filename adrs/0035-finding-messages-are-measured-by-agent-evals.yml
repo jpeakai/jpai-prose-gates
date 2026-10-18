@@ -26,6 +26,9 @@ relates_to:
   - relation: see_also
     target: PRS-0037
     note: a sweep found the one-per-line check passing what its fixer rewrote
+  - relation: depended_on_by
+    target: PRS-0038
+    note: the agent evals page is rendered from a kept sweep
 
 decision:
   given: a rule whose finding needs a rewrite, and an agent asked to clear it with the messages as its only guidance

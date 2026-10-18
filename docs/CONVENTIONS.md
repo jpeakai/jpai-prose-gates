@@ -12,10 +12,11 @@ Agents and humans: consult this before creating, moving or renaming any doc.
   Its relationship diagram is split by area to stay within the diagram gates
 - **ADR layout:** `okf-yaml`, with records authored in `adrs/NNNN-slug.yml` and markdown generated from them
 - **Decision Record ids:** prefixed `PRS-` in this repo, so a citation is unambiguous across bundles
-- **Generated paths:** `adrs/*.md`, `adrs/index.md`, `adrs/graph.md`, `adrs/graph.json`, `adrs/graph.html`
+- **Generated paths:** `adrs/*.md`, `adrs/index.md`, `adrs/graph.md`, `adrs/graph.json`, `adrs/graph.html`, `docs/examples/*.md`
 - **Regenerate:** `make fix`, and `make ci` asserts the tree is clean afterwards
 - **Agent files:** `CLAUDE.md` at root, with no nested agent files
 - **Prose gates:** every markdown file is gated by `make docs-ci` using this repo's own source, generated output included
+- **Code fences:** a language, then only `key="value"` options such as `title="Before"`, so the site renders them, held by `tests/fences.test.ts`
 - **Changelog:** not used
 - **Proposals and RFCs:** not used
 
@@ -35,15 +36,17 @@ Agents and humans: consult this before creating, moving or renaming any doc.
 | `docs/engines.md` | What the markdown tree provides at each point of the check and fix engines, as entity and sequence diagrams | Plugin authors | A view, a context, an engine step or the load modes change |
 | `docs/plugins.md` | How to write a local rule or a plugin package, and what each part of the contract does | Plugin authors | The plugin contract, the loader or the config changes |
 | `examples/` | Working plugins that authors copy and the tests exercise | Plugin authors | The plugin contract changes |
+| `docs/examples/*.md` | Generated Example Pages: the fix fixtures before and after, and the agent eval rewrites | Both | Never edited, only regenerated from the fixtures and the Sweep Snapshot |
 | `docs/PUBLISHING.md` | The release speed run, the one-time npm setup and the failure table | Maintainers | The release workflow or npm setup changes |
 | `.github/workflows/` | CI on every push, the Docs workflow that builds and deploys the site, and the manually triggered Publish workflow | Maintainers | The gate, the site build or the release process changes |
 | `mkdocs.yml` | The site theme, the navigation and the extensions | Maintainers | A page is added to the site or the theme changes |
-| `scripts/` | Build helpers, such as the script that assembles the site source | Maintainers | The site build changes |
+| `scripts/` | Build helpers: the script that assembles the site source, and the one that renders the Example Pages | Maintainers | The site build or an Example Page changes |
 | `site-theme/osakanights/` | The OsakaNights MkDocs theme, copied from jpai-mermaidjs-lint, with its own README | Maintainers | The theme changes upstream and is copied again |
 | `LICENSE` | The MIT license | Consumers | Never, short of relicensing |
 | `dist/` | Generated Node bundles of the CLI and library, ignored by git and shipped in the npm package | Consumers | Never edited, only rebuilt |
 | `tests/fixtures/` | Test inputs, not documentation, and never gated | Contributors | A rule's fix behaviour changes |
 | `evals/` | Live agent evals of the finding messages, run by `make evals` and never by CI, with the shared skill in `SKILL.md` | Maintainers | A message, a rule without a fixer or the eval matrix changes |
+| `evals/results/sweep.json` | The Sweep Snapshot, kept by `make evals-snapshot` from the last live sweep | Maintainers | A new sweep is kept |
 | `evals/*/evals/fixtures/` | Seed documents that fail one rule each, not documentation, and never gated | Maintainers | A rule's message or refusal changes |
 
 ## Naming
@@ -70,5 +73,6 @@ Agents and humans: consult this before creating, moving or renaming any doc.
 ## Split and merge triggers
 
 - `docs/` adopts Diátaxis folders when the sectioned README passes roughly ten topics.
-- The docs site navigation supplies the grouping, so the files stay flat until a section outgrows its tab.
+- The docs site navigation supplies the grouping, so authored files stay flat until a section outgrows its tab.
+- Generated pages under `docs/` get a folder of their own, like `docs/examples/`, so they never sit beside authored ones.
 - A rule earns its own how-to page when its refusal cases no longer fit one section of `RULES.md`.

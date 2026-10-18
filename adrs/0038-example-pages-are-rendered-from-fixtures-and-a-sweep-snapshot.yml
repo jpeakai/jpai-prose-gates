@@ -1,0 +1,41 @@
+id: PRS-0038
+slug: example-pages-are-rendered-from-fixtures-and-a-sweep-snapshot
+plan_id: null
+title: The Example Pages are rendered from the golden fixtures and a committed Sweep Snapshot
+description: The site's examples of fixes and agent rewrites are generated, never written by hand, so they cannot drift from the code
+status: accepted
+accepted_on: 2026-10-18
+last_changed_on: 2026-10-18
+tags: [docs, evals, verification]
+
+provenance: The docs site had one short example per rule and no view of how agents rewrite from a finding
+
+enforced_in:
+  - scripts/examples-pages.ts, which renders docs/examples from tests/fixtures and evals/results/sweep.json, and stops when a fixture's fix has drifted
+  - tests/examples-pages.test.ts, which fails when a committed page differs from a fresh render
+  - evals/snapshot.py, which keeps a live sweep as the Sweep Snapshot with local paths removed
+
+relates_to:
+  - relation: extends
+    target: PRS-0002
+    note: the generated pages are gated like every other markdown file
+  - relation: depends_on
+    target: PRS-0035
+    note: the agent rewrites come from the live eval sweep
+  - relation: see_also
+    target: PRS-0029
+    note: the site copies the generated pages like any other document
+
+decision:
+  given: golden fixtures the tests already hold to the code, and an eval cache that git ignores and every sweep replaces
+  we_prefer: pages rendered from the fixtures and from a committed snapshot of one sweep, over examples written by hand
+  because: a hand-written example drifts silently, while a rendered one shows the gate as it is today and fails a test when stale
+  unless: a sweep is too costly to repeat, which leaves the snapshot older than the rules, as the page says
+
+consequences:
+  pros:
+    - Every finding on an Example Page is the gate's output at render time.
+    - A rule that tightens after a sweep shows as findings on the old rewrites.
+  cons:
+    - The snapshot is a dated copy, so its rewrites age until the next sweep is kept.
+    - Agent messages are published, so the snapshot must strip local paths before it is committed.

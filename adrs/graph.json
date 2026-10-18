@@ -609,6 +609,19 @@
     },
     {
       "data": {
+        "id": "PRS-0038",
+        "label": "0038",
+        "parent": "group-docs",
+        "colour": "#059669",
+        "file": "0038-example-pages-are-rendered-from-fixtures-and-a-sweep-snapshot.md",
+        "title": "The Example Pages are rendered from the golden fixtures and a committed Sweep Snapshot",
+        "description": "The site's examples of fixes and agent rewrites are generated, never written by hand, so they cannot drift from the code",
+        "status": "accepted",
+        "tags": "docs, evals, verification"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0001-depended_on_by-PRS-0012",
         "source": "PRS-0001",
         "target": "PRS-0012",
@@ -655,6 +668,16 @@
         "label": "depended on by",
         "relation": "depended_on_by",
         "note": "the stricter one-per-line check was met by fixing the record template"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0002-extended_by-PRS-0038",
+        "source": "PRS-0002",
+        "target": "PRS-0038",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "the Example Pages are generated markdown, gated like the rest"
       }
     },
     {
@@ -1619,6 +1642,16 @@
     },
     {
       "data": {
+        "id": "PRS-0029-see_also-PRS-0038",
+        "source": "PRS-0029",
+        "target": "PRS-0038",
+        "label": "see also",
+        "relation": "see_also",
+        "note": "the generated Example Pages are copied into the site like any document"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0030-extends-PRS-0006",
         "source": "PRS-0030",
         "target": "PRS-0006",
@@ -1799,6 +1832,16 @@
     },
     {
       "data": {
+        "id": "PRS-0035-depended_on_by-PRS-0038",
+        "source": "PRS-0035",
+        "target": "PRS-0038",
+        "label": "depended on by",
+        "relation": "depended_on_by",
+        "note": "the agent evals page is rendered from a kept sweep"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0036-extends-PRS-0033",
         "source": "PRS-0036",
         "target": "PRS-0033",
@@ -1865,6 +1908,36 @@
         "label": "depends on",
         "relation": "depends_on",
         "note": "generated record markdown failed the stricter check, so the template was fixed at its source"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0038-extends-PRS-0002",
+        "source": "PRS-0038",
+        "target": "PRS-0002",
+        "label": "extends",
+        "relation": "extends",
+        "note": "the generated pages are gated like every other markdown file"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0038-depends_on-PRS-0035",
+        "source": "PRS-0038",
+        "target": "PRS-0035",
+        "label": "depends on",
+        "relation": "depends_on",
+        "note": "the agent rewrites come from the live eval sweep"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0038-see_also-PRS-0029",
+        "source": "PRS-0038",
+        "target": "PRS-0029",
+        "label": "see also",
+        "relation": "see_also",
+        "note": "the site copies the generated pages like any other document"
       }
     }
   ],

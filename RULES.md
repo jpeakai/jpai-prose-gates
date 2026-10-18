@@ -3,9 +3,9 @@
 Every prose gate, grouped by what it guards, with a failing example and what `--fix` does to it.
 Each example is real output: `tests/rules-doc.test.ts` runs every block below through the fixer and fails when this page drifts from the code.
 
-A block labelled before is followed by its after, which is exactly what `--fix` writes.
-A block labelled reported is a case the fixer leaves alone, so the finding stays for a human.
-A block labelled rewritten follows a reported one, and shows a rewrite that passes every rule.
+A block titled Before is followed by its After, which is exactly what `--fix` writes.
+A block titled Reported is a case the fixer leaves alone, so the finding stays for a human.
+A block titled Rewritten follows a reported one, and shows a rewrite that passes every rule.
 Rules marked with a star in `--help` have a fixer.
 
 ## Categories
@@ -28,13 +28,13 @@ One sentence per line keeps diffs to the sentence that changed.
 The check reports every paragraph the fix would change, so a file that passes is left alone by `--fix`.
 The fix reflows the paragraph so each line holds one whole sentence.
 
-```text before
+```text title="Before"
 The parser reads the file
 and hands the tree to every rule. Each rule
 reports what it finds.
 ```
 
-```text after
+```text title="After --fix"
 The parser reads the file and hands the tree to every rule.
 Each rule reports what it finds.
 ```
@@ -44,7 +44,7 @@ Each rule reports what it finds.
 A sentence longer than the word budget, which defaults to 25 words.
 It has no fixer, because shortening a sentence changes what it says.
 
-```text reported
+```text title="Reported"
 The fixer reads the tree and proposes an edit because the rule fired, which the engine verifies when it reparses the document and compares the words it finds.
 ```
 
@@ -62,13 +62,21 @@ Here the sentence has six verbs and only four markers, so it counts six.
 The count is a guide, not a parse, so a human or agent decides the real split.
 Split at the clauses and keep the connective words, rather than deleting words until the sentence fits:
 
-```text rewritten
+```text title="Rewritten"
 The fixer reads the tree.
 It proposes an edit because the rule fired.
 The engine verifies that edit.
 To do so, it reparses the document.
 It then compares the words it finds.
 ```
+
+The `maxWords` option sets the budget, for a project that wants shorter or longer sentences:
+
+```json
+{ "rules": { "sentence-word-budget-exceeded": ["error", { "maxWords": 30 }] } }
+```
+
+The `--max-words` flag sets it for one run, and overrides the config file.
 
 ## Paragraph
 
@@ -83,7 +91,7 @@ A blank line, a heading, a list or a fence ends a paragraph.
 Paragraphs inside list items and blockquotes are counted too, and table cells, code and frontmatter are exempt.
 An abbreviation such as e.g. or Dr. does not end a sentence, and neither does a terminal inside inline code or a url.
 
-```text reported
+```text title="Reported"
 The parser reads each markdown file once.
 It builds a syntax tree that every rule shares.
 Parsing twice would let two rules disagree about the tree.
@@ -103,7 +111,7 @@ A topic turns where two neighbouring sentences share no content word.
 A sentence that opens with a word like "it" or "this" refers back, so it stays with the one before it.
 Break at each turn and leave every sentence as it is:
 
-```text rewritten
+```text title="Rewritten"
 The parser reads each markdown file once.
 It builds a syntax tree that every rule shares.
 Parsing twice would let two rules disagree about the tree.
@@ -162,11 +170,11 @@ A semicolon-delimited list, meaning two or more semicolons in one sentence.
 A single joining semicolon is allowed.
 When the sentence has a colon lead-in, the fix promotes the items to a bullet list.
 
-```text before
+```text title="Before"
 A release needs: a signed tag; a changelog entry; and a green build.
 ```
 
-```text after
+```text title="After --fix"
 A release needs:
 
 - a signed tag
@@ -176,7 +184,7 @@ A release needs:
 
 Without a colon there is no lead-in to keep, so the fixer refuses.
 
-```text reported
+```text title="Reported"
 A release needs a signed tag; a changelog entry; a green build.
 ```
 
@@ -185,11 +193,11 @@ A release needs a signed tag; a changelog entry; a green build.
 Items joined by interpuncts inside one paragraph.
 The fix promotes them to a bullet list after the label.
 
-```text before
+```text title="Before"
 Stack: Bun · TypeScript · biome.
 ```
 
-```text after
+```text title="After --fix"
 Stack:
 
 - Bun
@@ -202,11 +210,11 @@ Stack:
 Enumeration markers such as `(a)` and `(b)`, or `(1)` and `(2)`, inlined in prose.
 The fix promotes them to a numbered list.
 
-```text before
+```text title="Before"
 The engine (a) parses the file, (b) runs each fixer and (c) verifies the result.
 ```
 
-```text after
+```text title="After --fix"
 The engine:
 
 1. parses the file
@@ -216,7 +224,7 @@ The engine:
 
 Markers used as back-references are not a list, so the fixer refuses.
 
-```text reported
+```text title="Reported"
 See (a) above and (b) below.
 ```
 
@@ -225,11 +233,11 @@ See (a) above and (b) below.
 A run of three or more comma-joined items that each start with a label.
 The fix promotes them to a bullet list and keeps each label.
 
-```text before
+```text title="Before"
 Targets: `fix` regenerates the bundle, `ci` asserts a clean tree, and `docs-ci` gates the prose.
 ```
 
-```text after
+```text title="After --fix"
 Targets:
 
 - `fix` regenerates the bundle
@@ -242,12 +250,12 @@ Targets:
 Interpunct runs stacked on consecutive lines, each with its own label.
 The fix promotes them to a nested list, one parent item per label.
 
-```text before
+```text title="Before"
 Runtime: Bun · Node
 Tooling: biome · tsc
 ```
 
-```text after
+```text title="After --fix"
 - Runtime
   - Bun
   - Node
@@ -258,7 +266,7 @@ Tooling: biome · tsc
 
 A line without a label has no parent item to hang under, so the fixer refuses.
 
-```text reported
+```text title="Reported"
 Runtime: Bun · Node
 no label · here
 ```
@@ -270,25 +278,25 @@ no label · here
 An em-dash in prose.
 A pair of em-dashes becomes parentheses, and a lone one becomes a colon.
 
-```text before
+```text title="Before"
 The engine — not the fixer — decides what is kept.
 ```
 
-```text after
+```text title="After --fix"
 The engine (not the fixer) decides what is kept.
 ```
 
-```text before
+```text title="Before"
 One rule matters — never guess.
 ```
 
-```text after
+```text title="After --fix"
 One rule matters: never guess.
 ```
 
 An em-dash between numbers is a range that wants an en-dash rather than a colon, so the fixer refuses.
 
-```text reported
+```text title="Reported"
 Pages 10 — 12 cover it.
 ```
 
@@ -297,11 +305,11 @@ Pages 10 — 12 cover it.
 A stray interpunct in prose, outside a run of items.
 A spaced interpunct becomes a comma.
 
-```text before
+```text title="Before"
 Written in TypeScript · run on Bun.
 ```
 
-```text after
+```text title="After --fix"
 Written in TypeScript, run on Bun.
 ```
 

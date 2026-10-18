@@ -31,6 +31,7 @@ Exit codes are 0 for clean, 1 for findings, and 2 for a usage error.
 
 The rules are grouped by what they guard, and `--list-rules` prints them.
 [RULES.md](RULES.md) shows a failing example and the fix for each one.
+[docs/examples/fixes.md](docs/examples/fixes.md) has the longer cases, and [docs/examples/agent-evals.md](docs/examples/agent-evals.md) shows how agents rewrite from a finding.
 [docs/DATA_MODEL.md](docs/DATA_MODEL.md) diagrams how a rule is checked, fixed and verified.
 
 | Category | Rules | What it guards |

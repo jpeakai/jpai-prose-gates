@@ -21,6 +21,7 @@ generated: { by: human:maintainer, at: 2026-10-17T00:00:00Z }
 - Extends [PRS-0010](0010-length-findings-guide-a-split.md) (the clause guidance a length finding gives is now measured against agents that follow it)
 - Depends on [PRS-0006](0006-sentence-length-is-never-autofixed.md) (the evals target rules with no fixer, where only a rewrite clears the finding)
 - See also [PRS-0037](0037-a-check-reports-every-line-its-fixer-changes.md) (a sweep found the one-per-line check passing what its fixer rewrote)
+- Depended on by [PRS-0038](0038-example-pages-are-rendered-from-fixtures-and-a-sweep-snapshot.md) (the agent evals page is rendered from a kept sweep)
 
 ## Decision
 

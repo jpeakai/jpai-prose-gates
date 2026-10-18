@@ -12,12 +12,14 @@ import { parseArgs } from "node:util";
 
 const REPO_URL = "https://github.com/jpeakai/jpai-prose-gates";
 const OUT = join("tmp", "site-src");
-const ROOT_FILES = ["README.md", "RULES.md", "GLOSSARY.md", "CONTRIBUTING.md"];
+const ROOT_FILES = ["README.md", "RULES.md", "GLOSSARY.md"];
+// Generated pages under docs/ that sit one folder deeper.
+const DOC_DIRS = ["examples"];
 
 // A link target that points at a directory or file the site does not carry.
 const EXTERNAL_LINKS: ReadonlyArray<readonly [RegExp, string]> = [
   [/\]\((?:\.\.\/)?(examples\/[^)\s]*)\)/g, `](${REPO_URL}/tree/main/$1)`],
-  [/\]\((?:\.\.\/)?(LICENSE|package\.json)\)/g, `](${REPO_URL}/blob/main/$1)`],
+  [/\]\((?:\.\.\/)*(LICENSE|package\.json|CONTRIBUTING\.md)\)/g, `](${REPO_URL}/blob/main/$1)`],
 ];
 
 const printHelp = (): void => {
@@ -48,6 +50,12 @@ const assemble = async (): Promise<void> => {
   for (const file of ROOT_FILES) await copyMarkdown(file, join(OUT, file));
   for (const file of (await readdir("docs")).filter((f) => f.endsWith(".md"))) {
     await copyMarkdown(join("docs", file), join(OUT, "docs", file));
+  }
+  for (const dir of DOC_DIRS) {
+    await mkdir(join(OUT, "docs", dir), { recursive: true });
+    for (const file of (await readdir(join("docs", dir))).filter((f) => f.endsWith(".md"))) {
+      await copyMarkdown(join("docs", dir, file), join(OUT, "docs", dir, file));
+    }
   }
   for (const file of await readdir("adrs")) {
     // The .yml records are the authored source, so the site carries only the

@@ -25,6 +25,7 @@
   "include": [
     "src/**/*.ts",
     "tests/**/*.ts",
+    "scripts/**/*.ts",
     "examples/plugin-skills-typescript/**/*.ts"
   ],
   "exclude": [

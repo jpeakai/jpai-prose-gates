@@ -34,6 +34,7 @@ Agents and humans: consult this before creating, moving or renaming any doc.
 | `docs/CONVENTIONS.md` | This dialect declaration | Both | A documentation convention changes |
 | `docs/DATA_MODEL.md` | The document model, the rule contract and the pipelines, with diagrams and an extension guide | Contributors | A model, an expectation kind or the fix order changes |
 | `docs/engines.md` | What the markdown tree provides at each point of the check and fix engines, as entity and sequence diagrams | Plugin authors | A view, a context, an engine step or the load modes change |
+| `docs/language.md` | How the language view and the concept model are built, with diagrams and worked examples a test rebuilds | Plugin authors | The language view, the concept file format or the cohesion scoring changes |
 | `docs/plugins.md` | How to write a local rule or a plugin package, and what each part of the contract does | Plugin authors | The plugin contract, the loader or the config changes |
 | `examples/` | Working plugins that authors copy and the tests exercise | Plugin authors | The plugin contract changes |
 | `docs/examples/*.md` | Generated Example Pages: the fix fixtures before and after, and the agent eval rewrites | Both | Never edited, only regenerated from the fixtures and the Sweep Snapshot |

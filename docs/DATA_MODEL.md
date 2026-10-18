@@ -190,7 +190,7 @@ Read a paragraph's `language` for whole sentences, and a text's for prose no par
 `doc.concepts` versus `sentence.concepts`.
 `doc.concepts` is the project's vocabulary, read once per run from the `GLOSSARY.md` or `CONCEPTS.md` at its root.
 `sentence.concepts` is where one sentence names those concepts, matched in any case and in the plural.
-[docs/plugins.md](plugins.md#concepts) gives the file's shape.
+[docs/plugins.md](plugins.md#concepts) gives the file's shape, and [docs/language.md](language.md) diagrams how both views are built.
 
 `texts` versus `directTexts`.
 `texts` holds every prose text node in the document, including headings and list items.

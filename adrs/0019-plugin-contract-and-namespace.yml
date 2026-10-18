@@ -8,10 +8,6 @@ accepted_on: 2026-10-06
 last_changed_on: 2026-10-06
 tags: [plugins, architecture, contract]
 
-lens: |-
-  A third-party rule must not need a second code path in the engine.
-  The only new thing a plugin brings is a name that cannot clash with a built-in.
-
 provenance: Raised as phase 2 of issue 7, after surveying how ESLint, Stylelint, markdownlint and Prettier namespace and version plugins
 
 enforced_in:
@@ -45,25 +41,18 @@ relates_to:
   - relation: depended_on_by
     target: PRS-0027
     note: a plugin rule function may return a promise
-
-problem:
-  symptom: The rule set, the id type and the fix order were closed arrays and a union of nine literals.
-  pain_point: A house style could only be added by changing this repository.
+  - relation: extended_by
+    target: PRS-0033
+    note: a plugin rule reads each paragraph's language view
+  - relation: extended_by
+    target: PRS-0036
+    note: a plugin rule reads the project's concepts from the document
 
 decision:
   given: a user wants a rule this package does not ship
   we_prefer: a plugin whose default export is { meta, rules }, with rules receiving the built-in context, over a second rule interface
   because: one contract means the engine, the fixer proof and the config treat every rule alike
   unless: the contract must change in a way a plugin would notice, which bumps apiVersion
-  in_practice:
-    - meta has name, namespace, apiVersion and optional categories. apiVersion is 1, and any other value fails the load with both numbers.
-    - The namespace comes from meta.namespace only, never from the package name, and must be lower-case words joined by hyphens.
-    - The namespace local is reserved for local files, and two plugins that claim one namespace fail the load, naming both.
-    - A rule key is category-short-name, so the key must start with its category and a plugin id reads namespace/category-short-name.
-    - A rule has a category, a summary, a check, an optional fix and optional typed options.
-    - The context adds options and helpers, the plain functions words, sentences and lengthMessage, so a plugin never has to import this package.
-    - A check cannot take the run down. A throw or a malformed finding becomes a finding for that rule and the others carry on.
-    - A finding carries its own rule id and file whatever the plugin returned, so a plugin cannot report as another rule.
 
 consequences:
   pros:

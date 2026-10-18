@@ -5,6 +5,7 @@
 
 import { cleanLeadIn, itemsBetween, promote } from "../fix/promote.ts";
 import { GLYPH, isFlat, paragraphsOf, RUN_SEPARATOR } from "../interpunct.ts";
+import type { ParagraphView } from "../model.ts";
 import { colonsBefore, colonsIn, sentenceSpan, splittableSeparators } from "../query.ts";
 import { first, last, type Range, words } from "../text.ts";
 import { type Edit, RULE, type Rule } from "./types.ts";
@@ -26,38 +27,40 @@ const check: Rule["check"] = ({ file, runs }) =>
     message: `interpunct-joined inline list (${run.separators + 1} items); promote to a bullet list`,
   }));
 
-const fix: Rule["fix"] = ({ doc, runs }) => {
-  const { src } = doc;
-  const edits: Edit[] = [];
-  for (const view of paragraphsOf(doc, runs.filter(isFlat))) {
-    const separators = splittableSeparators(src, view, RUN_SEPARATOR, GLYPH);
-    const colons = colonsIn(src, view);
-    if (separators === null || colons === null) continue;
+// With no colon to announce it, the run has to be the whole paragraph.
+const coversParagraph = (view: ParagraphView, span: Range): boolean =>
+  span[0] === view.startOffset && span[1] === view.endOffset;
 
-    const span = sentenceSpan(src, view, first(separators)[0], last(separators)[1]);
-    // The innermost colon before the first item, so a lead-in that itself
-    // contains a colon keeps only its final clause.
-    const colon = colonsBefore(colons, span, first(separators)[0]).pop();
-    // With no colon to announce it, the run has to be the whole paragraph.
-    if (!colon && (span[0] !== view.startOffset || span[1] !== view.endOffset)) continue;
+const fixParagraph = (src: string, view: ParagraphView): Edit | null => {
+  const separators = splittableSeparators(src, view, RUN_SEPARATOR, GLYPH);
+  const colons = colonsIn(src, view);
+  if (separators === null || colons === null) return null;
 
-    const cuts: Range[] = [colon ?? [span[0], span[0]], ...separators];
-    const items = itemsBetween(src, cuts, span[1]);
-    if (tailIsProse(items) || (!colon && headIsProse(items))) continue;
+  const span = sentenceSpan(src, view, first(separators)[0], last(separators)[1]);
+  // The innermost colon before the first item, so a lead-in that itself
+  // contains a colon keeps only its final clause.
+  const colon = colonsBefore(colons, span, first(separators)[0]).pop();
+  if (!colon && !coversParagraph(view, span)) return null;
 
-    const edit = promote({
-      rule: RULE.INTERPUNCT_RUN,
-      src,
-      view,
-      span,
-      leadIn: colon ? cleanLeadIn(src.slice(span[0], colon[0])) : null,
-      items: items.map((text) => ({ text })),
-      ordered: false,
-    });
-    if (edit) edits.push(edit);
-  }
-  return edits;
+  const cuts: Range[] = [colon ?? [span[0], span[0]], ...separators];
+  const items = itemsBetween(src, cuts, span[1]);
+  if (tailIsProse(items) || (!colon && headIsProse(items))) return null;
+
+  return promote({
+    rule: RULE.INTERPUNCT_RUN,
+    src,
+    view,
+    span,
+    leadIn: colon ? cleanLeadIn(src.slice(span[0], colon[0])) : null,
+    items: items.map((text) => ({ text })),
+    ordered: false,
+  });
 };
+
+const fix: Rule["fix"] = ({ doc, runs }) =>
+  paragraphsOf(doc, runs.filter(isFlat))
+    .map((view) => fixParagraph(doc.src, view))
+    .filter((edit): edit is Edit => edit !== null);
 
 export const listInterpunctJoinedRun: Rule = {
   id: RULE.INTERPUNCT_RUN,

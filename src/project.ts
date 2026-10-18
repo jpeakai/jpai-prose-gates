@@ -1,10 +1,11 @@
-// Setting up a run: find the project root, read its config, load the plugins,
-// and build the registry every check and fix in the run uses. This happens
+// Setting up a run: find the project root, read its config and its concept
+// file, load the plugins, and build the registry every check and fix in the run uses. This happens
 // once, before any file is read, so a bad config or plugin stops the run
 // before it touches a document.
 
 import { access } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
+import { loadConcepts } from "./concepts.ts";
 import { CONFIG_FILES, findConfig, loadConfig, NO_CONFIG } from "./config.ts";
 import { ConfigNotFoundError } from "./errors.ts";
 import { loadPlugins, type PluginFailure, type PluginMode } from "./plugins/index.ts";
@@ -69,6 +70,7 @@ export const setUp = async ({
   else if (collect) mode = "collect";
   else if (lenient || config.pluginLoading === "lenient") mode = "lenient";
   const plugins = await loadPlugins(root, config, mode);
+  const concepts = await loadConcepts(root);
   const registry = buildRegistry({
     rules: [...RULES, ...plugins.rules],
     fixOrder: [...FIX_ORDER, ...plugins.rules.filter((r) => r.fix)],
@@ -76,6 +78,7 @@ export const setUp = async ({
     sources: plugins.sources,
     config,
     ignoreUnknownPluginIds: mode === "lenient" || mode === "collect",
+    concepts,
   });
   return { registry, skipped: plugins.skipped, failures: plugins.failures };
 };

@@ -8,10 +8,6 @@ accepted_on: 2026-10-06
 last_changed_on: 2026-10-06
 tags: [plugins, security, discovery]
 
-lens: |-
-  Zero setup is worth having, and running a repository's code is the price.
-  The price has to be visible every time, and there has to be a way to refuse it.
-
 provenance: Raised in review of issue 7, where the first recommendation of explicit loading was reversed in favour of auto-detection
 
 enforced_in:
@@ -40,25 +36,11 @@ relates_to:
     target: PRS-0026
     note: a local file may be TypeScript where the runtime can import it
 
-problem:
-  symptom: A rule set that a user could not extend, and a proposal that made extending it a manual wiring job.
-  pain_point: Running a markdown linter in a cloned repository now runs that repository's code, which nobody expects of a linter.
-
 decision:
   given: a project has local rule files or depends on a prose-gates plugin
   we_prefer: loading both with no config and saying so on every run, over a config that must list them
   because: a project that depends on a plugin has already chosen it
   unless: the run is on a repository that is not trusted, which --no-plugins is for
-  in_practice:
-    - Sources load in this order, local files, then declared packages by name, then entries in the config.
-    - Local rules are .js or .mjs files in .prose-gates/rules, under the namespace local. A .ts file there fails with the reason.
-    - A package is read from dependencies, devDependencies and optionalDependencies of the root package.json, never from a scan of node_modules.
-    - A name matches ^(@scope/)?prose-gates-plugin(-name)?$, so prose-gates-plugin-acme and @acme/prose-gates-plugin-acme both match.
-    - A matching dependency that is not installed fails the run with its name. There is no skipped plugin.
-    - A package that is listed twice loads once.
-    - A run prints one stderr line naming each namespace and its rule count, and --json carries the same list.
-    - Passing --no-plugins, or setting plugins to false, runs built-ins only and prints what was skipped.
-    - There is no sandbox, no trust prompt and no pinning. A typosquatted dependency name would run.
 
 consequences:
   pros:

@@ -1,0 +1,44 @@
+id: PRS-0037
+slug: a-check-reports-every-line-its-fixer-changes
+plan_id: null
+title: sentence-one-per-line reports several sentences on one line, as its fixer splits them
+description: A rule's check reports every paragraph its fixer would change, so a passing file is never rewritten by --fix
+status: accepted
+accepted_on: 2026-10-17
+last_changed_on: 2026-10-17
+tags: [rules, fixes, verification]
+
+provenance: Found in a live eval, where gpt-6-luna packed three sentences on one line, the gate passed the file, and --fix still rewrote it
+
+enforced_in:
+  - src/rules/sentence-one-per-line.ts, whose check reports a sentence break with no newline, by the rule its reflow splits on
+  - tests/adversarial/reflow.test.ts, which requires a report wherever the fixer changes a paragraph
+  - the librarian's okf_render.py and record.md.j2, vendored by jpai-meta-cli, which render each sentence of a record field on its own line
+
+relates_to:
+  - relation: extends
+    target: PRS-0005
+    note: beyond a verified fix, a fix never touches a paragraph the check passed
+  - relation: depends_on
+    target: PRS-0009
+    note: the adversarial test that reproduces the gap came before the fix
+  - relation: see_also
+    target: PRS-0035
+    note: the eval sweep is how the gap was found
+  - relation: depends_on
+    target: PRS-0002
+    note: generated record markdown failed the stricter check, so the template was fixed at its source
+
+decision:
+  given: a check that reported only a sentence wrapped across lines, beside a fixer that splits every sentence onto its own line
+  we_prefer: a check that also reports a line holding several sentences, by the same sentence rule the fixer uses, over a fixer narrowed to wraps
+  because: one sentence per line is the rule's name and its fix, and a check that passes what --fix rewrites leaves a clean file unstable
+  unless: a fixer refuses a case the check reports, such as a hard break or a blockquote, which leaves the finding for a human
+
+consequences:
+  pros:
+    - A file that passes the gate is a fixed point of --fix for this rule.
+    - Agents that pack sentences onto one line now get a finding, not a silent pass.
+  cons:
+    - An abbreviation before a capital, such as Dr. Smith, is reported, as the fixer already split it.
+    - Every bundle rendered by the old template fails until its repo upgrades jpai-meta-cli and regenerates.

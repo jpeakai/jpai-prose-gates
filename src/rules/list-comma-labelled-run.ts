@@ -53,44 +53,60 @@ const check: Rule["check"] = ({ doc, file }) =>
       message: `comma-joined run of ${labelled} labelled items; promote to a bullet list`,
     }));
 
-const fix: Rule["fix"] = ({ doc }) => {
-  const { src } = doc;
-  const edits: Edit[] = [];
-  for (const view of doc.paragraphs) {
-    const commas = matchesInAll(src, view.directTexts, /,(?=\s)/);
-    const colons = colonsIn(src, view);
-    if (commas === null || colons === null) continue;
-    for (const span of sentenceSpans(src, view)) {
-      const inside = commas.filter((comma) => within(comma, span));
-      if (inside.length < 2) continue;
-      // The sentence start is the cut before the first segment, so the spans
-      // between the cuts are exactly the comma-separated segments.
-      const segments = spansBetween([[span[0], span[0]], ...inside], span[1]);
-      if (!segments.every((segment) => LABELLED_SEGMENT.test(asProse(src, view, segment)))) continue;
-
-      // An intro colon in the first segment, before its label, is the lead-in.
-      // The first item then starts after it, so the intro is not repeated as
-      // both the lead-in and the head of the first bullet.
-      const opening = first(segments);
-      const colon = colons.find((c) => within(c, opening));
-      const intro = colon !== undefined && INTRO_ONLY.test(collapse(src.slice(span[0], colon[0])).trim());
-      const items: Range[] = intro && colon ? [[colon[1], opening[1]], ...segments.slice(1)] : segments;
-
-      const edit = promote({
-        rule: RULE.LABELLED_RUN,
-        src,
-        view,
-        span,
-        leadIn: intro && colon ? cleanLeadIn(src.slice(span[0], colon[0])) : null,
-        items: itemsOf(src, items).map((text) => ({ text })),
-        ordered: false,
-      });
-      if (edit) edits.push(edit);
-      break; // one promotion per paragraph; the engine re-parses and comes back
-    }
-  }
-  return edits;
+// The comma-separated segments of a sentence when every one is labelled, or
+// null when the sentence has too few commas or carries a stray clause.
+const labelledRun = (src: string, view: ParagraphView, commas: Range[], span: Range): Range[] | null => {
+  const inside = commas.filter((comma) => within(comma, span));
+  if (inside.length < 2) return null;
+  // The sentence start is the cut before the first segment, so the spans
+  // between the cuts are exactly the comma-separated segments.
+  const segments = spansBetween([[span[0], span[0]], ...inside], span[1]);
+  return segments.every((segment) => LABELLED_SEGMENT.test(asProse(src, view, segment))) ? segments : null;
 };
+
+interface LabelledSentence {
+  src: string;
+  view: ParagraphView;
+  span: Range;
+  segments: Range[];
+  colons: Range[];
+}
+
+// An intro colon in the first segment, before its label, is the lead-in.
+// The first item then starts after it, so the intro is not repeated as
+// both the lead-in and the head of the first bullet.
+const promoteRun = ({ src, view, span, segments, colons }: LabelledSentence): Edit | null => {
+  const opening = first(segments);
+  const colon = colons.find((c) => within(c, opening));
+  const intro = colon !== undefined && INTRO_ONLY.test(collapse(src.slice(span[0], colon[0])).trim());
+  const items: Range[] = intro && colon ? [[colon[1], opening[1]], ...segments.slice(1)] : segments;
+
+  return promote({
+    rule: RULE.LABELLED_RUN,
+    src,
+    view,
+    span,
+    leadIn: intro && colon ? cleanLeadIn(src.slice(span[0], colon[0])) : null,
+    items: itemsOf(src, items).map((text) => ({ text })),
+    ordered: false,
+  });
+};
+
+// One promotion per paragraph: the first fully labelled sentence is the only
+// one tried, and the engine re-parses and comes back for the rest.
+const fixParagraph = (src: string, view: ParagraphView): Edit | null => {
+  const commas = matchesInAll(src, view.directTexts, /,(?=\s)/);
+  const colons = colonsIn(src, view);
+  if (commas === null || colons === null) return null;
+  for (const span of sentenceSpans(src, view)) {
+    const segments = labelledRun(src, view, commas, span);
+    if (segments !== null) return promoteRun({ src, view, span, segments, colons });
+  }
+  return null;
+};
+
+const fix: Rule["fix"] = ({ doc }) =>
+  doc.paragraphs.map((view) => fixParagraph(doc.src, view)).filter((edit): edit is Edit => edit !== null);
 
 export const listCommaLabelledRun: Rule = {
   id: RULE.LABELLED_RUN,

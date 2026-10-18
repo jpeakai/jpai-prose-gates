@@ -1,6 +1,6 @@
 {
   "name": "@jpeakai/prose-gates",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "description": "Deterministic prose gates for markdown documentation",
   "license": "MIT",
@@ -48,6 +48,7 @@
     "examples"
   ],
   "dependencies": {
+    "compromise": "14.18.0",
     "mdast-util-from-markdown": "^2.0.3",
     "mdast-util-frontmatter": "^2.0.1",
     "mdast-util-gfm": "^3.1.0",
@@ -58,6 +59,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2",
+    "@jpeakai/mermaidjs-lint": "^0.7.2",
     "@types/bun": "latest",
     "@types/mdast": "^4",
     "fast-check": "^4.10.0",

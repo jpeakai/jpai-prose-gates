@@ -33,7 +33,9 @@ import { loadLocal } from "../src/plugins/load.ts";
 import { canImportTypeScript } from "../src/plugins/runtime.ts";
 import { FIX_ORDER, RULES } from "../src/rules/index.ts";
 import { BUILTIN_CATEGORIES } from "../src/rules/registry.ts";
-import { PROJECT_ROOT, runCli, tempProject } from "./helpers.ts";
+import { PROJECT_ROOT, runCli, tempDirs } from "./helpers.ts";
+
+const tmp = tempDirs();
 
 const PKG = { "package.json": JSON.stringify({ name: "demo" }) };
 
@@ -97,7 +99,7 @@ describe("every failure is a named class with a stable code", () => {
   });
 
   test("file-level config errors say which file and why", async () => {
-    const root = tempProject({
+    const root = tmp.project({
       "bad.json": "{ nope",
       "boom.mjs": "throw new Error('kaboom');\n",
       "c.yaml": "rules: {}\n",
@@ -128,7 +130,7 @@ describe("every failure is a named class with a stable code", () => {
 
   test("plugin errors are load errors, each with its own code", async () => {
     const contract = (await caught(() =>
-      setUp({ cwd: tempProject(local("no-todo", todoRule())) }),
+      setUp({ cwd: tmp.project(local("no-todo", todoRule())) }),
     )) as PluginContractError;
     expect(contract).toBeInstanceOf(PluginContractError);
     expect(contract).toBeInstanceOf(PluginLoadError);
@@ -136,7 +138,7 @@ describe("every failure is a named class with a stable code", () => {
     expect([contract.code, contract.source]).toEqual(["plugin-contract", join(".prose-gates", "rules", "no-todo.mjs")]);
 
     const imported = (await caught(() =>
-      setUp({ cwd: tempProject(local("sentence-boom", "throw new Error('kaboom');\n")) }),
+      setUp({ cwd: tmp.project(local("sentence-boom", "throw new Error('kaboom');\n")) }),
     )) as PluginImportError;
     expect([imported.code, imported.message]).toEqual([
       "plugin-import",
@@ -145,7 +147,7 @@ describe("every failure is a named class with a stable code", () => {
 
     const missing = (await caught(() =>
       setUp({
-        cwd: tempProject({ "package.json": JSON.stringify({ dependencies: { "prose-gates-plugin-acme": "1" } }) }),
+        cwd: tmp.project({ "package.json": JSON.stringify({ dependencies: { "prose-gates-plugin-acme": "1" } }) }),
       }),
     )) as PluginNotInstalledError;
     expect([missing.code, missing.source]).toEqual(["plugin-not-installed", "prose-gates-plugin-acme"]);
@@ -155,7 +157,7 @@ describe("every failure is a named class with a stable code", () => {
   test("a clash names both plugins", async () => {
     const plugin = (key: string) =>
       `export default { meta: { name: "n", namespace: "same", apiVersion: 1 }, rules: { "${key}": ${todoRule().replace("export default ", "").trim().replace(/;$/, "")} } };\n`;
-    const root = tempProject({
+    const root = tmp.project({
       "package.json": JSON.stringify({ dependencies: { "prose-gates-plugin-a": "1", "prose-gates-plugin-b": "1" } }),
       "node_modules/prose-gates-plugin-a/package.json": JSON.stringify({ main: "i.mjs" }),
       "node_modules/prose-gates-plugin-a/i.mjs": plugin("sentence-x"),
@@ -173,14 +175,14 @@ describe("every failure is a named class with a stable code", () => {
 
   test("a fixer that throws is a PluginFixerError, which stops the run", async () => {
     const files = local("sentence-fixer", todoRule("sentence", 'fix: () => { throw new Error("nope"); },'));
-    const registry = (await setUp({ cwd: tempProject(files) })).registry;
+    const registry = (await setUp({ cwd: tmp.project(files) })).registry;
     const err = (await caught(async () => await fixMarkdownReport("A TODO here.\n", registry))) as PluginFixerError;
     expect(err).toBeInstanceOf(PluginFixerError);
     expect([err.code, err.rule]).toEqual(["plugin-fixer", "local/sentence-fixer"]);
   });
 
   test("the CLI prints the code in brackets, and exits 2 for usage and 1 for a plugin", async () => {
-    const usage = tempProject({
+    const usage = tmp.project({
       ...PKG,
       "prose-gates.config.json": JSON.stringify({ rules: { PG004: "off" } }),
       "a.md": "ok.\n",
@@ -188,7 +190,7 @@ describe("every failure is a named class with a stable code", () => {
     const u = await runCli(usage, ["a.md"]);
     expect([u.code, u.stderr]).toEqual([2, expect.stringContaining("error[unknown-rule]: ")]);
 
-    const plugin = tempProject({ ...local("no-todo", todoRule()), "a.md": "ok.\n" });
+    const plugin = tmp.project({ ...local("no-todo", todoRule()), "a.md": "ok.\n" });
     const p = await runCli(plugin, ["a.md"]);
     expect([p.code, p.stderr]).toEqual([1, expect.stringContaining("error[plugin-contract]: plugin ")]);
 
@@ -206,13 +208,13 @@ describe("lenient plugin loading", () => {
   });
 
   test("strict stops on the bad plugin, which is the default", async () => {
-    const { code, stderr } = await runCli(tempProject(goodAndBad()), ["a.md"]);
+    const { code, stderr } = await runCli(tmp.project(goodAndBad()), ["a.md"]);
     expect(code).toBe(1);
     expect(stderr).toContain("error[plugin-contract]");
   });
 
   test("--lenient-plugins skips only the bad one, says so, and runs the rest", async () => {
-    const { code, stdout, stderr } = await runCli(tempProject(goodAndBad()), ["a.md", "--lenient-plugins"]);
+    const { code, stdout, stderr } = await runCli(tmp.project(goodAndBad()), ["a.md", "--lenient-plugins"]);
     expect(code).toBe(1);
     expect(stdout).toContain("a.md:1 local/sentence-good TODO left in");
     expect(stderr).toContain("prose-gates: loaded local (1 rule)");
@@ -223,7 +225,7 @@ describe("lenient plugin loading", () => {
 
   test("a clean lenient run exits 0 even though a plugin was skipped", async () => {
     const files = { ...goodAndBad(), "a.md": "Fine.\n" };
-    const { code, stderr } = await runCli(tempProject(files), ["a.md", "--lenient-plugins"]);
+    const { code, stderr } = await runCli(tmp.project(files), ["a.md", "--lenient-plugins"]);
     expect(code).toBe(0);
     expect(stderr).toContain("skipped plugin");
   });
@@ -233,7 +235,7 @@ describe("lenient plugin loading", () => {
       "package.json": JSON.stringify({ dependencies: { "prose-gates-plugin-acme": "1" } }),
       "a.md": "A tell — here.\n",
     };
-    const { code, stdout, stderr } = await runCli(tempProject(files), ["a.md", "--lenient-plugins"]);
+    const { code, stdout, stderr } = await runCli(tmp.project(files), ["a.md", "--lenient-plugins"]);
     expect(code).toBe(1);
     expect(stdout).toContain("punctuation-em-dash-in-prose");
     expect(stderr).toContain("skipped plugin prose-gates-plugin-acme [plugin-not-installed]");
@@ -242,7 +244,7 @@ describe("lenient plugin loading", () => {
   test("when two plugins clash, the first keeps the namespace and the second is skipped", async () => {
     const plugin = (key: string) =>
       `export default { meta: { name: "n", namespace: "same", apiVersion: 1 }, rules: { "${key}": ${todoRule().replace("export default ", "").trim().replace(/;$/, "")} } };\n`;
-    const root = tempProject({
+    const root = tmp.project({
       "package.json": JSON.stringify({ dependencies: { "prose-gates-plugin-a": "1", "prose-gates-plugin-b": "1" } }),
       "node_modules/prose-gates-plugin-a/package.json": JSON.stringify({ main: "i.mjs" }),
       "node_modules/prose-gates-plugin-a/i.mjs": plugin("sentence-x"),
@@ -262,7 +264,7 @@ describe("lenient plugin loading", () => {
       ".prose-gates/rules/tone-b.mjs": "throw new Error('boom');\n",
       ".prose-gates/rules/sentence-ok.mjs": todoRule(),
     };
-    const { registry, failures } = await setUp({ cwd: tempProject(files), lenient: true });
+    const { registry, failures } = await setUp({ cwd: tmp.project(files), lenient: true });
     expect(registry.rules.map((r) => r.id).filter((id) => id.startsWith("local/"))).toEqual([
       "local/sentence-ok",
       "local/tone-a",
@@ -272,14 +274,14 @@ describe("lenient plugin loading", () => {
 
   test("when every plugin fails, the built-in rules still run", async () => {
     const files = { ...local("no-prefix", todoRule()), "a.md": "A tell — here.\n" };
-    const { code, stdout } = await runCli(tempProject(files), ["a.md", "--lenient-plugins"]);
+    const { code, stdout } = await runCli(tmp.project(files), ["a.md", "--lenient-plugins"]);
     expect(code).toBe(1);
     expect(stdout).toContain("punctuation-em-dash-in-prose");
   });
 
   test('"pluginLoading": "lenient" in the config is the same as the flag', async () => {
     const files = { ...goodAndBad(), "prose-gates.config.json": JSON.stringify({ pluginLoading: "lenient" }) };
-    const { code, stderr } = await runCli(tempProject(files), ["a.md"]);
+    const { code, stderr } = await runCli(tmp.project(files), ["a.md"]);
     expect(code).toBe(1);
     expect(stderr).toContain("skipped plugin .prose-gates/rules/no-prefix.mjs");
   });
@@ -290,7 +292,7 @@ describe("lenient plugin loading", () => {
       "prose-gates.config.json": JSON.stringify({ rules: { "local/no-prefix": "off" } }),
       "a.md": "Fine.\n",
     };
-    const ok = await runCli(tempProject(files), ["a.md", "--lenient-plugins"]);
+    const ok = await runCli(tmp.project(files), ["a.md", "--lenient-plugins"]);
     expect(ok.code).toBe(0);
     expect(ok.stderr).toContain("ignored config setting for local/no-prefix");
 
@@ -299,11 +301,11 @@ describe("lenient plugin loading", () => {
       "prose-gates.config.json": JSON.stringify({ rules: { PG004: "off" } }),
       "a.md": "Fine.\n",
     };
-    expect((await runCli(tempProject(typo), ["a.md", "--lenient-plugins"])).code).toBe(2);
+    expect((await runCli(tmp.project(typo), ["a.md", "--lenient-plugins"])).code).toBe(2);
   });
 
   test("--json lists the skipped plugins with their codes", async () => {
-    const out = JSON.parse((await runCli(tempProject(goodAndBad()), ["a.md", "--lenient-plugins", "--json"])).stdout);
+    const out = JSON.parse((await runCli(tmp.project(goodAndBad()), ["a.md", "--lenient-plugins", "--json"])).stdout);
     expect(out.skippedPlugins).toEqual([
       expect.objectContaining({
         source: join(".prose-gates", "rules", "no-prefix.mjs"),
@@ -315,7 +317,7 @@ describe("lenient plugin loading", () => {
   });
 
   test("lenient and no-plugins contradict each other", async () => {
-    const { code, stderr } = await runCli(tempProject({ ...PKG, "a.md": "ok.\n" }), [
+    const { code, stderr } = await runCli(tmp.project({ ...PKG, "a.md": "ok.\n" }), [
       "a.md",
       "--no-plugins",
       "--lenient-plugins",
@@ -344,7 +346,7 @@ export default {
 `;
 
   test("loads and checks every plugin and runs no check and no fix", async () => {
-    const root = tempProject({ ...PKG, "a.md": "A TODO here.\n" });
+    const root = tmp.project({ ...PKG, "a.md": "A TODO here.\n" });
     const { writeFileSync, mkdirSync } = await import("node:fs");
     mkdirSync(join(root, ".prose-gates", "rules"), { recursive: true });
     writeFileSync(join(root, ".prose-gates", "rules", "sentence-probe.mjs"), probing(root));
@@ -364,7 +366,7 @@ export default {
       ".prose-gates/rules/sentence-boom.mjs": "throw new Error('kaboom');\n",
       "package.json": JSON.stringify({ dependencies: { "prose-gates-plugin-acme": "1" } }),
     };
-    const { code, stdout, stderr } = await runCli(tempProject(files), ["--validate-plugins"]);
+    const { code, stdout, stderr } = await runCli(tmp.project(files), ["--validate-plugins"]);
     expect(code).toBe(1);
     expect(stdout).toBe("");
     expect(stderr).toContain("prose-gates: plugin validation failed, 3 of 3 sources");
@@ -375,19 +377,19 @@ export default {
 
   test("counts the sources that loaded when some fail", async () => {
     const files = { ...local("sentence-good", todoRule()), ".prose-gates/rules/no-prefix.mjs": todoRule() };
-    const { stderr } = await runCli(tempProject(files), ["--validate-plugins"]);
+    const { stderr } = await runCli(tmp.project(files), ["--validate-plugins"]);
     expect(stderr).toContain("validation failed, 1 of 2 sources");
   });
 
   test("says so when there is nothing to validate", async () => {
-    const { code, stdout } = await runCli(tempProject(PKG), ["--validate-plugins"]);
+    const { code, stdout } = await runCli(tmp.project(PKG), ["--validate-plugins"]);
     expect(code).toBe(0);
     expect(stdout).toContain("prose-gates: no plugins found");
   });
 
   test("--json gives the same result as data", async () => {
     const files = { ...local("sentence-good", todoRule()), ".prose-gates/rules/no-prefix.mjs": todoRule() };
-    const out = JSON.parse((await runCli(tempProject(files), ["--validate-plugins", "--json"])).stdout);
+    const out = JSON.parse((await runCli(tmp.project(files), ["--validate-plugins", "--json"])).stdout);
     expect(out.valid).toBe(false);
     expect(out.plugins.map((p: { namespace: string }) => p.namespace)).toEqual(["local"]);
     expect(out.failures).toEqual([expect.objectContaining({ code: "plugin-contract", kind: "local" })]);
@@ -398,7 +400,7 @@ export default {
       ...local("sentence-good", todoRule()),
       "prose-gates.config.json": JSON.stringify({ rules: { PG004: "off" } }),
     };
-    const { code, stderr } = await runCli(tempProject(files), ["--validate-plugins"]);
+    const { code, stderr } = await runCli(tmp.project(files), ["--validate-plugins"]);
     expect(code).toBe(2);
     expect(stderr).toContain("error[unknown-rule]");
   });
@@ -409,14 +411,14 @@ export default {
     ["--no-plugins", ["--no-plugins"], "takes no --no-plugins, --fix or --list-rules"],
     ["--list-rules", ["--list-rules"], "takes no --no-plugins, --fix or --list-rules"],
   ])("rejects %s with a flag error", async (_name, extra, message) => {
-    const { code, stderr } = await runCli(tempProject({ ...PKG, "a.md": "ok.\n" }), ["--validate-plugins", ...extra]);
+    const { code, stderr } = await runCli(tmp.project({ ...PKG, "a.md": "ok.\n" }), ["--validate-plugins", ...extra]);
     expect(code).toBe(2);
     expect(stderr).toContain(message);
   });
 
   test("works through the library too, collecting rather than throwing", async () => {
     const files = { ...local("sentence-good", todoRule()), ".prose-gates/rules/no-prefix.mjs": todoRule() };
-    const { registry, failures } = await setUp({ cwd: tempProject(files), collect: true });
+    const { registry, failures } = await setUp({ cwd: tmp.project(files), collect: true });
     expect(registry.sources.map((s) => s.namespace)).toEqual(["local"]);
     expect(failures).toHaveLength(1);
   });
@@ -437,7 +439,7 @@ export default {
 
   test("a .ts rule loads and runs where the runtime can import TypeScript", async () => {
     const files = local("sentence-no-todo", tsRule, "ts");
-    const { registry } = await setUp({ cwd: tempProject(files) });
+    const { registry } = await setUp({ cwd: tmp.project(files) });
     expect((await checkMarkdown("A TODO here.\n", "doc.md", undefined, registry)).map((f) => f.rule)).toEqual([
       "local/sentence-no-todo",
     ]);
@@ -448,14 +450,14 @@ export default {
       ...local("sentence-no-todo", tsRule, "mts"),
       ".prose-gates/rules/types.d.ts": "export type X = string;\n",
     };
-    expect((await setUp({ cwd: tempProject(files) })).registry.rules.map((r) => r.id)).toContain(
+    expect((await setUp({ cwd: tmp.project(files) })).registry.rules.map((r) => r.id)).toContain(
       "local/sentence-no-todo",
     );
   });
 
   test("a .cts rule is refused with the reason", async () => {
     const err = (await caught(() =>
-      setUp({ cwd: tempProject(local("sentence-no-todo", tsRule, "cts")) }),
+      setUp({ cwd: tmp.project(local("sentence-no-todo", tsRule, "cts")) }),
     )) as PluginSourceError;
     expect(err).toBeInstanceOf(PluginSourceError);
     expect([err.code, err.message]).toEqual(["plugin-source", expect.stringContaining("so use .ts or .mts, not .cts")]);
@@ -472,7 +474,7 @@ export default {
   });
 
   test("on a runtime that cannot, the .ts file fails with how to fix it, and a .mjs beside it still loads", async () => {
-    const root = tempProject({
+    const root = tmp.project({
       ...local("sentence-no-todo", tsRule, "ts"),
       ".prose-gates/rules/sentence-plain.mjs": todoRule(),
     });
@@ -491,7 +493,7 @@ export default {
   });
 
   test("the Node bundle runs a .ts rule when this Node can, and says how to fix it when it cannot", async () => {
-    const root = tempProject({ ...local("sentence-no-todo", tsRule, "ts"), "a.md": "A TODO here.\n" });
+    const root = tmp.project({ ...local("sentence-no-todo", tsRule, "ts"), "a.md": "A TODO here.\n" });
     const probe = Bun.spawn(["node", "-p", "Boolean(process.features.typescript)"], { stdout: "pipe" });
     const nodeCan = (await new Response(probe.stdout).text()).trim() === "true";
     const { code, stdout, stderr } = await runCli(root, ["a.md"], ["node", join(PROJECT_ROOT, "dist", "bin.js")]);
@@ -507,7 +509,7 @@ export default {
 
 describe("the same paths in process", () => {
   const bad = (): string =>
-    tempProject({
+    tmp.project({
       ...local("sentence-good", todoRule()),
       ".prose-gates/rules/no-prefix.mjs": todoRule(),
       "a.md": "Fine.\n",
@@ -522,9 +524,9 @@ describe("the same paths in process", () => {
     expect(await main(["--validate-plugins"], root)).toBe(1);
     expect(await main(["--validate-plugins", "--json"], root)).toBe(1);
     expect(await main(["--list-rules", "--lenient-plugins"], root)).toBe(0);
-    expect(await main(["--validate-plugins"], tempProject(PKG))).toBe(0);
-    expect(await main(["--validate-plugins", "--json"], tempProject(local("sentence-good", todoRule())))).toBe(0);
-    expect(await main(["--validate-plugins"], tempProject(local("sentence-good", todoRule())))).toBe(0);
+    expect(await main(["--validate-plugins"], tmp.project(PKG))).toBe(0);
+    expect(await main(["--validate-plugins", "--json"], tmp.project(local("sentence-good", todoRule())))).toBe(0);
+    expect(await main(["--validate-plugins"], tmp.project(local("sentence-good", todoRule())))).toBe(0);
   });
 
   test("flag mistakes exit 2", async () => {
@@ -565,14 +567,14 @@ describe("the same paths in process", () => {
   });
 
   test("--no-plugins does not fail on a declared package that is not installed", async () => {
-    const root = tempProject({ "package.json": JSON.stringify({ dependencies: { "prose-gates-plugin-acme": "1" } }) });
+    const root = tmp.project({ "package.json": JSON.stringify({ dependencies: { "prose-gates-plugin-acme": "1" } }) });
     const { registry, skipped } = await setUp({ cwd: root, noPlugins: true });
     expect(registry.sources).toEqual([]);
     expect(skipped).toEqual(["prose-gates-plugin-acme"]);
   });
 
   test("a declared package listed twice is reported once", async () => {
-    const root = tempProject({
+    const root = tmp.project({
       "package.json": JSON.stringify({ dependencies: { "prose-gates-plugin-acme": "1" } }),
       "prose-gates.config.json": JSON.stringify({ plugins: ["prose-gates-plugin-acme"], pluginLoading: "lenient" }),
     });

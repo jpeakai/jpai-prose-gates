@@ -15,38 +15,29 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 
 <!-- GENERATED from PRS-0007 by okf_render.py. Do not edit; edit the .yml and regenerate. -->
 
-> **Lens**: Two dashes in one sentence almost always bracket an aside.
-> One dash almost always introduces what follows.
-
 ## Relates to
 
 - Depends on [PRS-0004](0004-a-fixer-refuses-when-unsure.md) (every pattern outside the two shapes is refused)
-
-## Problem
-
-### Symptom
-
-Em-dashes are the most common slop glyph, and reporting each one made fix runs noisy.
-
-### Pain point
-
-The right replacement depends on how many dashes a sentence holds, which a human decides the same way every time.
 
 ## Decision
 
 ### The lens
 
-- **Given**: a sentence in prose contains an em-dash
-- **We prefer**: replacing a pair with parentheses and a single dash with a colon, over reporting every dash for a manual rewrite
-- **Because**: those two shapes have one reading each, so the replacement keeps the meaning
-- **Unless**: the dash touches punctuation, sits between digits, shares a sentence with a colon, or brackets a marker
+#### Given
 
-### In practice
+a sentence in prose contains an em-dash
 
-- `Bun — the runtime — is fast` becomes `Bun (the runtime) is fast`.
-- `One rule — no dashes` becomes `One rule: no dashes`.
-- Three or more dashes in one sentence are refused.
-- HTML entities are reported but never decoded.
+#### We prefer
+
+replacing a pair with parentheses and a single dash with a colon, over reporting every dash for a manual rewrite
+
+#### Because
+
+those two shapes have one reading each, so the replacement keeps the meaning
+
+#### Unless
+
+the dash touches punctuation, sits between digits, shares a sentence with a colon, or brackets a marker
 
 ## Consequences
 

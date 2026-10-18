@@ -5,7 +5,9 @@
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
 import { checkMarkdown, FixInvariantError, fixMarkdownReport, setUp } from "../src/index.ts";
-import { PROJECT_ROOT, runCli, tempProject } from "./helpers.ts";
+import { PROJECT_ROOT, runCli, tempDirs } from "./helpers.ts";
+
+const tmp = tempDirs();
 
 const PKG = { "package.json": JSON.stringify({ name: "demo" }) };
 
@@ -24,7 +26,7 @@ const local = (name: string, source: string): Record<string, string> => ({
   [`.prose-gates/rules/${name}.mjs`]: source,
 });
 
-const registryOf = async (files: Record<string, string>) => (await setUp({ cwd: tempProject(files) })).registry;
+const registryOf = async (files: Record<string, string>) => (await setUp({ cwd: tmp.project(files) })).registry;
 
 const ids = async (files: Record<string, string>, src: string): Promise<string[]> =>
   (await checkMarkdown(src, "doc.md", undefined, await registryOf(files))).map((f) => f.rule);
@@ -54,7 +56,7 @@ describe("local rules in .prose-gates/rules", () => {
       "frontmatter-no-todo",
       `export const categories = { frontmatter: "Keys in the leading metadata block" };\n${todoRule("frontmatter")}`,
     );
-    const { registry } = await setUp({ cwd: tempProject(files) });
+    const { registry } = await setUp({ cwd: tmp.project(files) });
     expect(registry.categories.get("frontmatter")).toBe("Keys in the leading metadata block");
     expect(registry.rules.map((r) => r.id)).toContain("local/frontmatter-no-todo");
   });
@@ -141,7 +143,7 @@ describe("local rules in .prose-gates/rules", () => {
   });
 
   test("a project with no plugins has only the built-in rules", async () => {
-    const { registry, skipped } = await setUp({ cwd: tempProject(PKG) });
+    const { registry, skipped } = await setUp({ cwd: tmp.project(PKG) });
     expect(registry.sources).toEqual([]);
     expect(skipped).toEqual([]);
   });
@@ -149,19 +151,19 @@ describe("local rules in .prose-gates/rules", () => {
 
 describe("the loaded line", () => {
   test("every run that loads a plugin says so on stderr", async () => {
-    const root = tempProject({ ...local("sentence-no-todo", todoRule()), "a.md": "Fine.\n" });
+    const root = tmp.project({ ...local("sentence-no-todo", todoRule()), "a.md": "Fine.\n" });
     const { code, stderr } = await runCli(root, ["a.md"]);
     expect(code).toBe(0);
     expect(stderr).toContain("prose-gates: loaded local (1 rule)");
   });
 
   test("a run with no plugins prints nothing extra", async () => {
-    const root = tempProject({ ...PKG, "a.md": "Fine.\n" });
+    const root = tmp.project({ ...PKG, "a.md": "Fine.\n" });
     expect((await runCli(root, ["a.md"])).stderr).toBe("");
   });
 
   test("--json carries the same list", async () => {
-    const root = tempProject({ ...local("sentence-no-todo", todoRule()), "a.md": "Fine.\n" });
+    const root = tmp.project({ ...local("sentence-no-todo", todoRule()), "a.md": "Fine.\n" });
     const out = JSON.parse((await runCli(root, ["a.md", "--json"])).stdout);
     expect(out.plugins).toEqual([
       { kind: "local", spec: ".prose-gates/rules", namespace: "local", rules: ["local/sentence-no-todo"] },
@@ -169,14 +171,14 @@ describe("the loaded line", () => {
   });
 
   test("a plugin finding exits 1 and names its id", async () => {
-    const root = tempProject({ ...local("sentence-no-todo", todoRule()), "a.md": "A TODO here.\n" });
+    const root = tmp.project({ ...local("sentence-no-todo", todoRule()), "a.md": "A TODO here.\n" });
     const { code, stdout } = await runCli(root, ["a.md"]);
     expect(code).toBe(1);
     expect(stdout).toContain("a.md:1 local/sentence-no-todo TODO left in");
   });
 
   test("a load failure exits 1 with the reason", async () => {
-    const root = tempProject({ ...local("no-todo", todoRule()), "a.md": "Fine.\n" });
+    const root = tmp.project({ ...local("no-todo", todoRule()), "a.md": "Fine.\n" });
     const { code, stderr } = await runCli(root, ["a.md"]);
     expect(code).toBe(1);
     expect(stderr).toContain("plugin .prose-gates/rules/no-todo.mjs");
@@ -184,7 +186,7 @@ describe("the loaded line", () => {
 });
 
 describe("turning plugins off", () => {
-  const root = (): string => tempProject({ ...local("sentence-no-todo", todoRule()), "a.md": "A TODO here.\n" });
+  const root = (): string => tmp.project({ ...local("sentence-no-todo", todoRule()), "a.md": "A TODO here.\n" });
 
   test("--no-plugins runs built-ins only and names what it skipped", async () => {
     const { code, stderr } = await runCli(root(), ["a.md", "--no-plugins"]);
@@ -193,7 +195,7 @@ describe("turning plugins off", () => {
   });
 
   test('"plugins": false in the config does the same', async () => {
-    const dir = tempProject({
+    const dir = tmp.project({
       ...local("sentence-no-todo", todoRule()),
       "prose-gates.config.json": JSON.stringify({ plugins: false }),
       "a.md": "A TODO here.\n",
@@ -202,7 +204,7 @@ describe("turning plugins off", () => {
   });
 
   test("a bad plugin does not stop a --no-plugins run", async () => {
-    const dir = tempProject({ ...local("no-todo", todoRule()), "a.md": "Fine.\n" });
+    const dir = tmp.project({ ...local("no-todo", todoRule()), "a.md": "Fine.\n" });
     expect((await runCli(dir, ["a.md", "--no-plugins"])).code).toBe(0);
   });
 });
@@ -372,7 +374,7 @@ describe("a hostile plugin fixer", () => {
   });
 
   test("--fix through the CLI applies a plugin fix and reports the rest", async () => {
-    const root = tempProject({ ...fixer(collapseSpaces), "a.md": "A   TODO here.\n" });
+    const root = tmp.project({ ...fixer(collapseSpaces), "a.md": "A   TODO here.\n" });
     const { code, stdout } = await runCli(root, ["a.md", "--fix"]);
     expect(code).toBe(1);
     expect(stdout).toContain("a.md:1 local/sentence-fixer TODO left in");
@@ -497,7 +499,7 @@ describe("plugin packages", () => {
   });
 
   test("a package hoisted to a parent directory is found", async () => {
-    const root = tempProject({
+    const root = tmp.project({
       ...packageFiles("prose-gates-plugin-acme", acme),
       "packages/app/package.json": JSON.stringify({
         name: "app",
@@ -561,7 +563,7 @@ describe("plugin packages", () => {
       ...packageFiles("prose-gates-plugin-acme", acme),
       ".prose-gates/rules/sentence-l.mjs": todoRule(),
     };
-    const { registry } = await setUp({ cwd: tempProject(files) });
+    const { registry } = await setUp({ cwd: tmp.project(files) });
     expect(registry.sources.map((s) => s.namespace)).toEqual(["local", "acme", "beta"]);
   });
 });
@@ -655,7 +657,7 @@ describe("a package that breaks the contract", () => {
         'categories: { tone: "Voice and register" }',
       ),
     );
-    const { registry } = await setUp({ cwd: tempProject(files) });
+    const { registry } = await setUp({ cwd: tmp.project(files) });
     expect(registry.categories.get("tone")).toBe("Voice and register");
     expect(registry.rules.find((r) => r.id === "acme/tone-x")?.category).toBe("tone");
   });
@@ -663,7 +665,7 @@ describe("a package that breaks the contract", () => {
 
 describe("the Node bundle loads plugins too", () => {
   test("node dist/bin.js applies a local rule and prints the loaded line", async () => {
-    const root = tempProject({ ...local("sentence-no-todo", todoRule()), "a.md": "A TODO here.\n" });
+    const root = tmp.project({ ...local("sentence-no-todo", todoRule()), "a.md": "A TODO here.\n" });
     const { code, stdout, stderr } = await runCli(root, ["a.md"], ["node", join(PROJECT_ROOT, "dist", "bin.js")]);
     expect(code).toBe(1);
     expect(stdout).toContain("local/sentence-no-todo");

@@ -16,38 +16,31 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 
 <!-- GENERATED from PRS-0009 by okf_render.py. Do not edit; edit the .yml and regenerate. -->
 
-> **Lens**: Example tests show a fixer works on the cases its author imagined.
-> The bugs live in the cases nobody imagined.
-
 ## Relates to
 
 - Tests [PRS-0004](0004-a-fixer-refuses-when-unsure.md) (the refuses helper asserts untouched output)
 - Tests [PRS-0005](0005-every-fix-is-verified.md) (properties assert the fingerprint is preserved)
-
-## Problem
-
-### Symptom
-
-Each fixer passed its happy-path fixtures while rewriting escapes, CRLF files and cross-references wrongly.
-
-### Pain point
-
-Those failures change meaning in real documents, so they cannot wait for a user report.
+- Depended on by [PRS-0037](0037-a-check-reports-every-line-its-fixer-changes.md) (the one-per-line gap was reproduced by an adversarial test before its fix)
 
 ## Decision
 
 ### The lens
 
-- **Given**: a change touches how any rule fixes prose
-- **We prefer**: exact fixtures, adversarial suites and generated property tests together, over example tests alone
-- **Because**: each layer catches a class of bug the others miss, and a regression becomes a named test
-- **Unless**: never
+#### Given
 
-### In practice
+a change touches how any rule fixes prose
 
-- A found bug gets an adversarial test before its fix.
-- Properties assert no throw, idempotence, a kept fingerprint, no new findings and byte-identical fences.
-- Tests use the real parser and real files, never mocks.
+#### We prefer
+
+exact fixtures, adversarial suites and generated property tests together, over example tests alone
+
+#### Because
+
+each layer catches a class of bug the others miss, and a regression becomes a named test
+
+#### Unless
+
+never
 
 ## Consequences
 

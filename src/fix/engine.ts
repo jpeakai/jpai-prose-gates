@@ -3,9 +3,10 @@
 // edit that survives verification. Offsets are only ever valid for the
 // source they were computed from, so every accepted edit restarts the pass.
 
+import type { Root } from "mdast";
 import { buildDocModel, parse } from "../model.ts";
 import { BUILTIN, type Registry, ruleContext, TEXT_HELPERS } from "../rules/registry.ts";
-import type { Edit } from "../rules/types.ts";
+import type { Edit, Rule, RuleContext } from "../rules/types.ts";
 import { verify } from "./verify.ts";
 
 const MAX_PASSES = 10_000;
@@ -37,67 +38,84 @@ const wellFormed = (e: Edit, length: number): boolean =>
   e.end <= length &&
   typeof e.text === "string";
 
-export const fixMarkdownReport = async (src: string, registry: Registry = BUILTIN): Promise<FixReport> => {
-  const applied: Edit[] = [];
-  const refused: Edit[] = [];
-  // An edit refused once stays refused while its source slice is unchanged.
-  const refusedKeys = new Set<string>();
-  let current = src;
+// What the loop carries between passes. An edit refused once stays refused
+// while its source slice is unchanged, which `refusedKeys` remembers.
+interface FixState {
+  current: string;
+  applied: Edit[];
+  refused: Edit[];
+  refusedKeys: Set<string>;
+}
 
-  for (let pass = 0; pass < MAX_PASSES; pass++) {
-    const ctx = ruleContext(buildDocModel(current), registry);
-    const before = { src: current, tree: ctx.doc.tree };
-    const keyOf = (e: Edit): string => `${e.rule}\u0000${current.slice(e.start, e.end)}\u0000${e.text}`;
+type Before = { src: string; tree: Root };
 
-    const attempt = (edits: Edit[]): boolean => {
-      const next = splice(current, edits);
-      const afterTree = parse(next);
-      if (edits.every((e) => verify(e, before, afterTree) === "accept")) {
-        current = next;
-        applied.push(...edits);
-        return true;
-      }
-      return false;
-    };
+const keyOf = (state: FixState, e: Edit): string =>
+  `${e.rule}\u0000${state.current.slice(e.start, e.end)}\u0000${e.text}`;
 
-    let progressed = false;
-    for (const rule of registry.fixOrder) {
-      const proposed =
-        (await rule.fix?.({ ...ctx, options: registry.options.get(rule.id) ?? {}, helpers: TEXT_HELPERS })) ?? [];
-      // An edit that points outside the source cannot be proven, so it is
-      // refused before it is ever spliced. A built-in never proposes one.
-      const sound = proposed.filter((e) => {
-        if (wellFormed(e, current.length)) return true;
-        const key = `${e.rule}\u0000malformed\u0000${e.start}:${e.end}`;
-        if (!refusedKeys.has(key)) {
-          refusedKeys.add(key);
-          refused.push(e);
-        }
-        return false;
-      });
-      const edits = sound.filter((e) => current.slice(e.start, e.end) !== e.text && !refusedKeys.has(keyOf(e)));
-      if (edits.length === 0) continue;
+// Splice the edits, re-parse, and keep the result only if every edit is
+// proven against the tree the pass started from.
+const attempt = (state: FixState, edits: Edit[], before: Before): boolean => {
+  const next = splice(state.current, edits);
+  const afterTree = parse(next);
+  if (!edits.every((e) => verify(e, before, afterTree) === "accept")) return false;
+  state.current = next;
+  state.applied.push(...edits);
+  return true;
+};
 
-      // Whitespace and glyph edits leave the tree's shape alone, so a rule's
-      // whole batch can be proven in one re-parse. A batch that fails falls
-      // back to one edit at a time, so one bad edit never blocks the rest.
-      const batchable =
-        edits.length > 1 && !overlaps(edits) && edits.every((e) => e.expect.kind !== "replace-paragraph");
-      if (batchable && attempt(edits)) {
-        progressed = true;
-        break;
-      }
-      for (const edit of edits) {
-        if (attempt([edit])) {
-          progressed = true;
-          break;
-        }
-        refusedKeys.add(keyOf(edit));
-        refused.push(edit);
-      }
-      if (progressed) break;
+// An edit that points outside the source cannot be proven, so it is
+// refused before it is ever spliced. A built-in never proposes one.
+const keepWellFormed = (state: FixState, proposed: Edit[]): Edit[] =>
+  proposed.filter((e) => {
+    if (wellFormed(e, state.current.length)) return true;
+    const key = `${e.rule}\u0000malformed\u0000${e.start}:${e.end}`;
+    if (!state.refusedKeys.has(key)) {
+      state.refusedKeys.add(key);
+      state.refused.push(e);
     }
-    if (!progressed) return { output: current, applied, refused };
+    return false;
+  });
+
+// The rule's edits that would change something and have not been refused.
+const proposeEdits = async (state: FixState, rule: Rule, ctx: RuleContext, registry: Registry): Promise<Edit[]> => {
+  const proposed =
+    (await rule.fix?.({ ...ctx, options: registry.options.get(rule.id) ?? {}, helpers: TEXT_HELPERS })) ?? [];
+  const sound = keepWellFormed(state, proposed);
+  return sound.filter((e) => state.current.slice(e.start, e.end) !== e.text && !state.refusedKeys.has(keyOf(state, e)));
+};
+
+// Whitespace and glyph edits leave the tree's shape alone, so a rule's
+// whole batch can be proven in one re-parse. A batch that fails falls
+// back to one edit at a time, so one bad edit never blocks the rest.
+const applyRuleEdits = (state: FixState, edits: Edit[], before: Before): boolean => {
+  const batchable = edits.length > 1 && !overlaps(edits) && edits.every((e) => e.expect.kind !== "replace-paragraph");
+  if (batchable && attempt(state, edits, before)) return true;
+  for (const edit of edits) {
+    if (attempt(state, [edit], before)) return true;
+    state.refusedKeys.add(keyOf(state, edit));
+    state.refused.push(edit);
+  }
+  return false;
+};
+
+// One pass: rules in fix order until one edit lands. True when it did.
+const runPass = async (state: FixState, registry: Registry): Promise<boolean> => {
+  const ctx = ruleContext(buildDocModel(state.current, registry.concepts), registry);
+  const before = { src: state.current, tree: ctx.doc.tree };
+  for (const rule of registry.fixOrder) {
+    const edits = await proposeEdits(state, rule, ctx, registry);
+    if (edits.length === 0) continue;
+    if (applyRuleEdits(state, edits, before)) return true;
+  }
+  return false;
+};
+
+export const fixMarkdownReport = async (src: string, registry: Registry = BUILTIN): Promise<FixReport> => {
+  const state: FixState = { current: src, applied: [], refused: [], refusedKeys: new Set<string>() };
+  for (let pass = 0; pass < MAX_PASSES; pass++) {
+    if (!(await runPass(state, registry))) {
+      return { output: state.current, applied: state.applied, refused: state.refused };
+    }
   }
   throw new Error(`fix did not converge after ${MAX_PASSES} passes; a fixer keeps proposing edits`);
 };

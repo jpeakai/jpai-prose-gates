@@ -18,22 +18,25 @@ npx -y @jpeakai/prose-gates --fix README.md  # apply every fix proven safe, repo
 
 Installed as a dev dependency, the command is `prose-gates`, and `--json` gives machine-readable output.
 
-`--max-words N` changes the sentence budget, which defaults to 25.
-`--config FILE` reads a config other than the one at the project root.
-`--no-plugins` runs the built-in rules only, and `--lenient-plugins` skips a plugin that fails to load and says so.
-`--validate-plugins` loads and checks every plugin, reports every failure, and runs no check or fix.
-`--list-rules` prints every active rule by category, including plugin rules.
+- `--max-words N` changes the sentence budget, which defaults to 25.
+  The paragraph budget of 5 sentences is set by the `maxSentences` option in the config instead.
+- `--config FILE` reads a config other than the one at the project root.
+- `--no-plugins` runs the built-in rules only, and `--lenient-plugins` skips a plugin that fails to load and says so.
+- `--validate-plugins` loads and checks every plugin, reports every failure, and runs no check or fix.
+- `--list-rules` prints every active rule by category, including plugin rules.
+
 Exit codes are 0 for clean, 1 for findings, and 2 for a usage error.
 
 ## The rules
 
-Nine rules in three categories.
+The rules are grouped by what they guard, and `--list-rules` prints them.
 [RULES.md](RULES.md) shows a failing example and the fix for each one.
 [docs/DATA_MODEL.md](docs/DATA_MODEL.md) diagrams how a rule is checked, fixed and verified.
 
 | Category | Rules | What it guards |
 |---|---|---|
 | Sentence | sentence-one-per-line, sentence-word-budget-exceeded | How a sentence is laid out and how long it runs |
+| Paragraph | paragraph-sentence-budget-exceeded | How many sentences a paragraph holds before a break |
 | List | list-semicolon-delimited-run, list-interpunct-joined-run, list-inline-enumeration-markers, list-comma-labelled-run, list-stacked-interpunct-runs | A list hidden in running prose, promoted to a real markdown list |
 | Punctuation | punctuation-em-dash-in-prose, punctuation-interpunct-in-prose | A glyph that reads as generated text |
 
@@ -50,9 +53,13 @@ Fences tagged `markdown` or `md` are the exception, since they hold templates wh
 A project adds its own rules without forking this package.
 Both sources load on their own, with no config, and every run prints a line saying what it loaded.
 
-- **Local rules.** A `.js`, `.mjs`, `.ts` or `.mts` file in `.prose-gates/rules/` exports one rule, and its id is `local/` followed by the file name. TypeScript needs Bun or Node 22.18 or newer.
+- **Local rules.** A `.js`, `.mjs`, `.ts` or `.mts` file in `.prose-gates/rules/` exports one rule, and its id is `local/` followed by the file name.
+  TypeScript needs Bun or Node 22.18 or newer.
 - **Plugin packages.** A dependency named `prose-gates-plugin-name` or `@scope/prose-gates-plugin-name` loads under the namespace its own `meta.namespace` declares.
 - **New categories.** A plugin declares a category of its own, such as `frontmatter`, and its rules use it.
+- **The project's own terms.** A `GLOSSARY.md` or `CONCEPTS.md` at the root is read as the project's concepts.
+  Each H2 is a term, and its Mermaid diagrams relate them.
+  Each sentence lists the concepts it names.
 - **Same treatment.** A plugin rule is switched off, given options and listed exactly like a built-in, and its fixer is verified like a built-in fixer.
 
 A config at the project root switches rules off and sets options.
@@ -81,8 +88,7 @@ bun add --dev @jpeakai/prose-gates
 ```
 
 npm works the same way, with `npm install --save-dev @jpeakai/prose-gates`.
-The library exports `checkMarkdown` and `fixMarkdown`, which return promises because a rule may be async.
-`@jpeakai/prose-gates/testing` exports the helpers a plugin's tests use.
+The library exports `checkMarkdown` and `fixMarkdown`, which return promises because a rule may be async. `@jpeakai/prose-gates/testing` exports the helpers a plugin's tests use.
 Bun imports the TypeScript source, and Node imports the bundle in `dist/`.
 
 Generated markdown is gated too.

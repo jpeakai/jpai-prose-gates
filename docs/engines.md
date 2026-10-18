@@ -29,7 +29,7 @@ The fix engine reads it too, proposes edits, and rebuilds the model after every 
 | Source file | `src/check.ts` | `src/fix/engine.ts` |
 | Changes the text | Never | Only through verified edits |
 | Rule function | `check(ctx)` returns findings, or a promise of them | `fix(ctx)` returns edits, or a promise of them |
-| Rules run | All at once, so they overlap | One at a time, in priority order |
+| Rules run | All at once, so they overlap, except a rule with `after`, which waits | One at a time, in priority order |
 | Model lifetime | One model per document | A new model after every accepted edit |
 | Rule order matters | No, results are sorted after | Only as a priority, see [Ordering](#ordering) |
 
@@ -94,6 +94,7 @@ erDiagram
     DOCMODEL ||--|| ROOT : tree
     PARAGRAPH_VIEW ||--|| PARAGRAPH_NODE : node
     PARAGRAPH_VIEW ||--o{ DIRECT_TEXT : directTexts
+    PARAGRAPH_VIEW ||--|| LANGUAGE_VIEW : "language, read on first use"
     TEXT_VIEW }o--o| BLOCK_NODE : block
     FRONTMATTER_VIEW ||--o{ ENTRY : entries
     FRONTMATTER_VIEW ||--o{ SCALAR : scalars
@@ -114,6 +115,9 @@ erDiagram
         bool inBlockquote
         bool inListItem
         bool onlyChild "the paragraph is its parent's only block"
+    }
+    LANGUAGE_VIEW {
+        sentence_list sentences "words, tags and lemmas of each"
     }
     DIRECT_TEXT {
         string value
@@ -184,6 +188,7 @@ erDiagram
     CHECK_CONTEXT {
         string file
         number maxWords "flag, then option, then 25"
+        finding_list earlier "findings of its after categories"
         record options "this rule's options"
         record helpers "words, sentences, lengthMessage"
     }
@@ -217,7 +222,8 @@ They are derived once per document, so a check and its fixer can never disagree 
 ## The check engine
 
 `checkModel` builds one context per document and starts every active rule at once.
-No rule sees another rule's findings, and none can change the document.
+A rule that names categories in `after` starts once they have reported, and reads their findings as `earlier`.
+No other rule sees another rule's findings, and none can change the document.
 A rule may be synchronous or return a promise, and the engine waits for all of them.
 
 ```mermaid

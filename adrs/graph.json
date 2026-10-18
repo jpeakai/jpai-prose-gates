@@ -16,93 +16,114 @@
     },
     {
       "data": {
+        "id": "group-docs",
+        "label": "docs",
+        "colour": "#059669"
+      }
+    },
+    {
+      "data": {
         "id": "group-documentation",
         "label": "documentation",
-        "colour": "#059669"
+        "colour": "#d97706"
       }
     },
     {
       "data": {
         "id": "group-engine",
         "label": "engine",
-        "colour": "#d97706"
+        "colour": "#db2777"
       }
     },
     {
       "data": {
         "id": "group-errors",
         "label": "errors",
-        "colour": "#db2777"
+        "colour": "#7c3aed"
       }
     },
     {
       "data": {
         "id": "group-fixing",
         "label": "fixing",
-        "colour": "#7c3aed"
+        "colour": "#0284c7"
       }
     },
     {
       "data": {
         "id": "group-frontmatter",
         "label": "frontmatter",
-        "colour": "#0284c7"
+        "colour": "#65a30d"
       }
     },
     {
       "data": {
         "id": "group-gates",
         "label": "gates",
-        "colour": "#65a30d"
+        "colour": "#6366f1"
+      }
+    },
+    {
+      "data": {
+        "id": "group-messages",
+        "label": "messages",
+        "colour": "#0891b2"
       }
     },
     {
       "data": {
         "id": "group-model",
         "label": "model",
-        "colour": "#6366f1"
+        "colour": "#059669"
       }
     },
     {
       "data": {
         "id": "group-packaging",
         "label": "packaging",
-        "colour": "#0891b2"
+        "colour": "#d97706"
       }
     },
     {
       "data": {
         "id": "group-parsing",
         "label": "parsing",
-        "colour": "#059669"
+        "colour": "#db2777"
       }
     },
     {
       "data": {
         "id": "group-plugins",
         "label": "plugins",
-        "colour": "#d97706"
+        "colour": "#7c3aed"
+      }
+    },
+    {
+      "data": {
+        "id": "group-quality",
+        "label": "quality",
+        "colour": "#0284c7"
       }
     },
     {
       "data": {
         "id": "group-release",
         "label": "release",
-        "colour": "#db2777"
+        "colour": "#65a30d"
       }
     },
     {
       "data": {
         "id": "group-rules",
         "label": "rules",
-        "colour": "#7c3aed"
+        "colour": "#6366f1"
       }
     },
     {
       "data": {
         "id": "group-testing",
         "label": "testing",
-        "colour": "#0284c7"
+        "colour": "#0891b2"
       }
     },
     {
@@ -110,7 +131,7 @@
         "id": "PRS-0001",
         "label": "0001",
         "parent": "group-parsing",
-        "colour": "#059669",
+        "colour": "#db2777",
         "file": "0001-parse-once-to-mdast.md",
         "title": "Every rule reads one mdast tree parsed once per file",
         "description": "Rules query a shared syntax tree instead of scanning raw lines with their own regexes",
@@ -123,7 +144,7 @@
         "id": "PRS-0002",
         "label": "0002",
         "parent": "group-gates",
-        "colour": "#65a30d",
+        "colour": "#6366f1",
         "file": "0002-generated-markdown-is-gated.md",
         "title": "Generated markdown is gated like hand-written markdown",
         "description": "Rendered output passes the same gates, and a finding there is fixed in its source or template",
@@ -136,7 +157,7 @@
         "id": "PRS-0003",
         "label": "0003",
         "parent": "group-fixing",
-        "colour": "#7c3aed",
+        "colour": "#0284c7",
         "file": "0003-splice-source-never-restringify.md",
         "title": "Fixes splice source slices and never re-stringify the tree",
         "description": "An edit replaces a byte range with text built from source slices, so untouched bytes stay identical",
@@ -149,7 +170,7 @@
         "id": "PRS-0004",
         "label": "0004",
         "parent": "group-fixing",
-        "colour": "#7c3aed",
+        "colour": "#0284c7",
         "file": "0004-a-fixer-refuses-when-unsure.md",
         "title": "A fixer refuses whenever the input is ambiguous",
         "description": "An unfixable case leaves the source untouched and the finding reported, never a best guess",
@@ -162,7 +183,7 @@
         "id": "PRS-0005",
         "label": "0005",
         "parent": "group-fixing",
-        "colour": "#7c3aed",
+        "colour": "#0284c7",
         "file": "0005-every-fix-is-verified.md",
         "title": "Every fix is verified against a content fingerprint and an expected shape",
         "description": "A lost word throws, and an unexpected tree shape refuses the edit before it is applied",
@@ -175,7 +196,7 @@
         "id": "PRS-0006",
         "label": "0006",
         "parent": "group-rules",
-        "colour": "#7c3aed",
+        "colour": "#6366f1",
         "file": "0006-sentence-length-is-never-autofixed.md",
         "title": "Sentence length is reported and never autofixed",
         "description": "PG002 has no fixer, because shortening a sentence is a decision about what it means",
@@ -188,7 +209,7 @@
         "id": "PRS-0007",
         "label": "0007",
         "parent": "group-rules",
-        "colour": "#7c3aed",
+        "colour": "#6366f1",
         "file": "0007-em-dash-becomes-parentheses-or-colon.md",
         "title": "An em-dash pair becomes parentheses and a lone em-dash becomes a colon",
         "description": "PG004 rewrites only the two dash patterns whose replacement punctuation is unambiguous",
@@ -214,7 +235,7 @@
         "id": "PRS-0009",
         "label": "0009",
         "parent": "group-testing",
-        "colour": "#0284c7",
+        "colour": "#0891b2",
         "file": "0009-adversarial-and-property-tests-gate-fixes.md",
         "title": "Adversarial and property tests gate every change to fix behaviour",
         "description": "Fix behaviour is proven by exact fixtures, hostile inputs and generated documents, all without mocks",
@@ -227,7 +248,7 @@
         "id": "PRS-0010",
         "label": "0010",
         "parent": "group-rules",
-        "colour": "#7c3aed",
+        "colour": "#6366f1",
         "file": "0010-length-findings-guide-a-split.md",
         "title": "A sentence length finding estimates clauses to guide a split",
         "description": "PG002 reports potential clauses and a target sentence count, steering a rewrite away from compression",
@@ -240,7 +261,7 @@
         "id": "PRS-0011",
         "label": "0011",
         "parent": "group-rules",
-        "colour": "#7c3aed",
+        "colour": "#6366f1",
         "file": "0011-rules-carry-a-category.md",
         "title": "Each rule carries a category, and RULES.md is held true by a test",
         "description": "Rules are tagged sentence, list or punctuation, and their documented examples run through the real fixer",
@@ -253,7 +274,7 @@
         "id": "PRS-0012",
         "label": "0012",
         "parent": "group-packaging",
-        "colour": "#0891b2",
+        "colour": "#d97706",
         "file": "0012-node-runs-a-published-bundle.md",
         "title": "Node runs a bundle built at publish time, and Bun runs the source",
         "description": "The npm package ships Node bundles of the CLI and library that are built when it is packed, and git never tracks them",
@@ -266,7 +287,7 @@
         "id": "PRS-0013",
         "label": "0013",
         "parent": "group-packaging",
-        "colour": "#0891b2",
+        "colour": "#d97706",
         "file": "0013-releases-publish-from-github-actions.md",
         "title": "Releases publish to npm from GitHub Actions through trusted publishing",
         "description": "The Publish workflow releases @jpeakai/prose-gates to npm with provenance and no stored token",
@@ -279,7 +300,7 @@
         "id": "PRS-0014",
         "label": "0014",
         "parent": "group-release",
-        "colour": "#db2777",
+        "colour": "#65a30d",
         "file": "0014-main-changes-only-through-pull-requests.md",
         "title": "Main changes only through pull requests, and releases run only from main",
         "description": "Main is protected so every change lands by a pull request that passes CI, and only main can publish",
@@ -318,7 +339,7 @@
         "id": "PRS-0017",
         "label": "0017",
         "parent": "group-rules",
-        "colour": "#7c3aed",
+        "colour": "#6366f1",
         "file": "0017-rule-ids-are-category-and-short-name.md",
         "title": "A rule id is its category followed by a short name",
         "description": "Rules are named category-short-name, such as sentence-one-per-line, instead of by a number",
@@ -344,7 +365,7 @@
         "id": "PRS-0019",
         "label": "0019",
         "parent": "group-plugins",
-        "colour": "#d97706",
+        "colour": "#7c3aed",
         "file": "0019-plugin-contract-and-namespace.md",
         "title": "A plugin rule is a built-in rule with a namespace, and the plugin names it",
         "description": "A plugin is { meta, rules }, its rules see the built-in context, and its ids carry a namespace",
@@ -357,7 +378,7 @@
         "id": "PRS-0020",
         "label": "0020",
         "parent": "group-plugins",
-        "colour": "#d97706",
+        "colour": "#7c3aed",
         "file": "0020-plugin-fixers-stay-under-verification.md",
         "title": "A plugin fixer is held to the same proof as a built-in one",
         "description": "Plugin fixers are allowed, every edit is verified, and a malformed edit is refused before it is spliced",
@@ -370,7 +391,7 @@
         "id": "PRS-0021",
         "label": "0021",
         "parent": "group-plugins",
-        "colour": "#d97706",
+        "colour": "#7c3aed",
         "file": "0021-plugins-declare-their-categories.md",
         "title": "A plugin adds a category by declaring it",
         "description": "A new one-word category is declared in meta.categories, and a word is declared once",
@@ -383,7 +404,7 @@
         "id": "PRS-0022",
         "label": "0022",
         "parent": "group-plugins",
-        "colour": "#d97706",
+        "colour": "#7c3aed",
         "file": "0022-plugins-load-automatically.md",
         "title": "Plugins and local rules load on their own from declared sources",
         "description": "Local rule files and declared plugin dependencies load with no config, and every run says so",
@@ -396,7 +417,7 @@
         "id": "PRS-0023",
         "label": "0023",
         "parent": "group-model",
-        "colour": "#6366f1",
+        "colour": "#059669",
         "file": "0023-frontmatter-is-a-read-only-view.md",
         "title": "Frontmatter is a read-only view that built-in rules never see",
         "description": "DocModel.frontmatter lists the top-level string keys of a YAML block, and built-in rules stay exempt",
@@ -409,7 +430,7 @@
         "id": "PRS-0024",
         "label": "0024",
         "parent": "group-errors",
-        "colour": "#db2777",
+        "colour": "#7c3aed",
         "file": "0024-failures-are-named-errors-with-codes.md",
         "title": "Every deliberate failure is a named error class with a stable code",
         "description": "Usage errors exit 2 and plugin errors exit 1, each class carrying a code and the fields to act on",
@@ -422,7 +443,7 @@
         "id": "PRS-0025",
         "label": "0025",
         "parent": "group-plugins",
-        "colour": "#d97706",
+        "colour": "#7c3aed",
         "file": "0025-plugin-loading-strictness.md",
         "title": "Strict loading is the default, lenient and validated loading are opt-in and loud",
         "description": "A lenient run skips a failed plugin and names it, and a validation run reports every failure and runs no engine",
@@ -435,7 +456,7 @@
         "id": "PRS-0026",
         "label": "0026",
         "parent": "group-plugins",
-        "colour": "#d97706",
+        "colour": "#7c3aed",
         "file": "0026-typescript-local-rules-need-a-runtime-that-imports-them.md",
         "title": "A local rule may be TypeScript where the runtime can import it",
         "description": ".ts and .mts rules are imported as they are, and a runtime that cannot says how to fix it",
@@ -448,7 +469,7 @@
         "id": "PRS-0027",
         "label": "0027",
         "parent": "group-engine",
-        "colour": "#d97706",
+        "colour": "#db2777",
         "file": "0027-rules-may-be-async.md",
         "title": "Rules may be async, checks run concurrently, and fixers run in priority order",
         "description": "The engines are async, checks overlap, fixers are awaited one at a time, and the order stays a hand-kept list",
@@ -461,7 +482,7 @@
         "id": "PRS-0028",
         "label": "0028",
         "parent": "group-frontmatter",
-        "colour": "#0284c7",
+        "colour": "#65a30d",
         "file": "0028-frontmatter-edits-are-verified-by-data-equality.md",
         "title": "A frontmatter edit is verified by comparing the YAML data before and after",
         "description": "A fixer may rewrite frontmatter if the YAML data is unchanged, and the view walks the whole document",
@@ -474,12 +495,116 @@
         "id": "PRS-0029",
         "label": "0029",
         "parent": "group-documentation",
-        "colour": "#059669",
+        "colour": "#d97706",
         "file": "0029-the-docs-site-is-assembled-from-the-real-documents.md",
         "title": "The docs site is assembled from the real documents and deploys only from main",
         "description": "MkDocs Material builds from a copy of the repo's own layout, so the prose gates keep reading the real files",
         "status": "accepted",
         "tags": "documentation, site, workflow"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0030",
+        "label": "0030",
+        "parent": "group-rules",
+        "colour": "#6366f1",
+        "file": "0030-paragraph-length-is-reported-with-topic-guidance.md",
+        "title": "A paragraph over its sentence budget is reported with topic guidance and never autofixed",
+        "description": "A paragraph over 5 sentences fails, and it runs after the list rules, and names its topics and breaks",
+        "status": "accepted",
+        "tags": "rules, messages, agents, scope"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0031",
+        "label": "0031",
+        "parent": "group-quality",
+        "colour": "#0284c7",
+        "file": "0031-code-complexity-is-gated-by-biome.md",
+        "title": "Code complexity is gated by Biome rules that fail the build",
+        "description": "Cognitive complexity, parameter count, test nesting and function length in src fail make check past fixed limits",
+        "status": "accepted",
+        "tags": "quality, tooling"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0032",
+        "label": "0032",
+        "parent": "group-docs",
+        "colour": "#059669",
+        "file": "0032-the-site-theme-is-a-copy-of-osakanights.md",
+        "title": "The docs site wears the OsakaNights theme, copied in from jpai-mermaidjs-lint",
+        "description": "The theme folder is vendored into site-theme/, pulled in with INHERIT, and its tokens are checked on every build",
+        "status": "accepted",
+        "tags": "docs, site, tooling"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0033",
+        "label": "0033",
+        "parent": "group-model",
+        "colour": "#059669",
+        "file": "0033-a-paragraph-carries-a-lazy-language-view.md",
+        "title": "A paragraph carries a language view of its sentences and words, built on first read",
+        "description": "ParagraphView.language holds sentences, words, tags and lemmas for every rule, plugins included",
+        "status": "accepted",
+        "tags": "model, plugins, language"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0034",
+        "label": "0034",
+        "parent": "group-rules",
+        "colour": "#6366f1",
+        "file": "0034-clauses-count-verb-phrases-as-well-as-markers.md",
+        "title": "The clause count is the larger of the marker count and the verb phrases compromise finds",
+        "description": "sentence-word-budget-exceeded counts clauses from punctuation and marker words, or from verbs, whichever finds more",
+        "status": "accepted",
+        "tags": "rules, messages, language"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0035",
+        "label": "0035",
+        "parent": "group-messages",
+        "colour": "#0891b2",
+        "file": "0035-finding-messages-are-measured-by-agent-evals.md",
+        "title": "Finding messages are measured by agent evals that never gate the build",
+        "description": "Agents fix seed documents under pytest-xharness-eval, graded by the gates, to score each message",
+        "status": "accepted",
+        "tags": "messages, agents, evals, tooling"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0036",
+        "label": "0036",
+        "parent": "group-model",
+        "colour": "#059669",
+        "file": "0036-a-glossary-is-read-as-the-concept-model.md",
+        "title": "A project's GLOSSARY.md or CONCEPTS.md is read as its concept model, and the language view names its terms",
+        "description": "Each H2 is a concept, each Mermaid edge a relation, and every sentence lists the concepts it mentions",
+        "status": "accepted",
+        "tags": "model, plugins, language, concepts"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0037",
+        "label": "0037",
+        "parent": "group-rules",
+        "colour": "#6366f1",
+        "file": "0037-a-check-reports-every-line-its-fixer-changes.md",
+        "title": "sentence-one-per-line reports several sentences on one line, as its fixer splits them",
+        "description": "A rule's check reports every paragraph its fixer would change, so a passing file is never rewritten by --fix",
+        "status": "accepted",
+        "tags": "rules, fixes, verification"
       }
     },
     {
@@ -520,6 +645,16 @@
         "label": "depended on by",
         "relation": "depended_on_by",
         "note": "the frontmatter view is derived from the tree parsed once"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0002-depended_on_by-PRS-0037",
+        "source": "PRS-0002",
+        "target": "PRS-0037",
+        "label": "depended on by",
+        "relation": "depended_on_by",
+        "note": "the stricter one-per-line check was met by fixing the record template"
       }
     },
     {
@@ -634,6 +769,16 @@
     },
     {
       "data": {
+        "id": "PRS-0005-extended_by-PRS-0037",
+        "source": "PRS-0005",
+        "target": "PRS-0037",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "a fix never touches a paragraph the check passed"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0006-depends_on-PRS-0005",
         "source": "PRS-0006",
         "target": "PRS-0005",
@@ -650,6 +795,26 @@
         "label": "extended by",
         "relation": "extended_by",
         "note": "the message estimates clauses to guide a split"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0006-extended_by-PRS-0030",
+        "source": "PRS-0006",
+        "target": "PRS-0030",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "a long paragraph is reported the same way, with no fixer"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0006-depended_on_by-PRS-0035",
+        "source": "PRS-0006",
+        "target": "PRS-0035",
+        "label": "depended on by",
+        "relation": "depended_on_by",
+        "note": "agent evals target the rules a fixer never touches"
       }
     },
     {
@@ -734,12 +899,52 @@
     },
     {
       "data": {
+        "id": "PRS-0009-depended_on_by-PRS-0037",
+        "source": "PRS-0009",
+        "target": "PRS-0037",
+        "label": "depended on by",
+        "relation": "depended_on_by",
+        "note": "the one-per-line gap was reproduced by an adversarial test before its fix"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0010-extends-PRS-0006",
         "source": "PRS-0010",
         "target": "PRS-0006",
         "label": "extends",
         "relation": "extends",
         "note": "the rule stays report-only, and its message now carries the guidance a human or agent needs"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0010-extended_by-PRS-0030",
+        "source": "PRS-0010",
+        "target": "PRS-0030",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "the paragraph finding counts topics to guide a break"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0010-extended_by-PRS-0034",
+        "source": "PRS-0010",
+        "target": "PRS-0034",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "the clause count also reads the verb phrases compromise finds"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0010-extended_by-PRS-0035",
+        "source": "PRS-0010",
+        "target": "PRS-0035",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "agent evals measure how well the clause guidance closes the loop"
       }
     },
     {
@@ -884,6 +1089,16 @@
     },
     {
       "data": {
+        "id": "PRS-0015-extended_by-PRS-0030",
+        "source": "PRS-0015",
+        "target": "PRS-0030",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "a rule may also read the findings of the categories it runs after"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0016-depends_on-PRS-0015",
         "source": "PRS-0016",
         "target": "PRS-0015",
@@ -900,6 +1115,16 @@
         "label": "depends on",
         "relation": "depends_on",
         "note": "a helper leaves its rule module only once a second rule needs it"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0016-depended_on_by-PRS-0031",
+        "source": "PRS-0016",
+        "target": "PRS-0031",
+        "label": "depended on by",
+        "relation": "depended_on_by",
+        "note": "a function split for the complexity limits places its helpers by this rule"
       }
     },
     {
@@ -940,6 +1165,16 @@
         "label": "depended on by",
         "relation": "depended_on_by",
         "note": "a plugin id is the namespace in front of category-short-name"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0017-depended_on_by-PRS-0030",
+        "source": "PRS-0017",
+        "target": "PRS-0030",
+        "label": "depended on by",
+        "relation": "depended_on_by",
+        "note": "the paragraph category was added for a rule no category fit"
       }
     },
     {
@@ -990,6 +1225,26 @@
         "label": "depended on by",
         "relation": "depended_on_by",
         "note": "the config failures it raises are named errors with codes"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0018-depended_on_by-PRS-0030",
+        "source": "PRS-0018",
+        "target": "PRS-0030",
+        "label": "depended on by",
+        "relation": "depended_on_by",
+        "note": "maxSentences is checked at load like maxWords"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0018-extended_by-PRS-0036",
+        "source": "PRS-0018",
+        "target": "PRS-0036",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "a concept file at the project root also shapes a run, and fails it the way a bad config does"
       }
     },
     {
@@ -1070,6 +1325,26 @@
         "label": "depended on by",
         "relation": "depended_on_by",
         "note": "a plugin rule function may return a promise"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0019-extended_by-PRS-0033",
+        "source": "PRS-0019",
+        "target": "PRS-0033",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "a plugin rule reads each paragraph's language view"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0019-extended_by-PRS-0036",
+        "source": "PRS-0019",
+        "target": "PRS-0036",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "a plugin rule reads the project's concepts from the document"
       }
     },
     {
@@ -1224,6 +1499,16 @@
     },
     {
       "data": {
+        "id": "PRS-0023-extended_by-PRS-0033",
+        "source": "PRS-0023",
+        "target": "PRS-0033",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "a paragraph's language view is read on first use too"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0024-depends_on-PRS-0018",
         "source": "PRS-0024",
         "target": "PRS-0018",
@@ -1320,6 +1605,266 @@
         "label": "depends on",
         "relation": "depends_on",
         "note": "the fingerprint still runs first and a lost word still throws"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0029-depended_on_by-PRS-0032",
+        "source": "PRS-0029",
+        "target": "PRS-0032",
+        "label": "depended on by",
+        "relation": "depended_on_by",
+        "note": "the copied theme loads from custom_dir, outside the assembled docs_dir"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0030-extends-PRS-0006",
+        "source": "PRS-0030",
+        "target": "PRS-0006",
+        "label": "extends",
+        "relation": "extends",
+        "note": "like a long sentence, a long paragraph is reported and never rewritten by a fixer"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0030-extends-PRS-0010",
+        "source": "PRS-0030",
+        "target": "PRS-0010",
+        "label": "extends",
+        "relation": "extends",
+        "note": "the finding guides a split by counting topics, as the length finding counts clauses"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0030-extends-PRS-0015",
+        "source": "PRS-0030",
+        "target": "PRS-0015",
+        "label": "extends",
+        "relation": "extends",
+        "note": "a rule may read the findings of the categories it names in after, and its check waits for them"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0030-depends_on-PRS-0017",
+        "source": "PRS-0030",
+        "target": "PRS-0017",
+        "label": "depends on",
+        "relation": "depends_on",
+        "note": "a new paragraph category gives the rule its first word, since no existing category fits"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0030-depends_on-PRS-0018",
+        "source": "PRS-0030",
+        "target": "PRS-0018",
+        "label": "depends on",
+        "relation": "depends_on",
+        "note": "the budget is the maxSentences option, checked at load like maxWords"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0030-depended_on_by-PRS-0033",
+        "source": "PRS-0030",
+        "target": "PRS-0033",
+        "label": "depended on by",
+        "relation": "depended_on_by",
+        "note": "the rule reads the paragraph's language view"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0031-depends_on-PRS-0016",
+        "source": "PRS-0031",
+        "target": "PRS-0016",
+        "label": "depends on",
+        "relation": "depends_on",
+        "note": "a long function splits into helpers that sit in the layer whose data they read"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0032-depends_on-PRS-0029",
+        "source": "PRS-0032",
+        "target": "PRS-0029",
+        "label": "depends on",
+        "relation": "depends_on",
+        "note": "the theme loads from custom_dir, so it works while the documents are assembled afresh into docs_dir"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0033-extends-PRS-0023",
+        "source": "PRS-0033",
+        "target": "PRS-0023",
+        "label": "extends",
+        "relation": "extends",
+        "note": "the language view is read on first use, as the frontmatter view is"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0033-extends-PRS-0019",
+        "source": "PRS-0033",
+        "target": "PRS-0019",
+        "label": "extends",
+        "relation": "extends",
+        "note": "a plugin rule reads the view from the paragraphs it already receives, with no import"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0033-depends_on-PRS-0030",
+        "source": "PRS-0033",
+        "target": "PRS-0030",
+        "label": "depends on",
+        "relation": "depends_on",
+        "note": "the paragraph rule is the first reader, and its libraries are pinned there"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0033-depended_on_by-PRS-0034",
+        "source": "PRS-0033",
+        "target": "PRS-0034",
+        "label": "depended on by",
+        "relation": "depended_on_by",
+        "note": "the length rule reads sentences and verb phrases from the view"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0033-extended_by-PRS-0036",
+        "source": "PRS-0033",
+        "target": "PRS-0036",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "each sentence of the view lists the concepts of the project it names"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0034-extends-PRS-0010",
+        "source": "PRS-0034",
+        "target": "PRS-0010",
+        "label": "extends",
+        "relation": "extends",
+        "note": "the finding still reports potential clauses, and the count now reads verbs as well as markers"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0034-depends_on-PRS-0033",
+        "source": "PRS-0034",
+        "target": "PRS-0033",
+        "label": "depends on",
+        "relation": "depends_on",
+        "note": "the rule reads each sentence, with its verb phrases, from the paragraph's language view"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0035-extends-PRS-0010",
+        "source": "PRS-0035",
+        "target": "PRS-0010",
+        "label": "extends",
+        "relation": "extends",
+        "note": "the clause guidance a length finding gives is now measured against agents that follow it"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0035-depends_on-PRS-0006",
+        "source": "PRS-0035",
+        "target": "PRS-0006",
+        "label": "depends on",
+        "relation": "depends_on",
+        "note": "the evals target rules with no fixer, where only a rewrite clears the finding"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0035-see_also-PRS-0037",
+        "source": "PRS-0035",
+        "target": "PRS-0037",
+        "label": "see also",
+        "relation": "see_also",
+        "note": "a sweep found the one-per-line check passing what its fixer rewrote"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0036-extends-PRS-0033",
+        "source": "PRS-0036",
+        "target": "PRS-0033",
+        "label": "extends",
+        "relation": "extends",
+        "note": "each sentence of the language view now lists the concepts it names"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0036-extends-PRS-0018",
+        "source": "PRS-0036",
+        "target": "PRS-0018",
+        "label": "extends",
+        "relation": "extends",
+        "note": "a second file at the project root shapes a run, beside the config, and fails the same way when it is wrong"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0036-extends-PRS-0019",
+        "source": "PRS-0036",
+        "target": "PRS-0019",
+        "label": "extends",
+        "relation": "extends",
+        "note": "a plugin rule reads concepts from the document it already receives, with no import"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0037-extends-PRS-0005",
+        "source": "PRS-0037",
+        "target": "PRS-0005",
+        "label": "extends",
+        "relation": "extends",
+        "note": "beyond a verified fix, a fix never touches a paragraph the check passed"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0037-depends_on-PRS-0009",
+        "source": "PRS-0037",
+        "target": "PRS-0009",
+        "label": "depends on",
+        "relation": "depends_on",
+        "note": "the adversarial test that reproduces the gap came before the fix"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0037-see_also-PRS-0035",
+        "source": "PRS-0037",
+        "target": "PRS-0035",
+        "label": "see also",
+        "relation": "see_also",
+        "note": "the eval sweep is how the gap was found"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0037-depends_on-PRS-0002",
+        "source": "PRS-0037",
+        "target": "PRS-0002",
+        "label": "depends on",
+        "relation": "depends_on",
+        "note": "generated record markdown failed the stricter check, so the template was fixed at its source"
       }
     }
   ],

@@ -1,0 +1,39 @@
+id: PRS-0034
+slug: clauses-count-verb-phrases-as-well-as-markers
+plan_id: null
+title: The clause count is the larger of the marker count and the verb phrases compromise finds
+description: sentence-word-budget-exceeded counts clauses from punctuation and marker words, or from verbs, whichever finds more
+status: accepted
+accepted_on: 2026-10-17
+last_changed_on: 2026-10-17
+tags: [rules, messages, language]
+
+provenance: Raised once compromise was in the tree for the paragraph rule, as a check on whether its tagger could improve the clause estimate
+
+enforced_in:
+  - src/rules/sentence-word-budget-exceeded.ts, through clausesOf
+  - src/language.ts, where each sentence carries its verb phrases
+  - tests/check.test.ts, which pins the count on markers, verbs and a missed verb
+  - tests/paragraph.test.ts, which requires identical findings on Bun and the Node bundle
+
+relates_to:
+  - relation: extends
+    target: PRS-0010
+    note: the finding still reports potential clauses, and the count now reads verbs as well as markers
+  - relation: depends_on
+    target: PRS-0033
+    note: the rule reads each sentence, with its verb phrases, from the paragraph's language view
+
+decision:
+  given: a sentence exceeds the word budget and the finding estimates its clauses
+  we_prefer: the larger of the marker count and compromise's verb phrases, over either alone
+  because: verbs find the clauses that markers miss, and markers hold up the count where the tagger misses a verb
+  unless: a dependency parser that runs in JavaScript proves deterministic, which would replace both signals
+
+consequences:
+  pros:
+    - On the probe sentences the combined count matched a careful reading in 9 of 11 cases, against 7 for markers alone.
+    - A series of verbs, the commonest long sentence in technical prose, now asks for a split per verb.
+  cons:
+    - compromise misses some verbs, such as reparses, so a clause joined with no marker can still go uncounted.
+    - The Oxford comma in a list still reads as a boundary, because core compromise has no list detection.

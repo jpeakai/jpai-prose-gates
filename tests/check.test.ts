@@ -49,6 +49,15 @@ describe("sentence-word-budget-exceeded sentence word budget", () => {
     ["a relative clause counted once", "The tree, which the parser builds, is shared.", 2],
     ["a leading subordinator", "Because the tree is shared, every rule agrees if it reads it.", 3],
     ["subordinators only as whole words", "The iffy whichever widget.", 1],
+    ["a series of verbs with one marker", "The rule reads the tree, finds a run, and proposes an edit.", 3],
+    [
+      "more verbs than markers",
+      "The fixer reads the tree and proposes an edit because the rule fired, which the engine verifies when it reparses the document and compares the words it finds.",
+      6,
+    ],
+    ["a verb the tagger misses, held up by the markers", "The parser reads the file; the rules query it.", 2],
+    ["participles that describe a noun", "It reads the parsed tree and the cached files.", 1],
+    ["a gerund after an auxiliary stays a verb", "He was reading books and writing notes.", 2],
   ])("counts clauses in %s", (_, sentence, expected) => {
     expect(countClauses(sentence)).toBe(expected);
   });

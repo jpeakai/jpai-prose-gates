@@ -1,6 +1,7 @@
 // RULES.md is documentation that the code must keep true. Every `text before`
 // block is fixed and compared with the `text after` block that follows it,
-// and every `text reported` block must fire its rule and survive a fix run.
+// every `text reported` block must fire its rule and survive a fix run, and
+// every `text rewritten` block after a reported one must pass every rule.
 
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
@@ -11,7 +12,7 @@ import { PROJECT_ROOT } from "./helpers.ts";
 
 interface Example {
   rule: string;
-  label: "before" | "after" | "reported";
+  label: "before" | "after" | "reported" | "rewritten";
   body: string;
 }
 
@@ -45,6 +46,11 @@ const pairs = examples.flatMap((e, i) => {
   return [{ rule: e.rule, before: e.body, after: after.body }];
 });
 const reported = examples.filter((e) => e.label === "reported");
+const rewritten = examples.flatMap((e, i) => {
+  if (e.label !== "rewritten") return [];
+  if (examples[i - 1]?.label !== "reported") throw new Error(`${e.rule}: a rewritten block follows no reported block`);
+  return [e];
+});
 
 describe("RULES.md", () => {
   test("has one section per rule, under the rule's own category", () => {
@@ -67,6 +73,14 @@ describe("RULES.md", () => {
     expect((await checkMarkdown(before, "RULES.md")).map((f): string => f.rule)).toContain(id);
     expect(await fixMarkdown(before)).toBe(after);
     expect(await checkMarkdown(after, "RULES.md")).toEqual([]);
+  });
+
+  test("has a rewritten block to show", () => {
+    expect(rewritten.length).toBeGreaterThan(0);
+  });
+
+  test.each(rewritten)("$rule: a rewritten case passes every rule", async ({ body }) => {
+    expect(await checkMarkdown(body, "RULES.md")).toEqual([]);
   });
 
   test.each(reported)("$rule: a reported case fires and is left alone", async ({ rule: id, body }) => {

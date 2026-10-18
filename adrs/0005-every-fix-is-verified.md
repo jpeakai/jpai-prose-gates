@@ -15,9 +15,6 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 
 <!-- GENERATED from PRS-0005 by okf_render.py. Do not edit; edit the .yml and regenerate. -->
 
-> **Lens**: A fixer is a heuristic, and heuristics have bugs.
-> The engine checks the result instead of trusting the rule that produced it.
-
 ## Relates to
 
 - Depends on [PRS-0003](0003-splice-source-never-restringify.md) (verification is cheap because an edit is a single spliced range)
@@ -26,32 +23,27 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 - Tested by [PRS-0009](0009-adversarial-and-property-tests-gate-fixes.md) (properties assert the fingerprint is preserved)
 - Depended on by [PRS-0020](0020-plugin-fixers-stay-under-verification.md) (a plugin fixer meets the same fingerprint and shape proof)
 - Depended on by [PRS-0028](0028-frontmatter-edits-are-verified-by-data-equality.md) (a new expectation compares YAML data before and after)
-
-## Problem
-
-### Symptom
-
-A fixer bug could drop a word, create emphasis from a stray asterisk, or split one paragraph into two.
-
-### Pain point
-
-The damage looked like formatting, so nothing downstream noticed it.
+- Extended by [PRS-0037](0037-a-check-reports-every-line-its-fixer-changes.md) (a fix never touches a paragraph the check passed)
 
 ## Decision
 
 ### The lens
 
-- **Given**: an edit is about to be written back to a file
-- **We prefer**: reparsing the result and comparing its words, urls and code to the original, over trusting the fixer's own logic
-- **Because**: a changed fingerprint is a tool bug that must fail loudly, while a shape mismatch is an unforeseen case
-- **Unless**: never
+#### Given
 
-### In practice
+an edit is about to be written back to a file
 
-- The fingerprint is every word, url, alt text and code value in order, ignoring enumeration markers and joining conjunctions.
-- A changed fingerprint throws FixInvariantError, which fails the run.
-- Each edit declares same-tree, same-shape or replace-paragraph, and a mismatch refuses that edit.
-- Fixes run to a fixpoint in a fixed rule order, one verified pass at a time.
+#### We prefer
+
+reparsing the result and comparing its words, urls and code to the original, over trusting the fixer's own logic
+
+#### Because
+
+a changed fingerprint is a tool bug that must fail loudly, while a shape mismatch is an unforeseen case
+
+#### Unless
+
+never
 
 ## Consequences
 

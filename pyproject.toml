@@ -16,9 +16,45 @@ docs = [
     "mkdocs>=1.6,<2",
     "mkdocs-material",
 ]
+evals = [
+    # Runs the live agent evals of the finding messages (make evals, make evals-dry).
+    # Its own group, so a run needs neither the private meta CLI nor the docs group.
+    "pytest>=9.1.1",
+    "pytest-xharness-eval>=0.12.0",
+]
 
 [tool.uv]
 package = false
+
+[tool.pytest.ini_options]
+# This repo has no Python test suite: `tests/` holds the Bun tests, which pytest
+# does not collect, so a bare `pytest` collects nothing and spends nothing.
+# The eval cells under evals/*/evals/ are each a live billed agent session, so
+# they only run when a path asks for them:
+#   uv run --only-group evals pytest evals/prose-gates/evals --dry-run
+testpaths = ["tests"]
+# The plugin collects <skills root>/<skill>/evals/eval_*.py and runs every cell
+# through a skill. This repo ships none, so the root is evals/ and its one skill
+# is the bare gate loop every case shares.
+xharness_skills_dir = "evals"
+# The plugin's build workspaces, dependencies and scratch are never test sources.
+norecursedirs = [".xharness_eval_cache", "node_modules", "dist", "tmp", ".venv", "site-theme"]
+# The newest model of tiers 1 to 3 in each harness, by the plugin catalogue's
+# family_tier: Haiku and Luna, Sonnet and Terra, Opus and Sol.
+# The task is a bounded rewrite with a deterministic grader, so the question
+# worth paying for is whether the smaller models close the loop from the finding
+# messages alone. Tier 4 (Fable, Astra) is left out for its cost; add it with --model.
+# Each cell's build workspace stays under <cache>/build/ after grading, so the
+# file an agent wrote can be read and compared beside its seed and its findings.
+xharness_keep_workspaces = true
+xharness_matrix = [
+    "claude/claude-haiku-5-5",
+    "claude/claude-sonnet-5-5",
+    "claude/claude-opus-5-5",
+    "codex/gpt-6-luna",
+    "codex/gpt-5.6-terra",
+    "codex/gpt-6.1-sol",
+]
 
 [tool.uv.sources]
 jpai-meta-cli = { git = "https://github.com/jpeakai/jpai-meta-cli.git" }

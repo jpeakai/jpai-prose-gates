@@ -1,3 +1,8 @@
+# The OsakaNights look comes from site-theme/osakanights/: the theme, palette,
+# fonts and markdown extensions from its base config, and its stylesheet from
+# custom_dir. A list set here replaces the base list, a mapping merges with it.
+INHERIT: site-theme/osakanights/mkdocs.base.yml
+
 site_name: jpai-prose-gates
 site_description: Deterministic markdown gates and fixers for prose, with a plugin contract.
 site_url: https://jpeakai.github.io/jpai-prose-gates/
@@ -15,51 +20,28 @@ validation:
     omitted_files: info
 
 theme:
-  name: material
-  palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: indigo
-      accent: indigo
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: indigo
-      accent: indigo
-      toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
+  custom_dir: site-theme/osakanights/overrides
+  icon:
+    repo: fontawesome/brands/github
+  # A list, so it replaces the base features with this site's own set.
   features:
     - navigation.tabs
     - navigation.sections
     - navigation.expand
     - navigation.path
     - navigation.top
+    - navigation.footer
     - search.highlight
     - search.share
+    - search.suggest
     - toc.follow
     - toc.integrate
     - content.code.copy
+    - content.tabs.link
 
+# A mapping, so it merges with the base extensions rather than replacing them.
 markdown_extensions:
-  - admonition
-  - pymdownx.details
-  - pymdownx.highlight:
-      anchor_linenums: true
-  - pymdownx.inlinehilite
-  - pymdownx.snippets
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
-  - pymdownx.tabbed:
-      alternate_style: true
-  - tables
-  - toc:
-      permalink: true
+  pymdownx.snippets:
 
 nav:
   - Home: README.md

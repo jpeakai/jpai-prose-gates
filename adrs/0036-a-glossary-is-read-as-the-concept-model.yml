@@ -1,0 +1,43 @@
+id: PRS-0036
+slug: a-glossary-is-read-as-the-concept-model
+plan_id: null
+title: A project's GLOSSARY.md or CONCEPTS.md is read as its concept model, and the language view names its terms
+description: Each H2 is a concept, each Mermaid edge a relation, and every sentence lists the concepts it mentions
+status: accepted
+accepted_on: 2026-10-17
+last_changed_on: 2026-10-17
+tags: [model, plugins, language, concepts]
+
+provenance: Raised once compromise was in the tree, as a way to give rules the domain terms and relations that a project's own glossary already holds
+
+enforced_in:
+  - src/concepts.ts, which reads the file, builds the model and finds mentions in a sentence
+  - src/project.ts, which loads the concept file at the project root once per run
+  - src/model.ts and src/language.ts, where the document carries the model and each sentence its mentions
+  - src/errors.ts, with ConceptsFileError and AmbiguousConceptsError
+  - tests/concepts.test.ts, which pins the parse, the errors, the mentions and the plugin guide's example rule
+
+relates_to:
+  - relation: extends
+    target: PRS-0033
+    note: each sentence of the language view now lists the concepts it names
+  - relation: extends
+    target: PRS-0018
+    note: a second file at the project root shapes a run, beside the config, and fails the same way when it is wrong
+  - relation: extends
+    target: PRS-0019
+    note: a plugin rule reads concepts from the document it already receives, with no import
+
+decision:
+  given: a project keeps a glossary in the librarian template, one H2 per term and Mermaid diagrams that relate them
+  we_prefer: reading that file as the concept model and naming its terms in the language view, over a separate vocabulary config
+  because: the glossary is already the canonical vocabulary, so a second copy would drift from it
+  unless: a project needs concepts from several files or from outside the root, which calls for a config key and a new record
+
+consequences:
+  pros:
+    - A plugin can check a project's own dialect, such as Title Case terms or a prohibited relation, from data alone.
+    - A glossary diagram that names an undefined term now fails the run, so the diagram and the headings stay in step.
+  cons:
+    - A project whose GLOSSARY.md is in another shape must move it to the template before the gates run there.
+    - Findings of a concept rule depend on a file other than the one checked, so a glossary edit can move them.

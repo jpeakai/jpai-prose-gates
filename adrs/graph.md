@@ -1,8 +1,14 @@
+---
+type: Decision Graph
+title: Decision relationship graph
+description: Every typed edge between the bundle's decision records
+---
+
 <!-- GENERATED from the bundle's *.yml by okf_render.py. Do not edit; regenerate. -->
 
 # Decision relationship graph
 
-29 decision records, 84 typed edges, in 15 groups.
+37 decision records, 126 typed edges, in 18 groups.
 Every edge comes from a record's `relates_to` block, so this view cannot drift from the records.
 
 For an interactive view of the same graph, open [graph.html](graph.html).

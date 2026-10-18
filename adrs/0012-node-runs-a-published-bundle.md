@@ -16,9 +16,6 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 
 <!-- GENERATED from PRS-0012 by okf_render.py. Do not edit; edit the .yml and regenerate. -->
 
-> **Lens**: A public package is installed with whatever runtime the consumer has.
-> Many projects run npx and Node, and never Bun.
-
 ## Relates to
 
 - Depends on [PRS-0001](0001-parse-once-to-mdast.md) (the bundle inlines the mdast parser, so Node needs no dependency install)
@@ -26,31 +23,25 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 - Depended on by [PRS-0022](0022-plugins-load-automatically.md) (the plugin loader runs under the Node bundle)
 - Depended on by [PRS-0026](0026-typescript-local-rules-need-a-runtime-that-imports-them.md) (the Node bundle imports a TypeScript rule with the runtime it is given)
 
-## Problem
-
-### Symptom
-
-The bin pointed at TypeScript with a Bun shebang, and the CLI read files through Bun globals.
-
-### Pain point
-
-Node refuses to strip types from a file inside node_modules, so no Node consumer could run it.
-
 ## Decision
 
 ### The lens
 
-- **Given**: the package is consumed by both Bun and Node projects
-- **We prefer**: publishing to npm with a bundle built at pack time, over committing the bundle for git installs
-- **Because**: a committed bundle adds a regenerated file of about 300 kilobytes to every source change, and a registry install needs no allow-git opt-in
-- **Unless**: the package must be installed from git, where no build step runs and the bundle would have to be committed
+#### Given
 
-### In practice
+the package is consumed by both Bun and Node projects
 
-- src uses node APIs only, never a Bun global.
-- make build writes dist, and the test targets build it first so Node tests never run a stale bundle.
-- Bun is pinned through packageManager, so every machine builds the same bundle.
-- A git install no longer runs the CLI, and the README points consumers at the registry.
+#### We prefer
+
+publishing to npm with a bundle built at pack time, over committing the bundle for git installs
+
+#### Because
+
+a committed bundle adds a regenerated file of about 300 kilobytes to every source change, and a registry install needs no allow-git opt-in
+
+#### Unless
+
+the package must be installed from git, where no build step runs and the bundle would have to be committed
 
 ## Consequences
 

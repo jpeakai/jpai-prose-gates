@@ -13,7 +13,9 @@ import {
   PluginFixerError,
   setUp,
 } from "../src/index.ts";
-import { PROJECT_ROOT, tempProject } from "./helpers.ts";
+import { PROJECT_ROOT, tempDirs } from "./helpers.ts";
+
+const tmp = tempDirs();
 
 const PKG = { "package.json": JSON.stringify({ name: "demo" }) };
 
@@ -25,7 +27,7 @@ const project = (rules: Record<string, string>): Record<string, string> => ({
   ...Object.fromEntries(Object.entries(rules).map(([name, source]) => [`.prose-gates/rules/${name}.mjs`, source])),
 });
 
-const registryOf = async (files: Record<string, string>) => (await setUp({ cwd: tempProject(files) })).registry;
+const registryOf = async (files: Record<string, string>) => (await setUp({ cwd: tmp.project(files) })).registry;
 
 describe("async checks", () => {
   test("every check starts at once, so a rule can wait on another that has not finished", async () => {

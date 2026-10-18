@@ -97,6 +97,14 @@ export const skippedLines = (failures: PluginFailure[], ignored: string[]): stri
 // The reason without the "plugin <source>:" the error message begins with.
 const reasonOf = (f: PluginFailure): string => f.error.message.replace(`plugin ${f.source}: `, "");
 
+// A plugin failure as the JSON output and --validate-plugins report it.
+const failureRecord = (f: PluginFailure) => ({
+  source: f.source,
+  kind: f.kind,
+  code: f.error.code,
+  message: reasonOf(f),
+});
+
 // Every active rule under its category, then where each plugin came from.
 // Built-in categories come first, in their fixed order, then plugin ones.
 export const listRules = (registry: Registry): string => {
@@ -122,7 +130,7 @@ const validate = (
   json: boolean,
 ): { code: number; stdout: string | null; stderr: string[] } => {
   const sources = registry.sources.map((s) => ({ ...s }));
-  const failed = failures.map((f) => ({ source: f.source, kind: f.kind, code: f.error.code, message: reasonOf(f) }));
+  const failed = failures.map(failureRecord);
   const code = failures.length > 0 ? 1 : 0;
   if (json)
     return {
@@ -146,26 +154,29 @@ const validate = (
   return { code, stdout: line, stderr: [] };
 };
 
-const run = async (argv: string[], cwd: string): Promise<number> => {
-  let parsed: Parsed;
+// The flags, or a usage error naming what parseArgs rejected.
+const parseFlags = (argv: string[]): Parsed => {
   try {
-    parsed = parse(argv);
+    return parse(argv);
   } catch (err) {
     throw new FlagError("argv", err instanceof Error ? err.message : String(err));
   }
-  const { values, positionals } = parsed;
-  if (values.help) {
-    console.log(USAGE);
-    return 0;
-  }
-  // Absent means the rule's own option, then the default. Present is a flag
-  // that wins for this run.
+};
+
+// Absent means the rule's own option, then the default. Present is a flag
+// that wins for this run.
+const maxWordsOf = (values: Parsed["values"]): number | undefined => {
   const maxWords = values["max-words"] === undefined ? undefined : Number(values["max-words"]);
-  const listing = values["list-rules"];
-  const validating = values["validate-plugins"];
   if (maxWords !== undefined && (Number.isNaN(maxWords) || maxWords < 1)) {
     throw new FlagError("--max-words", `--max-words must be a number of at least 1, not "${values["max-words"]}"`);
   }
+  return maxWords;
+};
+
+// The flag combinations that contradict each other, or leave nothing to do.
+const checkFlags = ({ values, positionals }: Parsed): void => {
+  const listing = values["list-rules"];
+  const validating = values["validate-plugins"];
   if (values["no-plugins"] && values["lenient-plugins"]) {
     throw new FlagError("--lenient-plugins", "--no-plugins and --lenient-plugins contradict each other");
   }
@@ -176,59 +187,78 @@ const run = async (argv: string[], cwd: string): Promise<number> => {
     throw new FlagError("files", "--validate-plugins runs no check, so it takes no files");
   }
   if (positionals.length === 0 && !listing && !validating) throw new FlagError("files", "no files given");
+};
 
-  const { registry, skipped, failures } = await setUp({
+// Prints the --validate-plugins result and returns its exit code.
+const printValidation = (registry: Registry, failures: PluginFailure[], json: boolean): number => {
+  const result = validate(registry, failures, json);
+  for (const line of result.stderr) console.error(line);
+  if (result.stdout) console.log(result.stdout);
+  return result.code;
+};
+
+// One file's findings, fixed first when asked and written back only if changed.
+const checkFile = async (file: string, fix: boolean, maxWords: number | undefined, registry: Registry) => {
+  let src = await readFile(file, "utf8");
+  if (fix) {
+    const fixed = (await fixMarkdownReport(src, registry)).output;
+    if (fixed !== src) {
+      await writeFile(file, fixed);
+      src = fixed;
+    }
+  }
+  return await checkModel(buildDocModel(src, registry.concepts), file, maxWords, registry);
+};
+
+type Finding = Awaited<ReturnType<typeof checkFile>>[number];
+type SetUp = Awaited<ReturnType<typeof setUp>>;
+
+// The findings as JSON or one line each, then the exit code.
+const report = (all: Finding[], files: string[], setup: SetUp, json: boolean): number => {
+  if (json) {
+    const skippedPlugins = setup.failures.map(failureRecord);
+    console.log(
+      JSON.stringify({ findings: all, files: files.length, plugins: setup.registry.sources, skippedPlugins }, null, 2),
+    );
+  } else {
+    for (const f of all) console.log(`${f.file}:${f.line} ${f.rule} ${f.message}`);
+    console.log(`${all.length} finding(s) in ${files.length} file(s)`);
+  }
+  return all.length > 0 ? 1 : 0;
+};
+
+const run = async (argv: string[], cwd: string): Promise<number> => {
+  const parsed = parseFlags(argv);
+  const { values, positionals } = parsed;
+  if (values.help) {
+    console.log(USAGE);
+    return 0;
+  }
+  const maxWords = maxWordsOf(values);
+  checkFlags(parsed);
+  const validating = values["validate-plugins"];
+
+  const setup = await setUp({
     cwd,
     configPath: values.config,
     noPlugins: values["no-plugins"],
     lenient: values["lenient-plugins"],
     collect: validating,
   });
-
-  if (validating) {
-    const result = validate(registry, failures, Boolean(values.json));
-    for (const line of result.stderr) console.error(line);
-    if (result.stdout) console.log(result.stdout);
-    return result.code;
-  }
+  const { registry, skipped, failures } = setup;
+  if (validating) return printValidation(registry, failures, Boolean(values.json));
 
   const note = loadedLine(registry.sources, skipped);
   if (note) console.error(note);
   for (const line of skippedLines(failures, registry.ignoredSettings)) console.error(line);
-  if (listing) {
+  if (values["list-rules"]) {
     console.log(listRules(registry));
     return 0;
   }
   const perFile = await Promise.all(
-    positionals.map(async (file) => {
-      let src = await readFile(file, "utf8");
-      if (values.fix) {
-        const fixed = (await fixMarkdownReport(src, registry)).output;
-        if (fixed !== src) {
-          await writeFile(file, fixed);
-          src = fixed;
-        }
-      }
-      return await checkModel(buildDocModel(src), file, maxWords, registry);
-    }),
+    positionals.map((file) => checkFile(file, Boolean(values.fix), maxWords, registry)),
   );
-  const all = perFile.flat();
-
-  if (values.json) {
-    const skippedPlugins = failures.map((f) => ({
-      source: f.source,
-      kind: f.kind,
-      code: f.error.code,
-      message: reasonOf(f),
-    }));
-    console.log(
-      JSON.stringify({ findings: all, files: positionals.length, plugins: registry.sources, skippedPlugins }, null, 2),
-    );
-  } else {
-    for (const f of all) console.log(`${f.file}:${f.line} ${f.rule} ${f.message}`);
-    console.log(`${all.length} finding(s) in ${positionals.length} file(s)`);
-  }
-  return all.length > 0 ? 1 : 0;
+  return report(perFile.flat(), positionals, setup, Boolean(values.json));
 };
 
 // The line printed for a failure: its stable code, then the reason.

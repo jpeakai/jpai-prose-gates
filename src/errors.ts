@@ -61,6 +61,27 @@ export class AmbiguousConfigError extends UsageError {
   }
 }
 
+// A concept file at the project root that does not parse as one: no term
+// headings, a repeated term, or a diagram that names something undefined.
+export class ConceptsFileError extends UsageError {
+  readonly file: string;
+
+  constructor(file: string, message: string) {
+    super(`${file}: not a concept file, because ${message}`, "concepts-file");
+    this.file = file;
+  }
+}
+
+// Both GLOSSARY.md and CONCEPTS.md at one root, so neither can be picked.
+export class AmbiguousConceptsError extends UsageError {
+  readonly files: string[];
+
+  constructor(root: string, files: string[]) {
+    super(`more than one concept file at ${root}: ${files.join(", ")}`, "concepts-ambiguous");
+    this.files = files;
+  }
+}
+
 // The config parsed, but its top-level shape is wrong.
 export class ConfigShapeError extends UsageError {
   readonly file: string;

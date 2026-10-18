@@ -10,6 +10,8 @@ The decisions behind it are [PRS-0019](../adrs/0019-plugin-contract-and-namespac
 - [Findings and fixes](#findings-and-fixes)
 - [Categories](#categories)
 - [Frontmatter](#frontmatter)
+- [Language](#language)
+- [Concepts](#concepts)
 - [A plugin package](#a-plugin-package)
 - [Configuring a rule](#configuring-a-rule)
 - [Testing a rule](#testing-a-rule)
@@ -47,14 +49,16 @@ A check receives one context object.
 
 | Field | What it holds |
 |---|---|
-| `doc` | The parsed document: `src`, `tree`, `paragraphs`, `texts`, `fences` and `frontmatter` |
+| `doc` | The parsed document: `src`, `tree`, `paragraphs`, `texts`, `fences`, `frontmatter` and `concepts` |
 | `file` | The path being checked |
 | `maxWords` | The sentence budget for this run, from the flag, then the rule's option, then 25 |
 | `options` | The rule's options from the config, already checked against the types it declared |
+| `earlier` | The findings of the categories a built-in rule names in `after`, and always empty for a plugin rule |
 | `helpers` | `words`, `sentences` and `lengthMessage`, so a rule needs no import |
 | `runs` and `reported` | The interpunct runs, and the ones an enabled rule reports |
 
 A paragraph view has `raw`, `line`, `startOffset`, `endOffset` and `prose`, with code spans already removed from `prose`.
+It also has `language`, its sentences and words, which [Language](#language) describes.
 [docs/engines.md](engines.md) shows what each view holds at every point of a check and a fix.
 [docs/DATA_MODEL.md](DATA_MODEL.md) is the full reference for the model.
 
@@ -91,6 +95,7 @@ A fixer that throws, or returns something that is not a list of edits, stops the
 
 A fixer may also be `async`, and it is awaited.
 Checks are all started at once and overlap while they wait.
+Only a built-in rule can wait for others, through `after`, so a plugin check always starts at once.
 Fixers are asked one at a time, in priority order, because each one sees the text the last one left.
 
 Plugin fixers run after the built-ins.
@@ -158,6 +163,97 @@ A scalar carries what a rule needs to report on it and to rewrite it.
 [`examples/plugin-skills`](../examples/plugin-skills) and [`examples/plugin-skills-typescript`](../examples/plugin-skills-typescript) hold the same two rules.
 One applies the sentence budget to every `description`, at any depth.
 The other has a fixer that rewrites a multi-sentence description as a folded block scalar, which is the worked example of a frontmatter fix.
+
+## Language
+
+Every paragraph view has a `language` view, read from `prose` on first use, like the frontmatter.
+It holds the paragraph's sentences, and each sentence's words with their part-of-speech tags and lemmas.
+compromise splits the sentences and tags the words, pinned to an exact version.
+paragraph-sentence-budget-exceeded reads it, and so can a plugin rule, with no import.
+
+| Field | What it holds |
+|---|---|
+| `sentences` | Each sentence of the paragraph, in order |
+| `sentence.text` | The sentence as `prose` holds it, with inline code as `CODE` |
+| `sentence.words` | Each word, with its `text`, its lower-case `lemma`, its compromise `tags`, and `content` |
+| `sentence.terms` | The lemmas of its content words: nouns, verbs and adjectives that are not pronouns or auxiliaries |
+| `sentence.opener` | `CODE` when it opens with inline code, else the lemma of a content word it opens with, else null |
+| `sentence.refersBack` | True when its first word is a pronoun, a possessive, an adverb or a connective |
+| `sentence.verbPhrases` | How many verb phrases compromise finds, with an auxiliary counted inside its verb |
+| `sentence.concepts` | Each place it names a concept of the project, which [Concepts](#concepts) describes |
+
+A paragraph that opens with a pronoun has nothing before it to refer to.
+Create `.prose-gates/rules/paragraph-opens-with-pronoun.mjs`:
+
+```js
+export default {
+  category: "paragraph",
+  summary: "a paragraph that opens with a pronoun",
+  check: ({ doc }) =>
+    doc.paragraphs
+      .filter((p) => !p.inTable && p.language.sentences[0]?.words[0]?.tags.includes("Pronoun"))
+      .map((p) => ({ line: p.line, message: `paragraph opens with "${p.language.sentences[0].words[0].text}"` })),
+};
+```
+
+Tagging is the slowest step of a check, so a rule should filter on cheap fields such as `inTable` before it reads `language`.
+The tags are compromise's own, such as `Noun`, `Verb`, `Pronoun` and `Adverb`.
+
+## Concepts
+
+A project can declare its own vocabulary in a concept file, and the language view then knows it.
+The concept file is `GLOSSARY.md` or `CONCEPTS.md` at the project root, and having both is an error.
+It follows the glossary template this repo's own [GLOSSARY.md](../GLOSSARY.md) uses:
+
+- **Each H2 heading is a concept.** The heading is its name, as in `## Local Rule`.
+- **Each Mermaid flowchart relates them.** A node is declared as `ID["Concept Name"]`, and its name must be a heading.
+- **A labelled edge is a relation.** `LR -- adds --> PG` reads "Local Rule adds Prose Gate".
+- **A dotted edge is a prohibition.** `AG -. never runs .-> RL` reads "Agent never runs Release".
+- **"is a kind of" builds a hierarchy.** `LR -- is a kind of --> PL` makes every Local Rule a kind of Plugin.
+
+`doc.concepts` holds the model, read once per run.
+
+| Field | What it holds |
+|---|---|
+| `concepts.file` | `GLOSSARY.md` or `CONCEPTS.md`, or null when the project has neither |
+| `concepts.concepts` | Each concept, with its `name` and its `kinds`, every concept it is a kind of, nearest first |
+| `concepts.relations` | Each edge, with `from`, `verb`, `to` and `never`, true for a dotted edge |
+
+Each sentence of a paragraph lists the concepts it names in `sentence.concepts`.
+A mention matches in any case, singular or plural, and a multi-word concept matches as one unit.
+A one-word concept counts only where compromise reads it as a noun, so "release the package" names no Release.
+
+| Field | What it holds |
+|---|---|
+| `mention.concept` | The concept's name, as its heading spells it |
+| `mention.text` | The words as the sentence writes them, such as `prose gates` |
+| `mention.start` and `mention.length` | Where it sits, counted in the sentence's `words` |
+| `mention.kinds` | The concept's own `kinds` |
+
+A concept should read the way its heading spells it.
+Create `.prose-gates/rules/paragraph-concept-in-title-case.mjs`:
+
+```js
+const titled = (text) => text.replace(/\b\w/g, (c) => c.toUpperCase());
+
+export default {
+  category: "paragraph",
+  summary: "a concept not written in Title Case",
+  check: ({ doc }) =>
+    doc.paragraphs
+      .filter((p) => !p.inTable)
+      .flatMap((p) =>
+        p.language.sentences.flatMap((sentence) =>
+          sentence.concepts
+            .filter((m) => m.text !== titled(m.text))
+            .map((m) => ({ line: p.line, message: `write "${m.text}" as "${titled(m.text)}"` })),
+        ),
+      ),
+};
+```
+
+A concept file that does not parse stops the run with exit code 2, as a broken config does.
+A rule that reads half a vocabulary would report against a glossary nobody wrote.
 
 ## A plugin package
 
@@ -304,7 +400,7 @@ prose-gates: plugin validation failed, 2 of 3 sources
 
 ## Config errors
 
-A mistake in the config is a usage error with exit code 2.
+A mistake in the config or the concept file is a usage error with exit code 2.
 Each has its own class and code, so a wrapper can branch on the type.
 
 | Code | Class | Cause |
@@ -317,6 +413,8 @@ Each has its own class and code, so a wrapper can branch on the type.
 | `unknown-rule` | `UnknownRuleError` | A rule id that matches no loaded rule, including a retired `PG` id |
 | `rule-option` | `RuleOptionError` | An option the rule does not take, of the wrong type, or out of range |
 | `flag` | `FlagError` | A flag that is missing, contradicts another, or has a bad value |
+| `concepts-file` | `ConceptsFileError` | The concept file has no H2 terms, repeats one, or its diagram names an undefined node |
+| `concepts-ambiguous` | `AmbiguousConceptsError` | Both `GLOSSARY.md` and `CONCEPTS.md` exist at one root |
 
 All of them extend `UsageError`.
 `import { UnknownRuleError } from "@jpeakai/prose-gates"` gives every class, and each has a `code` property.

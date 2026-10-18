@@ -8,10 +8,6 @@ accepted_on: 2026-09-14
 last_changed_on: 2026-09-14
 tags: [testing, fixing]
 
-lens: |-
-  Example tests show a fixer works on the cases its author imagined.
-  The bugs live in the cases nobody imagined.
-
 provenance: Written alongside the new fixers, where adversarial suites found eight meaning-changing bugs that the fixtures had passed
 enforced_in:
   - tests/fixtures/fix, exact input and expected pairs checked for idempotence
@@ -26,20 +22,15 @@ relates_to:
   - relation: tests
     target: PRS-0005
     note: properties assert the fingerprint is preserved
-
-problem:
-  symptom: Each fixer passed its happy-path fixtures while rewriting escapes, CRLF files and cross-references wrongly.
-  pain_point: Those failures change meaning in real documents, so they cannot wait for a user report.
+  - relation: depended_on_by
+    target: PRS-0037
+    note: the one-per-line gap was reproduced by an adversarial test before its fix
 
 decision:
   given: a change touches how any rule fixes prose
   we_prefer: exact fixtures, adversarial suites and generated property tests together, over example tests alone
   because: each layer catches a class of bug the others miss, and a regression becomes a named test
   unless: never
-  in_practice:
-    - A found bug gets an adversarial test before its fix.
-    - Properties assert no throw, idempotence, a kept fingerprint, no new findings and byte-identical fences.
-    - Tests use the real parser and real files, never mocks.
 
 consequences:
   pros:

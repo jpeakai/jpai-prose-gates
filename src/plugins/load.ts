@@ -49,15 +49,10 @@ const importModule = async (source: PluginSource, runtime?: RuntimeInfo): Promis
 
 const OPTION_TYPES = new Set<OptionType>(["number", "string", "boolean", "string[]"]);
 
-// Checks one rule's declaration and returns it, so a bad rule fails at load
-// rather than the first time it runs.
-const checkRule = (spec: string, key: string, raw: unknown, own: ReadonlySet<string>): PluginRule => {
+// A rule's category is one word, built in or declared by this plugin, and its
+// key starts with it.
+const checkRuleCategory = (spec: string, key: string, category: unknown, own: ReadonlySet<string>): void => {
   const where = `rule "${key}"`;
-  if (!isRecord(raw)) throw new PluginContractError(spec, `${where} must be an object`);
-  if (!RULE_KEY.test(key)) {
-    throw new PluginContractError(spec, `${where} is not a valid key; use lower-case words joined by hyphens`);
-  }
-  const { category, summary, options, check, fix } = raw;
   if (typeof category !== "string" || !CATEGORY_WORD.test(category)) {
     throw new PluginContractError(spec, `${where} needs a category of one lower-case word`);
   }
@@ -70,17 +65,34 @@ const checkRule = (spec: string, key: string, raw: unknown, own: ReadonlySet<str
   if (!key.startsWith(`${category}-`)) {
     throw new PluginContractError(spec, `${where} must start with its category, as "${category}-short-name"`);
   }
+};
+
+// A rule's summary, functions and option types, checked after its category.
+const checkRuleBody = (spec: string, key: string, raw: Record<string, unknown>): void => {
+  const where = `rule "${key}"`;
+  const { summary, options, check, fix } = raw;
   if (typeof summary !== "string" || summary === "") throw new PluginContractError(spec, `${where} needs a summary`);
   if (typeof check !== "function") throw new PluginContractError(spec, `${where} needs a check function`);
   if (fix !== undefined && typeof fix !== "function") {
     throw new PluginContractError(spec, `${where} fix must be a function`);
   }
-  if (options !== undefined) {
-    const valid = isRecord(options) && Object.values(options).every((t) => OPTION_TYPES.has(t as OptionType));
-    if (!valid) {
-      throw new PluginContractError(spec, `${where} options must map names to number, string, boolean or string[]`);
-    }
+  if (options === undefined) return;
+  const valid = isRecord(options) && Object.values(options).every((t) => OPTION_TYPES.has(t as OptionType));
+  if (!valid) {
+    throw new PluginContractError(spec, `${where} options must map names to number, string, boolean or string[]`);
   }
+};
+
+// Checks one rule's declaration and returns it, so a bad rule fails at load
+// rather than the first time it runs.
+const checkRule = (spec: string, key: string, raw: unknown, own: ReadonlySet<string>): PluginRule => {
+  const where = `rule "${key}"`;
+  if (!isRecord(raw)) throw new PluginContractError(spec, `${where} must be an object`);
+  if (!RULE_KEY.test(key)) {
+    throw new PluginContractError(spec, `${where} is not a valid key; use lower-case words joined by hyphens`);
+  }
+  checkRuleCategory(spec, key, raw.category, own);
+  checkRuleBody(spec, key, raw);
   return raw as unknown as PluginRule;
 };
 
@@ -135,6 +147,50 @@ export interface LocalLoad {
   failures: PluginLoadError[];
 }
 
+interface LocalCategories {
+  // Each word the local files declare, with its description.
+  categories: Record<string, string>;
+  // The file that first declared each word.
+  owner: Record<string, string>;
+}
+
+interface LocalFile {
+  key: string;
+  source: PluginSource;
+  raw: unknown;
+}
+
+// Local files may each declare the same word, but only with the same description.
+const mergeCategories = (source: PluginSource, declared: Record<string, string>, merged: LocalCategories): void => {
+  const { categories, owner } = merged;
+  for (const [word, description] of Object.entries(declared)) {
+    if (categories[word] !== undefined && categories[word] !== description) {
+      throw new PluginConflictError(
+        source.spec,
+        owner[word] as string,
+        `declares category "${word}" with a different description than another local file`,
+      );
+    }
+    categories[word] = description;
+    owner[word] = source.spec;
+  }
+};
+
+// Imports one local file and merges the categories it declares. Its rule is
+// checked later, once every file's categories are known.
+const importLocalFile = async (
+  source: PluginSource,
+  merged: LocalCategories,
+  runtime?: RuntimeInfo,
+): Promise<LocalFile> => {
+  const mod = await importModule(source, runtime);
+  if (mod.default === undefined) {
+    throw new PluginContractError(source.spec, "has no default export; export one rule");
+  }
+  mergeCategories(source, checkCategories(source.spec, mod.categories), merged);
+  return { key: basename(source.path, extname(source.path)), source, raw: mod.default };
+};
+
 // Local files: each default-exports one rule, keyed by its file name. They load
 // as one plugin under the fixed namespace `local`, and a file may export
 // `categories` to declare the word its rule uses. Each file fails on its own,
@@ -145,32 +201,16 @@ export const loadLocal = async (sources: PluginSource[], runtime?: RuntimeInfo):
     if (!(err instanceof PluginLoadError)) throw err;
     failures.push(err);
   };
-  const categories: Record<string, string> = {};
-  const owner: Record<string, string> = {};
-  const loaded: { key: string; source: PluginSource; raw: unknown }[] = [];
+  const merged: LocalCategories = { categories: {}, owner: {} };
+  const loaded: LocalFile[] = [];
   for (const source of sources) {
     try {
-      const mod = await importModule(source, runtime);
-      if (mod.default === undefined) {
-        throw new PluginContractError(source.spec, "has no default export; export one rule");
-      }
-      const declared = checkCategories(source.spec, mod.categories);
-      for (const [word, description] of Object.entries(declared)) {
-        if (categories[word] !== undefined && categories[word] !== description) {
-          throw new PluginConflictError(
-            source.spec,
-            owner[word] as string,
-            `declares category "${word}" with a different description than another local file`,
-          );
-        }
-        categories[word] = description;
-        owner[word] = source.spec;
-      }
-      loaded.push({ key: basename(source.path, extname(source.path)), source, raw: mod.default });
+      loaded.push(await importLocalFile(source, merged, runtime));
     } catch (err) {
       fail(err);
     }
   }
+  const { categories } = merged;
   const own = new Set(Object.keys(categories));
   const rules: Record<string, PluginRule> = {};
   for (const { key, source, raw } of loaded) {

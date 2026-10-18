@@ -61,6 +61,24 @@ The test suite has four layers, and a fix change touches the ones that apply.
 
 A bug found in a fixer gets an adversarial test that fails before the fix lands.
 
+## Evaluating the messages
+
+A rule with no fixer, or a fix the fixer refuses, leaves an agent with only the finding message to act on.
+The evals in `evals/prose-gates/evals/` measure how well a message closes that loop.
+Each case seeds a file that fails one such rule and asks an agent to make the gate pass.
+The grader passes the cell only when the gate is clean, the content words survive, and no sentence was cut.
+The report records the pass rate, the turns and the tool calls for each case and model.
+
+```sh
+make evals-dry                          # list the matrix, invoke nothing, report under tmp/evals-dry
+make evals ARGS="--harness claude"      # run live, which bills every cell
+make evals-compare CACHES="a b"         # pass rate, turns and tool calls per sweep, baseline first
+```
+
+Live runs need the `claude` and `codex` CLIs on your `PATH`, each logged in, and they cost money.
+Neither `make check` nor `make ci` runs them, and CI never does.
+To compare a message change, run the sweep on both branches, each in its own worktree, then pass both cache roots to `make evals-compare`.
+
 ## Recording a decision
 
 A binding decision is recorded as a new `.yml` record in `adrs/` in the same change that makes it.

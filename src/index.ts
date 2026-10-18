@@ -2,16 +2,29 @@
 
 export { checkMarkdown, checkModel, DEFAULT_MAX_WORDS } from "./check.ts";
 export { main } from "./cli.ts";
+export {
+  CONCEPT_FILES,
+  type Concept,
+  type ConceptMention,
+  type ConceptModel,
+  type ConceptRelation,
+  KIND_OF,
+  loadConcepts,
+  NO_CONCEPTS,
+  parseConcepts,
+} from "./concepts.ts";
 export { type Config, loadConfig, type PluginLoading, parseConfig, type RuleSetting, type Severity } from "./config.ts";
 export * from "./errors.ts";
 export { type FixReport, fixMarkdown, fixMarkdownReport } from "./fix/engine.ts";
 export { FixInvariantError } from "./fix/verify.ts";
+export type { LanguageSentence, LanguageView, LanguageWord } from "./language.ts";
 export {
   buildDocModel,
   type DocModel,
   type FrontmatterEntry,
   type FrontmatterScalar,
   type FrontmatterView,
+  type ParagraphView,
   type ScalarStyle,
 } from "./model.ts";
 export type { Plugin, PluginEdit, PluginFinding, PluginMeta, PluginRule } from "./plugins/contract.ts";

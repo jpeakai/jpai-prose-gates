@@ -1,6 +1,7 @@
 // sentence-one-per-line: a newline inside a paragraph whose preceding non-space character
-// does not end a sentence is a mid-sentence wrap. The fix reflows the
-// paragraph to one sentence per line.
+// does not end a sentence is a mid-sentence wrap, and a sentence break with no
+// newline puts several sentences on one line. The fix reflows the paragraph to
+// one sentence per line, so the check reports every paragraph the fix changes.
 
 import { isStacked, paragraphsOf } from "../interpunct.ts";
 import type { ParagraphView } from "../model.ts";
@@ -32,17 +33,35 @@ const wrapsIn = (view: ParagraphView): number[] => {
   return wraps;
 };
 
-// The paragraph rewritten with one sentence per line. Code spans are masked
-// character for character before the split, keeping whitespace, so offsets
-// stay aligned and a terminal inside a code span never starts a new line.
+// The paragraph with each code span masked character for character, keeping
+// whitespace, so offsets stay aligned and a terminal inside a code span never
+// reads as the end of a sentence.
+const masked = (view: ParagraphView): string =>
+  [...view.raw].map((ch, i) => (inRanges(view.startOffset + i, view.codeRanges) && !/\s/.test(ch) ? "x" : ch)).join("");
+
+// Offsets within the paragraph of a sentence break that has no newline in it,
+// one per line, since one finding per line is enough to name it.
+const packedIn = (view: ParagraphView): number[] => {
+  const lines = new Set<number>();
+  const at: number[] = [];
+  const text = masked(view);
+  for (const match of text.matchAll(SENTENCE_BREAK)) {
+    if (match[0].includes("\n")) continue;
+    const offset = match.index ?? 0;
+    const line = text.slice(0, offset).split("\n").length;
+    if (lines.has(line)) continue;
+    lines.add(line);
+    at.push(offset);
+  }
+  return at;
+};
+
+// The paragraph rewritten with one sentence per line.
 const reflow = (view: ParagraphView): string => {
   const indent = " ".repeat(view.startColumn - 1);
   const eol = view.raw.includes("\r\n") ? "\r\n" : "\n";
-  const masked = [...view.raw]
-    .map((ch, i) => (inRanges(view.startOffset + i, view.codeRanges) && !/\s/.test(ch) ? "x" : ch))
-    .join("");
   const joined = collapse(view.raw);
-  const joinedMask = collapse(masked);
+  const joinedMask = collapse(masked(view));
 
   const lines: string[] = [];
   let from = 0;
@@ -55,15 +74,23 @@ const reflow = (view: ParagraphView): string => {
   return lines.map((line, i) => (i === 0 ? line.trim() : indent + line.trim())).join(eol);
 };
 
+const lineOf = (view: ParagraphView, at: number): number => view.line + view.raw.slice(0, at).split("\n").length - 1;
+
 const check: Rule["check"] = ({ doc, file }) =>
-  proseParagraphs(doc).flatMap((view) =>
-    wrapsIn(view).map((at) => ({
+  proseParagraphs(doc).flatMap((view) => [
+    ...wrapsIn(view).map((at) => ({
       file,
-      line: view.line + view.raw.slice(0, at).split("\n").length - 1,
+      line: lineOf(view, at),
       rule: RULE.WRAP,
       message: "mid-sentence line wrap; write one sentence per line",
     })),
-  );
+    ...packedIn(view).map((at) => ({
+      file,
+      line: lineOf(view, at),
+      rule: RULE.WRAP,
+      message: "several sentences on one line; write one sentence per line",
+    })),
+  ]);
 
 const fix: Rule["fix"] = ({ doc, runs }) => {
   const edits: Edit[] = [];
@@ -93,7 +120,7 @@ const fix: Rule["fix"] = ({ doc, runs }) => {
 export const sentenceOnePerLine: Rule = {
   id: RULE.WRAP,
   category: "sentence",
-  summary: "mid-sentence line wrap (one sentence per line)",
+  summary: "mid-sentence line wrap or several sentences on one line (one sentence per line)",
   check,
   fix,
 };

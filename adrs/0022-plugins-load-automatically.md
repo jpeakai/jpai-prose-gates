@@ -16,9 +16,6 @@ generated: { by: human:maintainer, at: 2026-10-06T00:00:00Z }
 
 <!-- GENERATED from PRS-0022 by okf_render.py. Do not edit; edit the .yml and regenerate. -->
 
-> **Lens**: Zero setup is worth having, and running a repository's code is the price.
-> The price has to be visible every time, and there has to be a way to refuse it.
-
 ## Relates to
 
 - Depends on [PRS-0019](0019-plugin-contract-and-namespace.md) (discovery finds modules that have the plugin shape)
@@ -28,36 +25,25 @@ generated: { by: human:maintainer, at: 2026-10-06T00:00:00Z }
 - Extended by [PRS-0025](0025-plugin-loading-strictness.md) (a skip is now an explicit, reported choice rather than never allowed)
 - Depended on by [PRS-0026](0026-typescript-local-rules-need-a-runtime-that-imports-them.md) (a local file may be TypeScript where the runtime can import it)
 
-## Problem
-
-### Symptom
-
-A rule set that a user could not extend, and a proposal that made extending it a manual wiring job.
-
-### Pain point
-
-Running a markdown linter in a cloned repository now runs that repository's code, which nobody expects of a linter.
-
 ## Decision
 
 ### The lens
 
-- **Given**: a project has local rule files or depends on a prose-gates plugin
-- **We prefer**: loading both with no config and saying so on every run, over a config that must list them
-- **Because**: a project that depends on a plugin has already chosen it
-- **Unless**: the run is on a repository that is not trusted, which --no-plugins is for
+#### Given
 
-### In practice
+a project has local rule files or depends on a prose-gates plugin
 
-- Sources load in this order, local files, then declared packages by name, then entries in the config.
-- Local rules are .js or .mjs files in .prose-gates/rules, under the namespace local. A .ts file there fails with the reason.
-- A package is read from dependencies, devDependencies and optionalDependencies of the root package.json, never from a scan of node_modules.
-- A name matches ^(@scope/)?prose-gates-plugin(-name)?$, so prose-gates-plugin-acme and @acme/prose-gates-plugin-acme both match.
-- A matching dependency that is not installed fails the run with its name. There is no skipped plugin.
-- A package that is listed twice loads once.
-- A run prints one stderr line naming each namespace and its rule count, and --json carries the same list.
-- Passing --no-plugins, or setting plugins to false, runs built-ins only and prints what was skipped.
-- There is no sandbox, no trust prompt and no pinning. A typosquatted dependency name would run.
+#### We prefer
+
+loading both with no config and saying so on every run, over a config that must list them
+
+#### Because
+
+a project that depends on a plugin has already chosen it
+
+#### Unless
+
+the run is on a repository that is not trusted, which --no-plugins is for
 
 ## Consequences
 

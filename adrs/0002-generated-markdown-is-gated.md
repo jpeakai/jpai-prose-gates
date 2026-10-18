@@ -14,33 +14,29 @@ generated: { by: human:maintainer, at: 2026-09-14T00:00:00Z }
 
 <!-- GENERATED from PRS-0002 by okf_render.py. Do not edit; edit the .yml and regenerate. -->
 
-> **Lens**: A reader cannot tell which page was generated.
-> Slop in rendered output reads exactly like slop written by hand.
+## Relates to
 
-## Problem
-
-### Symptom
-
-Generated files were excluded from the gates because nobody may edit them.
-
-### Pain point
-
-The slop moved into records and templates, where the gates never looked.
+- Depended on by [PRS-0037](0037-a-check-reports-every-line-its-fixer-changes.md) (the stricter one-per-line check was met by fixing the record template)
 
 ## Decision
 
 ### The lens
 
-- **Given**: a markdown file is produced by rendering a record or a template
-- **We prefer**: gating the rendered output and tracing each finding back to its source, over exempting generated paths
-- **Because**: the reader sees the rendered page, so that page is what must meet the standard
-- **Unless**: the generator's own boilerplate trips a rule, in which case the template is fixed rather than the rule relaxed
+#### Given
 
-### In practice
+a markdown file is produced by rendering a record or a template
 
-- Consumers pass adrs/*.md to the gates with every other markdown file.
-- A finding in generated output is fixed in the record or the template.
-- The fixer is never run over generated files, since the next render would undo it.
+#### We prefer
+
+gating the rendered output and tracing each finding back to its source, over exempting generated paths
+
+#### Because
+
+the reader sees the rendered page, so that page is what must meet the standard
+
+#### Unless
+
+the generator's own boilerplate trips a rule, in which case the template is fixed rather than the rule relaxed
 
 ## Consequences
 

@@ -1,0 +1,1 @@
+paragraph-sentence-budget-exceeded paragraph has 7 sentences (budget 5) and about 3 topics; break it after sentences 3 and 6, one topic per paragraph

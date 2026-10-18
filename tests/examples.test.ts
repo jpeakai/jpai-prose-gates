@@ -6,7 +6,9 @@ import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
 import { checkMarkdown, fixMarkdown, fixMarkdownReport, setUp } from "../src/index.ts";
-import { PROJECT_ROOT, runCli, tempProject } from "./helpers.ts";
+import { PROJECT_ROOT, runCli, tempDirs } from "./helpers.ts";
+
+const tmp = tempDirs();
 
 interface Variant {
   name: string;
@@ -43,7 +45,7 @@ const read = (v: Variant, path: string): Promise<string> =>
   Bun.file(join(PROJECT_ROOT, "examples", v.dir, path)).text();
 
 const asLocal = async (v: Variant, config?: unknown): Promise<string> =>
-  tempProject({
+  tmp.project({
     "package.json": "{}",
     [`.prose-gates/rules/${BUDGET}.${v.ext}`]: await read(v, `rules/${BUDGET}.${v.ext}`),
     [`.prose-gates/rules/${MULTILINE}.${v.ext}`]: await read(v, `rules/${MULTILINE}.${v.ext}`),
@@ -51,7 +53,7 @@ const asLocal = async (v: Variant, config?: unknown): Promise<string> =>
   });
 
 const asPackage = async (v: Variant): Promise<string> =>
-  tempProject({
+  tmp.project({
     "package.json": JSON.stringify({ devDependencies: { [v.pkg]: "0.0.0" } }),
     [`node_modules/${v.pkg}/package.json`]: await read(v, "package.json"),
     [`node_modules/${v.pkg}/${v.entry}`]: await read(v, v.entry),

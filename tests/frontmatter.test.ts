@@ -6,7 +6,9 @@ import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
 import { isScalar, visit } from "yaml";
 import { buildDocModel, checkMarkdown, setUp } from "../src/index.ts";
-import { PROJECT_ROOT, tempProject } from "./helpers.ts";
+import { PROJECT_ROOT, tempDirs } from "./helpers.ts";
+
+const tmp = tempDirs();
 
 const EXAMPLE = join(PROJECT_ROOT, "examples", "plugin-skills");
 const read = (path: string): Promise<string> => Bun.file(join(EXAMPLE, path)).text();
@@ -14,7 +16,7 @@ const read = (path: string): Promise<string> => Bun.file(join(EXAMPLE, path)).te
 const RULE_ID = "frontmatter-description-word-budget";
 
 const asLocal = async (config?: unknown) =>
-  tempProject({
+  tmp.project({
     "package.json": "{}",
     [`.prose-gates/rules/${RULE_ID}.mjs`]: await read(`rules/${RULE_ID}.mjs`),
     ...(config ? { "prose-gates.config.json": JSON.stringify(config) } : {}),
@@ -177,7 +179,7 @@ describe("the skills description rule as a local rule", () => {
 
 describe("the skills description rule as a packaged plugin", () => {
   test("loads from a declared dependency under the skills namespace and category", async () => {
-    const root = tempProject({
+    const root = tmp.project({
       "package.json": JSON.stringify({ devDependencies: { "prose-gates-plugin-skills": "0.0.0" } }),
       "node_modules/prose-gates-plugin-skills/package.json": await read("package.json"),
       "node_modules/prose-gates-plugin-skills/index.mjs": await read("index.mjs"),

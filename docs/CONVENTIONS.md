@@ -16,6 +16,7 @@ Agents and humans: consult this before creating, moving or renaming any doc.
 - **Regenerate:** `make fix`, and `make ci` asserts the tree is clean afterwards
 - **Agent files:** `CLAUDE.md` at root, with no nested agent files
 - **Prose gates:** every markdown file is gated by `make docs-ci` using this repo's own source, generated output included
+- **Code fences:** a language, then only `key="value"` options such as `title="Before"`, so the site renders them, held by `tests/fences.test.ts`
 - **Changelog:** not used
 - **Proposals and RFCs:** not used
 

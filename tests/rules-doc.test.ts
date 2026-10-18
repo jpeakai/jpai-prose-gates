@@ -1,7 +1,8 @@
-// RULES.md is documentation that the code must keep true. Every `text before`
-// block is fixed and compared with the `text after` block that follows it,
-// every `text reported` block must fire its rule and survive a fix run, and
-// every `text rewritten` block after a reported one must pass every rule.
+// RULES.md is documentation that the code must keep true. Every block titled
+// Before is fixed and compared with the After block that follows it, every
+// Reported block must fire its rule and survive a fix run, and every Rewritten
+// block after a reported one must pass every rule. A title is a superfences
+// option, `text title="Before"`, so the site renders the fence.
 
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
@@ -15,6 +16,13 @@ interface Example {
   label: "before" | "after" | "reported" | "rewritten";
   body: string;
 }
+
+const LABELS: Record<string, Example["label"]> = {
+  Before: "before",
+  "After --fix": "after",
+  Reported: "reported",
+  Rewritten: "rewritten",
+};
 
 const doc = await Bun.file(join(PROJECT_ROOT, "RULES.md")).text();
 const tree = fromMarkdown(doc);
@@ -34,7 +42,9 @@ for (const node of tree.children as RootContent[]) {
   }
   const code = node as Code;
   if (node.type === "code" && code.lang === "text" && code.meta) {
-    const label = code.meta as Example["label"];
+    const title = /^title="([^"]*)"$/.exec(code.meta)?.[1] ?? "";
+    const label = LABELS[title];
+    if (!label) throw new Error(`${rule}: a text fence has an unknown title, ${code.meta}`);
     examples.push({ rule, label, body: `${code.value}\n` });
   }
 }

@@ -67,6 +67,7 @@ docs:
 	bun run site-theme/osakanights/tokens.ts --check
 	bun run scripts/assemble-site.ts
 	uv run --only-group docs mkdocs build --strict
+	bun run scripts/check-site.ts
 
 # Write the theme's colour tokens from design-tokens.json into its stylesheet.
 theme:

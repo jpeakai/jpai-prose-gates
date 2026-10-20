@@ -53,6 +53,7 @@ nav:
   - Guides:
       - Plugins and local rules: docs/plugins.md
       - Check and fix engines: docs/engines.md
+      - Language and concepts: docs/language.md
   - Reference:
       - Data model: docs/DATA_MODEL.md
       - Glossary: GLOSSARY.md

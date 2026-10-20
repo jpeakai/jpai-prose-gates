@@ -201,6 +201,7 @@ export default {
 
 Tagging is the slowest step of a check, so a rule should filter on cheap fields such as `inTable` before it reads `language`.
 The tags are compromise's own, such as `Noun`, `Verb`, `Pronoun` and `Adverb`.
+[The language and concept models](language.md) shows how each field is built, with worked examples.
 
 ## Concepts
 
@@ -257,6 +258,7 @@ export default {
 
 A concept file that does not parse stops the run with exit code 2, as a broken config does.
 A rule that reads half a vocabulary would report against a glossary nobody wrote.
+[The language and concept models](language.md#the-concept-file) diagrams the parse and every way it fails.
 
 ## A plugin package
 

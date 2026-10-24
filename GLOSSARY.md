@@ -193,7 +193,7 @@ See [PRS-0009](adrs/0009-adversarial-and-property-tests-gate-fixes.md).
 ## Agent
 
 An AI coding assistant working in this repo, such as Claude Code or Codex.
-Every Agent is bound by the instructions in `CLAUDE.md`.
+Every Agent is bound by the instructions in `AGENTS.md`.
 
 ## Branch Protection
 

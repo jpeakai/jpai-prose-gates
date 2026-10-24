@@ -23,6 +23,9 @@ relates_to:
   - relation: see_also
     target: PRS-0037
     note: the check reports runs the fix refuses, so a refused run stays reported rather than silently passing
+  - relation: extended_by
+    target: PRS-0042
+    note: list-comma-plain-run reports long plain-word runs, and minItems tunes this rule's threshold
 
 decision:
   given: comma-joined items that are each only an inline code span, with an optional "and" or "or" before the last

@@ -15,7 +15,9 @@ export const INTERPUNCT = "·";
 export const GLYPH = /·/g;
 export const RUN_SEPARATOR = /[ \t]*·[ \t]*/;
 
-// A paragraph whose prose joins a run of items with 2+ interpunct separators.
+// A paragraph whose prose joins items with interpunct separators. One
+// separator is enough to be a run, so list-interpunct-joined-run can take a
+// minItems of 2; how many items make a list is the owning rule's to decide.
 export interface InterpunctRun {
   range: Range;
   line: number;
@@ -27,7 +29,7 @@ export const interpunctRuns = (doc: DocModel): InterpunctRun[] => {
   const runs: InterpunctRun[] = [];
   for (const view of proseParagraphs(doc)) {
     const separators = countOf(view.prose, GLYPH);
-    if (separators < 2) continue;
+    if (separators < 1) continue;
     const lines = view.raw.split("\n").filter((line) => line.includes(INTERPUNCT)).length;
     runs.push({ range: [view.startOffset, view.endOffset], line: view.line, separators, lines });
   }
@@ -39,7 +41,13 @@ export const interpunctRuns = (doc: DocModel): InterpunctRun[] => {
 // sentence-one-per-line leaves unreflowed. The two predicates partition every run.
 export const isFlat = (run: InterpunctRun): boolean => run.lines === 1;
 
-export const isStacked = (run: InterpunctRun): boolean => run.lines >= 2;
+export const DEFAULT_MIN_INTERPUNCT_ITEMS = 3;
+
+export const isStacked = (run: InterpunctRun): boolean => run.lines >= 2 && run.separators >= 2;
+
+// A flat run long enough for list-interpunct-joined-run to own it.
+export const isFlatList = (run: InterpunctRun, minItems: number): boolean =>
+  isFlat(run) && run.separators + 1 >= minItems;
 
 // The paragraphs those runs were derived from. A run is keyed by the
 // paragraph it spans, so this is how a rule gets from the runs it was handed

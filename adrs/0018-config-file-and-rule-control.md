@@ -25,6 +25,7 @@ generated: { by: human:maintainer, at: 2026-10-06T00:00:00Z }
 - Depended on by [PRS-0024](0024-failures-are-named-errors-with-codes.md) (the config failures it raises are named errors with codes)
 - Depended on by [PRS-0030](0030-paragraph-length-is-reported-with-topic-guidance.md) (maxSentences is checked at load like maxWords)
 - Extended by [PRS-0036](0036-a-glossary-is-read-as-the-concept-model.md) (a concept file at the project root also shapes a run, and fails it the way a bad config does)
+- Extended by [PRS-0042](0042-plain-word-runs-and-a-min-items-option.md) (every list run rule takes a minItems option, checked at load)
 
 ## Decision
 

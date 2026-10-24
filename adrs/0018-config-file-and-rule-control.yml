@@ -38,6 +38,9 @@ relates_to:
   - relation: extended_by
     target: PRS-0036
     note: a concept file at the project root also shapes a run, and fails it the way a bad config does
+  - relation: extended_by
+    target: PRS-0042
+    note: every list run rule takes a minItems option, checked at load
 
 decision:
   given: a project wants to disable a rule, tune its budget, or run extra rules

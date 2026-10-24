@@ -20,6 +20,7 @@ generated: { by: human:maintainer, at: 2026-10-24T00:00:00Z }
 
 - Extends [PRS-0004](0004-a-fixer-refuses-when-unsure.md) (a run mid-sentence, without a lead-in, or opening inside a link or emphasis is refused)
 - See also [PRS-0037](0037-a-check-reports-every-line-its-fixer-changes.md) (the check reports runs the fix refuses, so a refused run stays reported rather than silently passing)
+- Extended by [PRS-0042](0042-plain-word-runs-and-a-min-items-option.md) (list-comma-plain-run reports long plain-word runs, and minItems tunes this rule's threshold)
 
 ## Decision
 

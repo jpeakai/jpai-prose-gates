@@ -293,7 +293,14 @@ flowchart TB
     classDef record    fill:#52525b36,stroke:#94a3b8,stroke-width:2px
 ```
 
-*Detail: the function tags are Pronoun, Possessive, Auxiliary, Copula, Modal and Determiner.*
+*Detail: a word with any of these function tags never counts as content.*
+
+- Pronoun
+- Possessive
+- Auxiliary
+- Copula
+- Modal
+- Determiner
 
 </details>
 

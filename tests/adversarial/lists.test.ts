@@ -54,6 +54,38 @@ describe("list-comma-code-run", () => {
   ])("refuses %s", async (_, src) => await refuses(src, "list-comma-code-run"));
 });
 
+describe("list-comma-plain-run", () => {
+  test("a final and without a comma cuts the last two items apart", async () => {
+    await fixesTo(
+      "Tags: alpha, beta, rc, next and canary.\n",
+      "Tags:\n\n- alpha\n- beta\n- rc\n- next\n- canary\n",
+      "list-comma-plain-run",
+    );
+  });
+
+  test("an Oxford comma leaves no empty item", async () => {
+    await fixesTo(
+      "Tags: alpha, beta, rc, next, and canary.\n",
+      "Tags:\n\n- alpha\n- beta\n- rc\n- next\n- canary\n",
+      "list-comma-plain-run",
+    );
+  });
+
+  test("inside a list item it nests", async () => {
+    await fixesTo(
+      "- Tags: alpha, beta, rc, next, canary.\n",
+      "- Tags:\n  - alpha\n  - beta\n  - rc\n  - next\n  - canary\n",
+      "list-comma-plain-run",
+    );
+  });
+
+  test.each([
+    ["a run with no colon", "It publishes alpha, beta, rc, next, nightly and canary.\n"],
+    ["an item inside emphasis", "Tags: alpha, *beta*, rc, next, canary.\n"],
+    ["an item inside a link", "Tags: alpha, [beta](u), rc, next, canary.\n"],
+  ])("refuses %s", async (_, src) => await refuses(src, "list-comma-plain-run"));
+});
+
 describe("list-interpunct-joined-run", () => {
   test("emphasis spanning a separator refuses", async () => {
     await refuses("Stack: *Bun · TypeScript* · biome.\n", "list-interpunct-joined-run");

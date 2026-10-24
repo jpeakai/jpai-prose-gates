@@ -12,6 +12,7 @@ import { cleanLeadIn, itemsOf, promote } from "../fix/promote.ts";
 import type { ParagraphView } from "../model.ts";
 import { colonsIn, matchesInAll, proseSentences, sentenceSpans } from "../query.ts";
 import { collapse, first, type Range, spansBetween, within } from "../text.ts";
+import { MIN_ITEMS, minItemsOf } from "./options.ts";
 import { type Edit, RULE, type Rule } from "./types.ts";
 
 // A labelled segment, built from its parts so each one can be read on its
@@ -42,22 +43,26 @@ const asProse = (src: string, view: ParagraphView, range: Range): string => {
 const labelledSegments = (sentence: string): number =>
   sentence.split(/,\s+/).filter((segment) => LABELLED_SEGMENT.test(segment)).length;
 
-const check: Rule["check"] = ({ doc, file }) =>
-  proseSentences(doc)
+export const DEFAULT_MIN_LABELLED_ITEMS = 3;
+
+const check: Rule["check"] = ({ doc, file, options }) => {
+  const minItems = minItemsOf(options, DEFAULT_MIN_LABELLED_ITEMS);
+  return proseSentences(doc)
     .map(({ view, sentence }) => ({ view, labelled: labelledSegments(sentence) }))
-    .filter(({ labelled }) => labelled >= 3)
+    .filter(({ labelled }) => labelled >= minItems)
     .map(({ view, labelled }) => ({
       file,
       line: view.line,
       rule: RULE.LABELLED_RUN,
       message: `comma-joined run of ${labelled} labelled items; promote to a bullet list`,
     }));
+};
 
 // The comma-separated segments of a sentence when every one is labelled, or
 // null when the sentence has too few commas or carries a stray clause.
 const labelledRun = (src: string, view: ParagraphView, commas: Range[], span: Range): Range[] | null => {
   const inside = commas.filter((comma) => within(comma, span));
-  if (inside.length < 2) return null;
+  if (inside.length === 0) return null;
   // The sentence start is the cut before the first segment, so the spans
   // between the cuts are exactly the comma-separated segments.
   const segments = spansBetween([[span[0], span[0]], ...inside], span[1]);
@@ -94,24 +99,29 @@ const promoteRun = ({ src, view, span, segments, colons }: LabelledSentence): Ed
 
 // One promotion per paragraph: the first fully labelled sentence is the only
 // one tried, and the engine re-parses and comes back for the rest.
-const fixParagraph = (src: string, view: ParagraphView): Edit | null => {
+const fixParagraph = (src: string, view: ParagraphView, minItems: number): Edit | null => {
   const commas = matchesInAll(src, view.directTexts, /,(?=\s)/);
   const colons = colonsIn(src, view);
   if (commas === null || colons === null) return null;
   for (const span of sentenceSpans(src, view)) {
     const segments = labelledRun(src, view, commas, span);
-    if (segments !== null) return promoteRun({ src, view, span, segments, colons });
+    if (segments !== null && segments.length >= minItems) return promoteRun({ src, view, span, segments, colons });
   }
   return null;
 };
 
-const fix: Rule["fix"] = ({ doc }) =>
-  doc.paragraphs.map((view) => fixParagraph(doc.src, view)).filter((edit): edit is Edit => edit !== null);
+const fix: Rule["fix"] = ({ doc, options }) => {
+  const minItems = minItemsOf(options, DEFAULT_MIN_LABELLED_ITEMS);
+  return doc.paragraphs
+    .map((view) => fixParagraph(doc.src, view, minItems))
+    .filter((edit): edit is Edit => edit !== null);
+};
 
 export const listCommaLabelledRun: Rule = {
   id: RULE.LABELLED_RUN,
   category: "list",
   summary: "comma-joined labelled run (3+ labelled segments)",
+  options: MIN_ITEMS,
   check,
   fix,
 };

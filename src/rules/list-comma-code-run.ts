@@ -13,25 +13,30 @@ import { cleanLeadIn, promote } from "../fix/promote.ts";
 import type { ParagraphView } from "../model.ts";
 import { proseSentences, sentenceSpans } from "../query.ts";
 import { collapse, last, type Range, within } from "../text.ts";
+import { MIN_ITEMS, minItemsOf } from "./options.ts";
 import { type Edit, RULE, type Rule } from "./types.ts";
 
 // The run as the check reads prose, where each code span is one CODE token.
-const RUN = /CODE(?:\s*,\s+CODE)+(?:\s*,?\s+(?:and|or)\s+CODE)?/g;
+const RUN = /CODE(?:\s*,\s+CODE)*(?:\s*,?\s+(?:and|or)\s+CODE)?/g;
+
+export const DEFAULT_MIN_CODE_ITEMS = 3;
 
 // The longest run in a sentence, counted in code spans.
 const longestRun = (sentence: string): number =>
   Math.max(0, ...[...sentence.matchAll(RUN)].map((m) => m[0].split("CODE").length - 1));
 
-const check: Rule["check"] = ({ doc, file }) =>
-  proseSentences(doc)
+const check: Rule["check"] = ({ doc, file, options }) => {
+  const minItems = minItemsOf(options, DEFAULT_MIN_CODE_ITEMS);
+  return proseSentences(doc)
     .map(({ view, sentence }) => ({ view, items: longestRun(sentence) }))
-    .filter(({ items }) => items >= 3)
+    .filter(({ items }) => items >= minItems)
     .map(({ view, items }) => ({
       file,
       line: view.line,
       rule: RULE.CODE_RUN,
       message: `comma-joined run of ${items} code spans; promote to a bullet list`,
     }));
+};
 
 // What may sit between two items in the source: a comma, or before the last
 // item a conjunction with an optional comma. Anything else, such as the
@@ -44,9 +49,9 @@ const TAIL = /^\s*[.!?]?\s*$/;
 
 // The code spans that close the sentence as a run, in order, or null when
 // the sentence does not end on one.
-const tailRun = (src: string, codes: Range[], span: Range): Range[] | null => {
+const tailRun = (src: string, codes: Range[], span: Range, minItems: number): Range[] | null => {
   const inside = codes.filter((code) => within(code, span));
-  if (inside.length < 3 || !TAIL.test(src.slice(last(inside)[1], span[1]))) return null;
+  if (inside.length < minItems || !TAIL.test(src.slice(last(inside)[1], span[1]))) return null;
   const run = [last(inside)];
   for (let i = inside.length - 2; i >= 0; i--) {
     const gap = src.slice((inside[i] as Range)[1], (run[0] as Range)[0]);
@@ -54,7 +59,7 @@ const tailRun = (src: string, codes: Range[], span: Range): Range[] | null => {
     if (!joins) break;
     run.unshift(inside[i] as Range);
   }
-  return run.length >= 3 ? run : null;
+  return run.length >= minItems ? run : null;
 };
 
 // A colon already closing the lead-in inside emphasis, as in "**Paths:**",
@@ -69,9 +74,9 @@ const leadInOf = (head: string): string | null => {
   return EMPHASISED_COLON.test(trimmed) ? trimmed : cleanLeadIn(head);
 };
 
-const fixParagraph = (src: string, view: ParagraphView): Edit | null => {
+const fixParagraph = (src: string, view: ParagraphView, minItems: number): Edit | null => {
   for (const span of sentenceSpans(src, view)) {
-    const run = tailRun(src, view.codeRanges, span);
+    const run = tailRun(src, view.codeRanges, span, minItems);
     if (run === null) continue;
     const leadIn = leadInOf(src.slice(span[0], (run[0] as Range)[0]));
     if (leadIn === null) continue;
@@ -90,13 +95,18 @@ const fixParagraph = (src: string, view: ParagraphView): Edit | null => {
 
 // One promotion per paragraph, as for the other list rules: the engine
 // re-parses and comes back for the rest.
-const fix: Rule["fix"] = ({ doc }) =>
-  doc.paragraphs.map((view) => fixParagraph(doc.src, view)).filter((edit): edit is Edit => edit !== null);
+const fix: Rule["fix"] = ({ doc, options }) => {
+  const minItems = minItemsOf(options, DEFAULT_MIN_CODE_ITEMS);
+  return doc.paragraphs
+    .map((view) => fixParagraph(doc.src, view, minItems))
+    .filter((edit): edit is Edit => edit !== null);
+};
 
 export const listCommaCodeRun: Rule = {
   id: RULE.CODE_RUN,
   category: "list",
   summary: "comma-joined run of 3+ inline code spans",
+  options: MIN_ITEMS,
   check,
   fix,
 };

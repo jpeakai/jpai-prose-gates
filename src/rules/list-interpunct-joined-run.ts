@@ -4,10 +4,11 @@
 // tell where the first item starts.
 
 import { cleanLeadIn, itemsBetween, promote } from "../fix/promote.ts";
-import { GLYPH, isFlat, paragraphsOf, RUN_SEPARATOR } from "../interpunct.ts";
+import { DEFAULT_MIN_INTERPUNCT_ITEMS, GLYPH, isFlatList, paragraphsOf, RUN_SEPARATOR } from "../interpunct.ts";
 import type { ParagraphView } from "../model.ts";
 import { colonsBefore, colonsIn, sentenceSpan, splittableSeparators } from "../query.ts";
 import { first, last, type Range, words } from "../text.ts";
+import { MIN_ITEMS, minItemsOf } from "./options.ts";
 import { type Edit, RULE, type Rule } from "./types.ts";
 
 // A last item this much longer than every other is a sentence that happens
@@ -19,13 +20,15 @@ const tailIsProse = (items: string[]): boolean =>
 // carries a clause the list would strip of its meaning.
 const headIsProse = (items: string[]): boolean => words(first(items)) > Math.max(...items.slice(1).map(words));
 
-const check: Rule["check"] = ({ file, runs }) =>
-  runs.filter(isFlat).map((run) => ({
-    file,
-    line: run.line,
-    rule: RULE.INTERPUNCT_RUN,
-    message: `interpunct-joined inline list (${run.separators + 1} items); promote to a bullet list`,
-  }));
+const check: Rule["check"] = ({ file, runs, options }) =>
+  runs
+    .filter((run) => isFlatList(run, minItemsOf(options, DEFAULT_MIN_INTERPUNCT_ITEMS)))
+    .map((run) => ({
+      file,
+      line: run.line,
+      rule: RULE.INTERPUNCT_RUN,
+      message: `interpunct-joined inline list (${run.separators + 1} items); promote to a bullet list`,
+    }));
 
 // With no colon to announce it, the run has to be the whole paragraph.
 const coversParagraph = (view: ParagraphView, span: Range): boolean =>
@@ -57,8 +60,11 @@ const fixParagraph = (src: string, view: ParagraphView): Edit | null => {
   });
 };
 
-const fix: Rule["fix"] = ({ doc, runs }) =>
-  paragraphsOf(doc, runs.filter(isFlat))
+const fix: Rule["fix"] = ({ doc, runs, options }) =>
+  paragraphsOf(
+    doc,
+    runs.filter((run) => isFlatList(run, minItemsOf(options, DEFAULT_MIN_INTERPUNCT_ITEMS))),
+  )
     .map((view) => fixParagraph(doc.src, view))
     .filter((edit): edit is Edit => edit !== null);
 
@@ -66,6 +72,7 @@ export const listInterpunctJoinedRun: Rule = {
   id: RULE.INTERPUNCT_RUN,
   category: "list",
   summary: "interpunct-joined inline list (2+ separators)",
+  options: MIN_ITEMS,
   check,
   fix,
 };

@@ -568,7 +568,7 @@ A mismatch means a context the fixer could not see, so the edit is refused and t
 | `same-tree` | Whitespace moved and nothing else | Trees equal once text whitespace is collapsed | sentence-one-per-line |
 | `same-shape` | Glyphs swapped inside text | Trees equal once every text value is blanked | punctuation-em-dash-in-prose, punctuation-interpunct-in-prose |
 | `same-frontmatter-data` | Frontmatter written a different way | The YAML parses to identical data, and the tree without its frontmatter is equal | plugin rules, such as the folded-block fixer in `examples/` |
-| `replace-paragraph` | One paragraph became a lead-in and a list | Fragment has the declared shape, and swapping it into the old tree reproduces the new tree | list-semicolon-delimited-run, list-interpunct-joined-run, list-inline-enumeration-markers, list-comma-labelled-run, list-comma-code-run, list-stacked-interpunct-runs |
+| `replace-paragraph` | One paragraph became a lead-in and a list | Fragment has the declared shape, and swapping it into the old tree reproduces the new tree | list-semicolon-delimited-run, list-interpunct-joined-run, list-inline-enumeration-markers, list-comma-labelled-run, list-comma-code-run, list-comma-plain-run, list-stacked-interpunct-runs |
 
 ## Fix order
 
@@ -594,7 +594,7 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph structure["Structure"]
-        P9["list-stacked-interpunct-runs"]:::list --> P7["list-inline-enumeration-markers"]:::list --> P8["list-comma-labelled-run"]:::list --> P10["list-comma-code-run"]:::list --> P6["list-interpunct-joined-run"]:::list --> P3["list-semicolon-delimited-run"]:::list
+        P9["list-stacked-interpunct-runs"]:::list --> P7["list-inline-enumeration-markers"]:::list --> P8["list-comma-labelled-run"]:::list --> P10["list-comma-code-run"]:::list --> P11["list-comma-plain-run"]:::list --> P6["list-interpunct-joined-run"]:::list --> P3["list-semicolon-delimited-run"]:::list
     end
     subgraph glyphs["Glyphs"]
         P5["punctuation-interpunct-in-prose"]:::punc --> P4["punctuation-em-dash-in-prose"]:::punc
@@ -655,9 +655,10 @@ flowchart TB
         G7["list-inline-enumeration-markers"]:::gate
         G8["list-comma-labelled-run"]:::gate
         G10["list-comma-code-run"]:::gate
+        G11["list-comma-plain-run"]:::gate
         G9["list-stacked-interpunct-runs"]:::gate
     end
-    G3 ~~~ G6 ~~~ G7 ~~~ G8 ~~~ G10 ~~~ G9
+    G3 ~~~ G6 ~~~ G7 ~~~ G8 ~~~ G10 ~~~ G11 ~~~ G9
     PROM["promote<br/>lead-in plus items"]:::build
     GUARD{"safe to promote?"}:::decide
     NULL(["null: the finding stays"]):::bad
@@ -668,6 +669,7 @@ flowchart TB
     G7 --> PROM
     G8 --> PROM
     G10 --> PROM
+    G11 --> PROM
     G9 --> PROM
     PROM --> GUARD
     GUARD -- "no: table, quote, break,<br/>few items, unsafe start" --> NULL

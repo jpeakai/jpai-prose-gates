@@ -4,6 +4,7 @@
 
 import { listCommaCodeRun } from "./list-comma-code-run.ts";
 import { listCommaLabelledRun } from "./list-comma-labelled-run.ts";
+import { listCommaPlainRun } from "./list-comma-plain-run.ts";
 import { listInlineEnumerationMarkers } from "./list-inline-enumeration-markers.ts";
 import { listInterpunctJoinedRun } from "./list-interpunct-joined-run.ts";
 import { listSemicolonDelimitedRun } from "./list-semicolon-delimited-run.ts";
@@ -26,6 +27,7 @@ export const RULES: Rule[] = [
   listInlineEnumerationMarkers,
   listCommaLabelledRun,
   listCommaCodeRun,
+  listCommaPlainRun,
   listStackedInterpunctRuns,
 ];
 
@@ -37,6 +39,7 @@ export const FIX_ORDER: Rule[] = [
   listInlineEnumerationMarkers,
   listCommaLabelledRun,
   listCommaCodeRun,
+  listCommaPlainRun,
   listInterpunctJoinedRun,
   listSemicolonDelimitedRun,
   punctuationInterpunctInProse,

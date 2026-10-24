@@ -20,6 +20,7 @@ Installed as a dev dependency, the command is `prose-gates`, and `--json` gives 
 
 - `--max-words N` changes the sentence budget, which defaults to 25.
   The paragraph budget of 5 sentences is set by the `maxSentences` option in the config instead.
+  How many items make a hidden list is set per run rule by its `minItems` option, which [RULES.md](RULES.md) shows for each.
 - `--config FILE` reads a config other than the one at the project root.
 - `--no-plugins` runs the built-in rules only, and `--lenient-plugins` skips a plugin that fails to load and says so.
 - `--no-concepts` leaves the `GLOSSARY.md` or `CONCEPTS.md` unread, so no rule sees the project's concepts.
@@ -39,7 +40,7 @@ The rules are grouped by what they guard, and `--list-rules` prints them.
 |---|---|---|
 | Sentence | sentence-one-per-line, sentence-word-budget-exceeded | How a sentence is laid out and how long it runs |
 | Paragraph | paragraph-sentence-budget-exceeded | How many sentences a paragraph holds before a break |
-| List | list-semicolon-delimited-run, list-interpunct-joined-run, list-inline-enumeration-markers, list-comma-labelled-run, list-comma-code-run, list-stacked-interpunct-runs | A list hidden in running prose, promoted to a real markdown list |
+| List | list-semicolon-delimited-run, list-interpunct-joined-run, list-inline-enumeration-markers, list-comma-labelled-run, list-comma-code-run, list-comma-plain-run, list-stacked-interpunct-runs | A list hidden in running prose, promoted to a real markdown list |
 | Punctuation | punctuation-em-dash-in-prose, punctuation-interpunct-in-prose | A glyph that reads as generated text |
 
 Every fix is verified before it is written.

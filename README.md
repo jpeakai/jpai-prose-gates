@@ -39,7 +39,7 @@ The rules are grouped by what they guard, and `--list-rules` prints them.
 |---|---|---|
 | Sentence | sentence-one-per-line, sentence-word-budget-exceeded | How a sentence is laid out and how long it runs |
 | Paragraph | paragraph-sentence-budget-exceeded | How many sentences a paragraph holds before a break |
-| List | list-semicolon-delimited-run, list-interpunct-joined-run, list-inline-enumeration-markers, list-comma-labelled-run, list-stacked-interpunct-runs | A list hidden in running prose, promoted to a real markdown list |
+| List | list-semicolon-delimited-run, list-interpunct-joined-run, list-inline-enumeration-markers, list-comma-labelled-run, list-comma-code-run, list-stacked-interpunct-runs | A list hidden in running prose, promoted to a real markdown list |
 | Punctuation | punctuation-em-dash-in-prose, punctuation-interpunct-in-prose | A glyph that reads as generated text |
 
 Every fix is verified before it is written.
@@ -55,8 +55,13 @@ Fences tagged `markdown` or `md` are the exception, since they hold templates wh
 A project adds its own rules without forking this package.
 Both sources load on their own, with no config, and every run prints a line saying what it loaded.
 
-- **Local rules.** A `.js`, `.mjs`, `.ts` or `.mts` file in `.prose-gates/rules/` exports one rule, and its id is `local/` followed by the file name.
+- **Local rules.** A file in `.prose-gates/rules/` exports one rule, and its id is `local/` followed by the file name.
   TypeScript needs Bun or Node 22.18 or newer.
+  The file ends in one of these:
+  - `.js`
+  - `.mjs`
+  - `.ts`
+  - `.mts`
 - **Plugin packages.** A dependency named `prose-gates-plugin-name` or `@scope/prose-gates-plugin-name` loads under the namespace its own `meta.namespace` declares.
 - **New categories.** A plugin declares a category of its own, such as `frontmatter`, and its rules use it.
 - **The project's own terms.** A `GLOSSARY.md` or `CONCEPTS.md` at the root is read as the project's concepts.

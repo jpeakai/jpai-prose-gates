@@ -3,7 +3,11 @@
 How a Prose Gate reads English, and how it learns a project's own words.
 
 Read this before writing a rule that reads `language` or `doc.concepts`.
-It is the map behind `src/language.ts`, `src/concepts.ts` and `src/cohesion.ts`.
+It is the map behind:
+
+- `src/language.ts`
+- `src/concepts.ts`
+- `src/cohesion.ts`
 
 [Writing plugins and local rules](plugins.md#language) lists the fields a rule can read.
 This page shows how each field is built, what it is good for and where it goes wrong.

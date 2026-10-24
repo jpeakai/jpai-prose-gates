@@ -14,7 +14,7 @@ Rules marked with a star in `--help` have a fixer.
 |---|---|---|
 | Sentence | sentence-one-per-line, sentence-word-budget-exceeded | How a sentence is laid out and how long it runs |
 | Paragraph | paragraph-sentence-budget-exceeded | How many sentences a paragraph holds before a break |
-| List | list-semicolon-delimited-run, list-interpunct-joined-run, list-inline-enumeration-markers, list-comma-labelled-run, list-stacked-interpunct-runs | A list hidden in running prose, promoted to a real markdown list |
+| List | list-semicolon-delimited-run, list-interpunct-joined-run, list-inline-enumeration-markers, list-comma-labelled-run, list-comma-code-run, list-stacked-interpunct-runs | A list hidden in running prose, promoted to a real markdown list |
 | Punctuation | punctuation-em-dash-in-prose, punctuation-interpunct-in-prose | A glyph that reads as generated text |
 
 The list rules run before the punctuation rules, because a promotion needs the separators a glyph swap would erase.
@@ -243,6 +243,27 @@ Targets:
 - `fix` regenerates the bundle
 - `ci` asserts a clean tree
 - `docs-ci` gates the prose
+```
+
+### list-comma-code-run
+
+A run of three or more inline code spans joined by commas, with an optional "and" or "or" before the last.
+Each item is only its code span, so a series of plain words such as "parse, fix and verify" stays prose.
+The check reports a run anywhere in a sentence.
+The fix needs the run to close its sentence after a lead-in, and promotes it to a bullet list under that lead-in.
+Inside a list item, the run becomes a nested list.
+
+```text title="Before"
+The release touches `config.yaml`, `schema.json`, `Makefile` and `README.md`.
+```
+
+```text title="After --fix"
+The release touches:
+
+- `config.yaml`
+- `schema.json`
+- `Makefile`
+- `README.md`
 ```
 
 ### list-stacked-interpunct-runs

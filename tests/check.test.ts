@@ -172,6 +172,26 @@ describe("list-comma-labelled-run comma-joined labelled run", () => {
   });
 });
 
+describe("list-comma-code-run comma-joined code spans", () => {
+  const codeRun = async (src: string) => (await rules(src)).filter((r) => r === "list-comma-code-run");
+
+  test.each([
+    ["a bare run after a colon", "- 4 services with no owner: `a`, `b`, `c`, `d`.\n"],
+    ["a final and", "The release touches `a`, `b`, `c` and `d`.\n"],
+    ["a final or with an Oxford comma", "Pick `a`, `b`, or `c`.\n"],
+    ["a run mid-sentence", "A version containing `a`, `b` or `c` is a prerelease.\n"],
+  ])("flags %s", async (_, src) => expect(await codeRun(src)).toHaveLength(1));
+
+  test.each([
+    ["two items", "Use `a` and `b`, or `c` alone.\n"],
+    ["two comma-joined items", "It reads `a`, `b` today.\n"],
+    ["plain words", "It parses, fixes and verifies the tree.\n"],
+    ["numbers with thousands separators", "It reads 1,024, 2,048 and 4,096 bytes.\n"],
+    ["labelled items", "Targets: `fmt` formats, `vet` inspects, `race` detects races.\n"],
+    ["a code block", "```text\nThe files `a`, `b` and `c`.\n```\n"],
+  ])("ignores %s", async (_, src) => expect(await codeRun(src)).toHaveLength(0));
+});
+
 describe("list-stacked-interpunct-runs stacked interpunct runs", () => {
   test("runs stacked across lines replace list-interpunct-joined-run and ask for a nested list", async () => {
     const src =

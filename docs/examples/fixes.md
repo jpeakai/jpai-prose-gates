@@ -297,6 +297,32 @@ Rules:
 - `list-semicolon-delimited-run` finds semicolons
 ```
 
+### list-comma-code-run
+
+#### Nested in list item
+
+The gate reports, from [`list-comma-code-run-nested-in-list-item`](https://github.com/jpeakai/jpai-prose-gates/tree/main/tests/fixtures/fix/list-comma-code-run-nested-in-list-item):
+
+```text
+input.md:1 list-comma-code-run comma-joined run of 4 code spans; promote to a bullet list
+```
+
+Before:
+
+```text
+- 4 services with no owner: `billing-api`, `search-indexer`, `image-resizer`, `audit-log`.
+```
+
+After `--fix`:
+
+```text
+- 4 services with no owner:
+  - `billing-api`
+  - `search-indexer`
+  - `image-resizer`
+  - `audit-log`
+```
+
 ### list-stacked-interpunct-runs
 
 #### Nested

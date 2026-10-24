@@ -22,13 +22,21 @@ A site keeps its own name, logo, navigation and classes in its own config and st
    For the example above, that is `INHERIT: site-theme/osakanights/mkdocs.base.yml`.
 3. Set `theme.custom_dir` to the copied `overrides/` folder, also relative to the site's `mkdocs.yml`.
    For the example above, that is `custom_dir: site-theme/osakanights/overrides` under `theme`.
-4. Delete `theme.name`, `theme.palette` and `theme.font` from the site's config, as the base sets them.
+4. Delete the keys the base sets from the site's config:
+   - `theme.name`
+   - `theme.palette`
+   - `theme.font`
+
    A palette left in the site's config replaces the theme's palette, so its colours would never apply.
 5. Delete `theme.features` too, unless the site wants a different set.
    A features list in the site's config replaces the base list whole.
 6. Rewrite the site's `markdown_extensions` as a mapping, and keep only what the base lacks or sets differently.
    A list there replaces every base extension, so the theme's fences, tabs and admonitions would vanish.
-7. Keep the site's own `site_name`, `nav`, `theme.logo` and `extra_css` as they are.
+7. Keep the site's own keys as they are:
+   - `site_name`
+   - `nav`
+   - `theme.logo`
+   - `extra_css`
 8. Run `mkdocs build --strict` and check that it passes.
 
 A converted extension set looks like this, adding snippets to the base set:
@@ -71,7 +79,11 @@ The theme styles Material's own markup, so most pages need nothing extra.
 - **A primary button is the Encore,** the one saturated element per view, set with `{ .md-button .md-button--primary }`.
 - **A landing hero** is `<div class="on-hero" markdown>` holding the title and a `<p class="on-lede">`.
 - **A Material-drawn mermaid diagram** sits on `--on-diagram-bg`, one fixed canvas per mode.
-- **A site's own classes** can use `--on-pass`, `--on-fail`, `--on-card-border` and `--on-heading`.
+- **A site's own classes** can use the status and card tokens:
+  - `--on-pass`
+  - `--on-fail`
+  - `--on-card-border`
+  - `--on-heading`
 
 ## Change the colours
 

@@ -2,6 +2,7 @@
 // a Rule with its category, register it here, and add its section and
 // examples to RULES.md, which tests/rules-doc.test.ts holds to the code.
 
+import { listCommaCodeRun } from "./list-comma-code-run.ts";
 import { listCommaLabelledRun } from "./list-comma-labelled-run.ts";
 import { listInlineEnumerationMarkers } from "./list-inline-enumeration-markers.ts";
 import { listInterpunctJoinedRun } from "./list-interpunct-joined-run.ts";
@@ -24,6 +25,7 @@ export const RULES: Rule[] = [
   listInterpunctJoinedRun,
   listInlineEnumerationMarkers,
   listCommaLabelledRun,
+  listCommaCodeRun,
   listStackedInterpunctRuns,
 ];
 
@@ -34,6 +36,7 @@ export const FIX_ORDER: Rule[] = [
   listStackedInterpunctRuns,
   listInlineEnumerationMarkers,
   listCommaLabelledRun,
+  listCommaCodeRun,
   listInterpunctJoinedRun,
   listSemicolonDelimitedRun,
   punctuationInterpunctInProse,

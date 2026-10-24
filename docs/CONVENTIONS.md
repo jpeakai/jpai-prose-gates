@@ -12,7 +12,13 @@ Agents and humans: consult this before creating, moving or renaming any doc.
   Its relationship diagram is split by area to stay within the diagram gates
 - **ADR layout:** `okf-yaml`, with records authored in `adrs/NNNN-slug.yml` and markdown generated from them
 - **Decision Record ids:** prefixed `PRS-` in this repo, so a citation is unambiguous across bundles
-- **Generated paths:** `adrs/*.md`, `adrs/index.md`, `adrs/graph.md`, `adrs/graph.json`, `adrs/graph.html`, `docs/examples/*.md`
+- **Generated paths:**
+  - `adrs/*.md`
+  - `adrs/index.md`
+  - `adrs/graph.md`
+  - `adrs/graph.json`
+  - `adrs/graph.html`
+  - `docs/examples/*.md`
 - **Regenerate:** `make fix`, and `make ci` asserts the tree is clean afterwards
 - **Agent files:** `AGENTS.md` at root, with no nested agent files.
   `CLAUDE.md` holds only `@AGENTS.md`, so Claude Code reads the same file

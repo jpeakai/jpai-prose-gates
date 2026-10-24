@@ -31,6 +31,29 @@ describe("list-semicolon-delimited-run", () => {
   });
 });
 
+describe("list-comma-code-run", () => {
+  test("a run that closes its sentence promotes under the lead-in", async () => {
+    await fixesTo(
+      "It reads `a`, `b`, or `c`. Then it stops.\n",
+      "It reads:\n\n- `a`\n- `b`\n- `c`\n\nThen it stops.\n",
+      "list-comma-code-run",
+    );
+  });
+
+  test("a colon inside a bold lead-in is not doubled", async () => {
+    await fixesTo("- **Paths:** `a`, `b`, `c`\n", "- **Paths:**\n  - `a`\n  - `b`\n  - `c`\n", "list-comma-code-run");
+  });
+
+  test.each([
+    ["a run mid-sentence", "A tag such as `a`, `b` or `c` is a prerelease.\n"],
+    ["a run with no lead-in", "`a`, `b` and `c` are built in.\n"],
+    ["a first item inside a link", "See [`a`](u), `b` and `c`.\n"],
+    ["a run inside emphasis", "See *`a`, `b` and `c`*.\n"],
+    ["a run inside parentheses", "It has three (`a`, `b` and `c`).\n"],
+    ["a list item with text after the run", "- It reads `a`, `b` and `c`.\n  Then it stops.\n"],
+  ])("refuses %s", async (_, src) => await refuses(src, "list-comma-code-run"));
+});
+
 describe("list-interpunct-joined-run", () => {
   test("emphasis spanning a separator refuses", async () => {
     await refuses("Stack: *Bun · TypeScript* · biome.\n", "list-interpunct-joined-run");

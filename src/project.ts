@@ -5,7 +5,7 @@
 
 import { access } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
-import { loadConcepts } from "./concepts.ts";
+import { loadConcepts, NO_CONCEPTS } from "./concepts.ts";
 import { CONFIG_FILES, findConfig, loadConfig, NO_CONFIG } from "./config.ts";
 import { ConfigNotFoundError } from "./errors.ts";
 import { loadPlugins, type PluginFailure, type PluginMode } from "./plugins/index.ts";
@@ -40,6 +40,8 @@ export interface SetupOptions {
   lenient?: boolean;
   // Load every plugin and report every failure, without stopping at the first.
   collect?: boolean;
+  // Leave the concept file unread, so every document carries no concepts.
+  noConcepts?: boolean;
 }
 
 export interface Setup {
@@ -55,6 +57,7 @@ export const setUp = async ({
   noPlugins = false,
   lenient = false,
   collect = false,
+  noConcepts = false,
 }: SetupOptions): Promise<Setup> => {
   const root = await findProjectRoot(cwd);
   let file: string | null;
@@ -70,7 +73,7 @@ export const setUp = async ({
   else if (collect) mode = "collect";
   else if (lenient || config.pluginLoading === "lenient") mode = "lenient";
   const plugins = await loadPlugins(root, config, mode);
-  const concepts = await loadConcepts(root);
+  const concepts = noConcepts ? NO_CONCEPTS : await loadConcepts(root);
   const registry = buildRegistry({
     rules: [...RULES, ...plugins.rules],
     fixOrder: [...FIX_ORDER, ...plugins.rules.filter((r) => r.fix)],

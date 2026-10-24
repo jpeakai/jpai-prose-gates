@@ -22,6 +22,7 @@ generated: { by: human:maintainer, at: 2026-10-17T00:00:00Z }
 - Extends [PRS-0033](0033-a-paragraph-carries-a-lazy-language-view.md) (each sentence of the language view now lists the concepts it names)
 - Extends [PRS-0018](0018-config-file-and-rule-control.md) (a second file at the project root shapes a run, beside the config, and fails the same way when it is wrong)
 - Extends [PRS-0019](0019-plugin-contract-and-namespace.md) (a plugin rule reads concepts from the document it already receives, with no import)
+- Extended by [PRS-0040](0040-a-run-can-leave-the-concept-file-unread.md) (a run with --no-concepts leaves the file unread)
 
 ## Decision
 

@@ -149,6 +149,14 @@ describe("finding the concept file", () => {
     expect(code).toBe(2);
     expect(stderr).toContain("GLOSSARY.md: not a concept file, because it has no H2 headings");
   });
+
+  test("--no-concepts leaves the file unread, so a bad one cannot stop the run", async () => {
+    const root = tmp.project({ "package.json": "{}", "GLOSSARY.md": GLOSSARY, "a.md": "# A\n" });
+    expect((await setUp({ cwd: root, noConcepts: true })).registry.concepts).toBe(NO_CONCEPTS);
+
+    const bad = tmp.project({ "package.json": "{}", "GLOSSARY.md": "# Glossary\n", "a.md": "# A\n" });
+    expect((await runCli(bad, ["a.md", "--no-concepts"])).code).toBe(0);
+  });
 });
 
 describe("concepts in the language view", () => {

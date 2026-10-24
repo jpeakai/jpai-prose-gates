@@ -9,121 +9,128 @@
     },
     {
       "data": {
+        "id": "group-concepts",
+        "label": "concepts",
+        "colour": "#0891b2"
+      }
+    },
+    {
+      "data": {
         "id": "group-config",
         "label": "config",
-        "colour": "#0891b2"
+        "colour": "#059669"
       }
     },
     {
       "data": {
         "id": "group-docs",
         "label": "docs",
-        "colour": "#059669"
+        "colour": "#d97706"
       }
     },
     {
       "data": {
         "id": "group-documentation",
         "label": "documentation",
-        "colour": "#d97706"
+        "colour": "#db2777"
       }
     },
     {
       "data": {
         "id": "group-engine",
         "label": "engine",
-        "colour": "#db2777"
+        "colour": "#7c3aed"
       }
     },
     {
       "data": {
         "id": "group-errors",
         "label": "errors",
-        "colour": "#7c3aed"
+        "colour": "#0284c7"
       }
     },
     {
       "data": {
         "id": "group-fixing",
         "label": "fixing",
-        "colour": "#0284c7"
+        "colour": "#65a30d"
       }
     },
     {
       "data": {
         "id": "group-frontmatter",
         "label": "frontmatter",
-        "colour": "#65a30d"
+        "colour": "#6366f1"
       }
     },
     {
       "data": {
         "id": "group-gates",
         "label": "gates",
-        "colour": "#6366f1"
+        "colour": "#0891b2"
       }
     },
     {
       "data": {
         "id": "group-messages",
         "label": "messages",
-        "colour": "#0891b2"
+        "colour": "#059669"
       }
     },
     {
       "data": {
         "id": "group-model",
         "label": "model",
-        "colour": "#059669"
+        "colour": "#d97706"
       }
     },
     {
       "data": {
         "id": "group-packaging",
         "label": "packaging",
-        "colour": "#d97706"
+        "colour": "#db2777"
       }
     },
     {
       "data": {
         "id": "group-parsing",
         "label": "parsing",
-        "colour": "#db2777"
+        "colour": "#7c3aed"
       }
     },
     {
       "data": {
         "id": "group-plugins",
         "label": "plugins",
-        "colour": "#7c3aed"
+        "colour": "#0284c7"
       }
     },
     {
       "data": {
         "id": "group-quality",
         "label": "quality",
-        "colour": "#0284c7"
+        "colour": "#65a30d"
       }
     },
     {
       "data": {
         "id": "group-release",
         "label": "release",
-        "colour": "#65a30d"
+        "colour": "#6366f1"
       }
     },
     {
       "data": {
         "id": "group-rules",
         "label": "rules",
-        "colour": "#6366f1"
+        "colour": "#0891b2"
       }
     },
     {
       "data": {
         "id": "group-testing",
         "label": "testing",
-        "colour": "#0891b2"
+        "colour": "#059669"
       }
     },
     {
@@ -131,7 +138,7 @@
         "id": "PRS-0001",
         "label": "0001",
         "parent": "group-parsing",
-        "colour": "#db2777",
+        "colour": "#7c3aed",
         "file": "0001-parse-once-to-mdast.md",
         "title": "Every rule reads one mdast tree parsed once per file",
         "description": "Rules query a shared syntax tree instead of scanning raw lines with their own regexes",
@@ -144,7 +151,7 @@
         "id": "PRS-0002",
         "label": "0002",
         "parent": "group-gates",
-        "colour": "#6366f1",
+        "colour": "#0891b2",
         "file": "0002-generated-markdown-is-gated.md",
         "title": "Generated markdown is gated like hand-written markdown",
         "description": "Rendered output passes the same gates, and a finding there is fixed in its source or template",
@@ -157,7 +164,7 @@
         "id": "PRS-0003",
         "label": "0003",
         "parent": "group-fixing",
-        "colour": "#0284c7",
+        "colour": "#65a30d",
         "file": "0003-splice-source-never-restringify.md",
         "title": "Fixes splice source slices and never re-stringify the tree",
         "description": "An edit replaces a byte range with text built from source slices, so untouched bytes stay identical",
@@ -170,7 +177,7 @@
         "id": "PRS-0004",
         "label": "0004",
         "parent": "group-fixing",
-        "colour": "#0284c7",
+        "colour": "#65a30d",
         "file": "0004-a-fixer-refuses-when-unsure.md",
         "title": "A fixer refuses whenever the input is ambiguous",
         "description": "An unfixable case leaves the source untouched and the finding reported, never a best guess",
@@ -183,7 +190,7 @@
         "id": "PRS-0005",
         "label": "0005",
         "parent": "group-fixing",
-        "colour": "#0284c7",
+        "colour": "#65a30d",
         "file": "0005-every-fix-is-verified.md",
         "title": "Every fix is verified against a content fingerprint and an expected shape",
         "description": "A lost word throws, and an unexpected tree shape refuses the edit before it is applied",
@@ -196,7 +203,7 @@
         "id": "PRS-0006",
         "label": "0006",
         "parent": "group-rules",
-        "colour": "#6366f1",
+        "colour": "#0891b2",
         "file": "0006-sentence-length-is-never-autofixed.md",
         "title": "Sentence length is reported and never autofixed",
         "description": "PG002 has no fixer, because shortening a sentence is a decision about what it means",
@@ -209,7 +216,7 @@
         "id": "PRS-0007",
         "label": "0007",
         "parent": "group-rules",
-        "colour": "#6366f1",
+        "colour": "#0891b2",
         "file": "0007-em-dash-becomes-parentheses-or-colon.md",
         "title": "An em-dash pair becomes parentheses and a lone em-dash becomes a colon",
         "description": "PG004 rewrites only the two dash patterns whose replacement punctuation is unambiguous",
@@ -235,7 +242,7 @@
         "id": "PRS-0009",
         "label": "0009",
         "parent": "group-testing",
-        "colour": "#0891b2",
+        "colour": "#059669",
         "file": "0009-adversarial-and-property-tests-gate-fixes.md",
         "title": "Adversarial and property tests gate every change to fix behaviour",
         "description": "Fix behaviour is proven by exact fixtures, hostile inputs and generated documents, all without mocks",
@@ -248,7 +255,7 @@
         "id": "PRS-0010",
         "label": "0010",
         "parent": "group-rules",
-        "colour": "#6366f1",
+        "colour": "#0891b2",
         "file": "0010-length-findings-guide-a-split.md",
         "title": "A sentence length finding estimates clauses to guide a split",
         "description": "PG002 reports potential clauses and a target sentence count, steering a rewrite away from compression",
@@ -261,7 +268,7 @@
         "id": "PRS-0011",
         "label": "0011",
         "parent": "group-rules",
-        "colour": "#6366f1",
+        "colour": "#0891b2",
         "file": "0011-rules-carry-a-category.md",
         "title": "Each rule carries a category, and RULES.md is held true by a test",
         "description": "Rules are tagged sentence, list or punctuation, and their documented examples run through the real fixer",
@@ -274,7 +281,7 @@
         "id": "PRS-0012",
         "label": "0012",
         "parent": "group-packaging",
-        "colour": "#d97706",
+        "colour": "#db2777",
         "file": "0012-node-runs-a-published-bundle.md",
         "title": "Node runs a bundle built at publish time, and Bun runs the source",
         "description": "The npm package ships Node bundles of the CLI and library that are built when it is packed, and git never tracks them",
@@ -287,7 +294,7 @@
         "id": "PRS-0013",
         "label": "0013",
         "parent": "group-packaging",
-        "colour": "#d97706",
+        "colour": "#db2777",
         "file": "0013-releases-publish-from-github-actions.md",
         "title": "Releases publish to npm from GitHub Actions through trusted publishing",
         "description": "The Publish workflow releases @jpeakai/prose-gates to npm with provenance and no stored token",
@@ -300,7 +307,7 @@
         "id": "PRS-0014",
         "label": "0014",
         "parent": "group-release",
-        "colour": "#65a30d",
+        "colour": "#6366f1",
         "file": "0014-main-changes-only-through-pull-requests.md",
         "title": "Main changes only through pull requests, and releases run only from main",
         "description": "Main is protected so every change lands by a pull request that passes CI, and only main can publish",
@@ -339,7 +346,7 @@
         "id": "PRS-0017",
         "label": "0017",
         "parent": "group-rules",
-        "colour": "#6366f1",
+        "colour": "#0891b2",
         "file": "0017-rule-ids-are-category-and-short-name.md",
         "title": "A rule id is its category followed by a short name",
         "description": "Rules are named category-short-name, such as sentence-one-per-line, instead of by a number",
@@ -352,7 +359,7 @@
         "id": "PRS-0018",
         "label": "0018",
         "parent": "group-config",
-        "colour": "#0891b2",
+        "colour": "#059669",
         "file": "0018-config-file-and-rule-control.md",
         "title": "An optional config file switches rules off and sets their options",
         "description": "A config is checked against the loaded rules, and a rule that is off loses both its halves",
@@ -365,7 +372,7 @@
         "id": "PRS-0019",
         "label": "0019",
         "parent": "group-plugins",
-        "colour": "#7c3aed",
+        "colour": "#0284c7",
         "file": "0019-plugin-contract-and-namespace.md",
         "title": "A plugin rule is a built-in rule with a namespace, and the plugin names it",
         "description": "A plugin is { meta, rules }, its rules see the built-in context, and its ids carry a namespace",
@@ -378,7 +385,7 @@
         "id": "PRS-0020",
         "label": "0020",
         "parent": "group-plugins",
-        "colour": "#7c3aed",
+        "colour": "#0284c7",
         "file": "0020-plugin-fixers-stay-under-verification.md",
         "title": "A plugin fixer is held to the same proof as a built-in one",
         "description": "Plugin fixers are allowed, every edit is verified, and a malformed edit is refused before it is spliced",
@@ -391,7 +398,7 @@
         "id": "PRS-0021",
         "label": "0021",
         "parent": "group-plugins",
-        "colour": "#7c3aed",
+        "colour": "#0284c7",
         "file": "0021-plugins-declare-their-categories.md",
         "title": "A plugin adds a category by declaring it",
         "description": "A new one-word category is declared in meta.categories, and a word is declared once",
@@ -404,7 +411,7 @@
         "id": "PRS-0022",
         "label": "0022",
         "parent": "group-plugins",
-        "colour": "#7c3aed",
+        "colour": "#0284c7",
         "file": "0022-plugins-load-automatically.md",
         "title": "Plugins and local rules load on their own from declared sources",
         "description": "Local rule files and declared plugin dependencies load with no config, and every run says so",
@@ -417,7 +424,7 @@
         "id": "PRS-0023",
         "label": "0023",
         "parent": "group-model",
-        "colour": "#059669",
+        "colour": "#d97706",
         "file": "0023-frontmatter-is-a-read-only-view.md",
         "title": "Frontmatter is a read-only view that built-in rules never see",
         "description": "DocModel.frontmatter lists the top-level string keys of a YAML block, and built-in rules stay exempt",
@@ -430,7 +437,7 @@
         "id": "PRS-0024",
         "label": "0024",
         "parent": "group-errors",
-        "colour": "#7c3aed",
+        "colour": "#0284c7",
         "file": "0024-failures-are-named-errors-with-codes.md",
         "title": "Every deliberate failure is a named error class with a stable code",
         "description": "Usage errors exit 2 and plugin errors exit 1, each class carrying a code and the fields to act on",
@@ -443,7 +450,7 @@
         "id": "PRS-0025",
         "label": "0025",
         "parent": "group-plugins",
-        "colour": "#7c3aed",
+        "colour": "#0284c7",
         "file": "0025-plugin-loading-strictness.md",
         "title": "Strict loading is the default, lenient and validated loading are opt-in and loud",
         "description": "A lenient run skips a failed plugin and names it, and a validation run reports every failure and runs no engine",
@@ -456,7 +463,7 @@
         "id": "PRS-0026",
         "label": "0026",
         "parent": "group-plugins",
-        "colour": "#7c3aed",
+        "colour": "#0284c7",
         "file": "0026-typescript-local-rules-need-a-runtime-that-imports-them.md",
         "title": "A local rule may be TypeScript where the runtime can import it",
         "description": ".ts and .mts rules are imported as they are, and a runtime that cannot says how to fix it",
@@ -469,7 +476,7 @@
         "id": "PRS-0027",
         "label": "0027",
         "parent": "group-engine",
-        "colour": "#db2777",
+        "colour": "#7c3aed",
         "file": "0027-rules-may-be-async.md",
         "title": "Rules may be async, checks run concurrently, and fixers run in priority order",
         "description": "The engines are async, checks overlap, fixers are awaited one at a time, and the order stays a hand-kept list",
@@ -482,7 +489,7 @@
         "id": "PRS-0028",
         "label": "0028",
         "parent": "group-frontmatter",
-        "colour": "#65a30d",
+        "colour": "#6366f1",
         "file": "0028-frontmatter-edits-are-verified-by-data-equality.md",
         "title": "A frontmatter edit is verified by comparing the YAML data before and after",
         "description": "A fixer may rewrite frontmatter if the YAML data is unchanged, and the view walks the whole document",
@@ -495,7 +502,7 @@
         "id": "PRS-0029",
         "label": "0029",
         "parent": "group-documentation",
-        "colour": "#d97706",
+        "colour": "#db2777",
         "file": "0029-the-docs-site-is-assembled-from-the-real-documents.md",
         "title": "The docs site is assembled from the real documents and deploys only from main",
         "description": "MkDocs Material builds from a copy of the repo's own layout, so the prose gates keep reading the real files",
@@ -508,7 +515,7 @@
         "id": "PRS-0030",
         "label": "0030",
         "parent": "group-rules",
-        "colour": "#6366f1",
+        "colour": "#0891b2",
         "file": "0030-paragraph-length-is-reported-with-topic-guidance.md",
         "title": "A paragraph over its sentence budget is reported with topic guidance and never autofixed",
         "description": "A paragraph over 5 sentences fails, and it runs after the list rules, and names its topics and breaks",
@@ -521,7 +528,7 @@
         "id": "PRS-0031",
         "label": "0031",
         "parent": "group-quality",
-        "colour": "#0284c7",
+        "colour": "#65a30d",
         "file": "0031-code-complexity-is-gated-by-biome.md",
         "title": "Code complexity is gated by Biome rules that fail the build",
         "description": "Cognitive complexity, parameter count, test nesting and function length in src fail make check past fixed limits",
@@ -534,7 +541,7 @@
         "id": "PRS-0032",
         "label": "0032",
         "parent": "group-docs",
-        "colour": "#059669",
+        "colour": "#d97706",
         "file": "0032-the-site-theme-is-a-copy-of-osakanights.md",
         "title": "The docs site wears the OsakaNights theme, copied in from jpai-mermaidjs-lint",
         "description": "The theme folder is vendored into site-theme/, pulled in with INHERIT, and its tokens are checked on every build",
@@ -547,7 +554,7 @@
         "id": "PRS-0033",
         "label": "0033",
         "parent": "group-model",
-        "colour": "#059669",
+        "colour": "#d97706",
         "file": "0033-a-paragraph-carries-a-lazy-language-view.md",
         "title": "A paragraph carries a language view of its sentences and words, built on first read",
         "description": "ParagraphView.language holds sentences, words, tags and lemmas for every rule, plugins included",
@@ -560,7 +567,7 @@
         "id": "PRS-0034",
         "label": "0034",
         "parent": "group-rules",
-        "colour": "#6366f1",
+        "colour": "#0891b2",
         "file": "0034-clauses-count-verb-phrases-as-well-as-markers.md",
         "title": "The clause count is the larger of the marker count and the verb phrases compromise finds",
         "description": "sentence-word-budget-exceeded counts clauses from punctuation and marker words, or from verbs, whichever finds more",
@@ -573,7 +580,7 @@
         "id": "PRS-0035",
         "label": "0035",
         "parent": "group-messages",
-        "colour": "#0891b2",
+        "colour": "#059669",
         "file": "0035-finding-messages-are-measured-by-agent-evals.md",
         "title": "Finding messages are measured by agent evals that never gate the build",
         "description": "Agents fix seed documents under pytest-xharness-eval, graded by the gates, to score each message",
@@ -586,7 +593,7 @@
         "id": "PRS-0036",
         "label": "0036",
         "parent": "group-model",
-        "colour": "#059669",
+        "colour": "#d97706",
         "file": "0036-a-glossary-is-read-as-the-concept-model.md",
         "title": "A project's GLOSSARY.md or CONCEPTS.md is read as its concept model, and the language view names its terms",
         "description": "Each H2 is a concept, each Mermaid edge a relation, and every sentence lists the concepts it mentions",
@@ -599,7 +606,7 @@
         "id": "PRS-0037",
         "label": "0037",
         "parent": "group-rules",
-        "colour": "#6366f1",
+        "colour": "#0891b2",
         "file": "0037-a-check-reports-every-line-its-fixer-changes.md",
         "title": "sentence-one-per-line reports several sentences on one line, as its fixer splits them",
         "description": "A rule's check reports every paragraph its fixer would change, so a passing file is never rewritten by --fix",
@@ -612,7 +619,7 @@
         "id": "PRS-0038",
         "label": "0038",
         "parent": "group-docs",
-        "colour": "#059669",
+        "colour": "#d97706",
         "file": "0038-example-pages-are-rendered-from-fixtures-and-a-sweep-snapshot.md",
         "title": "The Example Pages are rendered from the golden fixtures and a committed Sweep Snapshot",
         "description": "The site's examples of fixes and agent rewrites are generated, never written by hand, so they cannot drift from the code",
@@ -625,12 +632,25 @@
         "id": "PRS-0039",
         "label": "0039",
         "parent": "group-model",
-        "colour": "#059669",
+        "colour": "#d97706",
         "file": "0039-a-text-carries-a-lazy-language-view.md",
         "title": "A text view carries the same lazy language view as a paragraph",
         "description": "TextView.language reads a text node's value as English on first use, so prose outside a paragraph can be read too",
         "status": "accepted",
         "tags": "model, language, plugins"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0040",
+        "label": "0040",
+        "parent": "group-concepts",
+        "colour": "#0891b2",
+        "file": "0040-a-run-can-leave-the-concept-file-unread.md",
+        "title": "A run with --no-concepts leaves the concept file unread",
+        "description": "The flag gives every document an empty concept model, so a glossary in another shape cannot stop the run",
+        "status": "accepted",
+        "tags": "concepts, cli"
       }
     },
     {
@@ -1895,6 +1915,16 @@
     },
     {
       "data": {
+        "id": "PRS-0036-extended_by-PRS-0040",
+        "source": "PRS-0036",
+        "target": "PRS-0040",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "a run with --no-concepts leaves the file unread"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0037-extends-PRS-0005",
         "source": "PRS-0037",
         "target": "PRS-0005",
@@ -1971,6 +2001,16 @@
         "label": "extends",
         "relation": "extends",
         "note": "the paragraph's lazy language view, given to every text node too"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0040-extends-PRS-0036",
+        "source": "PRS-0040",
+        "target": "PRS-0036",
+        "label": "extends",
+        "relation": "extends",
+        "note": "the concept file stays read by default, and this flag is the way out its cons named"
       }
     }
   ],

@@ -22,6 +22,7 @@ Installed as a dev dependency, the command is `prose-gates`, and `--json` gives 
   The paragraph budget of 5 sentences is set by the `maxSentences` option in the config instead.
 - `--config FILE` reads a config other than the one at the project root.
 - `--no-plugins` runs the built-in rules only, and `--lenient-plugins` skips a plugin that fails to load and says so.
+- `--no-concepts` leaves the `GLOSSARY.md` or `CONCEPTS.md` unread, so no rule sees the project's concepts.
 - `--validate-plugins` loads and checks every plugin, reports every failure, and runs no check or fix.
 - `--list-rules` prints every active rule by category, including plugin rules.
 

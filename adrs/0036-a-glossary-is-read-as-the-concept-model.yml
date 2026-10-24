@@ -27,6 +27,9 @@ relates_to:
   - relation: extends
     target: PRS-0019
     note: a plugin rule reads concepts from the document it already receives, with no import
+  - relation: extended_by
+    target: PRS-0040
+    note: a run with --no-concepts leaves the file unread
 
 decision:
   given: a project keeps a glossary in the librarian template, one H2 per term and Mermaid diagrams that relate them

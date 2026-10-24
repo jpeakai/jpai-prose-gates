@@ -14,7 +14,7 @@ import type { LoadedSource, Registry } from "./rules/registry.ts";
 import { CATEGORIES } from "./rules/types.ts";
 
 const USAGE = `usage: prose-gates <file.md> [...more] [--fix] [--json] [--max-words N] [--config FILE]
-                   [--no-plugins | --lenient-plugins]
+                   [--no-plugins | --lenient-plugins] [--no-concepts]
        prose-gates --list-rules
        prose-gates --validate-plugins [--json] [--config FILE]
 
@@ -36,6 +36,7 @@ A fixer that is unsure leaves the text alone and the finding stays.
 Plugins load on their own from .prose-gates/rules and from dependencies named prose-gates-plugin-*.
 --no-plugins runs the built-in rules only, for a baseline or a repo you do not trust.
 --lenient-plugins skips a plugin that fails to load and says so, instead of stopping the run.
+--no-concepts leaves GLOSSARY.md or CONCEPTS.md unread, so no rule sees the project's concepts.
 --validate-plugins loads and checks every plugin, reports every failure, and runs no check or fix.
 --list-rules prints every active rule by category, including plugin rules, and where each plugin came from.
 Exits 1 when findings remain or a plugin fails to load, 2 on usage error.`;
@@ -49,6 +50,7 @@ interface Parsed {
     config?: string;
     "no-plugins"?: boolean;
     "lenient-plugins"?: boolean;
+    "no-concepts"?: boolean;
     "validate-plugins"?: boolean;
     "list-rules"?: boolean;
   };
@@ -66,6 +68,7 @@ const parse = (argv: string[]): Parsed =>
       config: { type: "string" },
       "no-plugins": { type: "boolean", default: false },
       "lenient-plugins": { type: "boolean", default: false },
+      "no-concepts": { type: "boolean", default: false },
       "validate-plugins": { type: "boolean", default: false },
       "list-rules": { type: "boolean", default: false },
     },
@@ -244,6 +247,7 @@ const run = async (argv: string[], cwd: string): Promise<number> => {
     noPlugins: values["no-plugins"],
     lenient: values["lenient-plugins"],
     collect: validating,
+    noConcepts: values["no-concepts"],
   });
   const { registry, skipped, failures } = setup;
   if (validating) return printValidation(registry, failures, Boolean(values.json));

@@ -43,6 +43,7 @@
 | [PRS-0037](0037-a-check-reports-every-line-its-fixer-changes.md) | sentence-one-per-line reports several sentences on one line, as its fixer splits them | accepted |
 | [PRS-0038](0038-example-pages-are-rendered-from-fixtures-and-a-sweep-snapshot.md) | The Example Pages are rendered from the golden fixtures and a committed Sweep Snapshot | accepted |
 | [PRS-0039](0039-a-text-carries-a-lazy-language-view.md) | A text view carries the same lazy language view as a paragraph | accepted |
+| [PRS-0040](0040-a-run-can-leave-the-concept-file-unread.md) | A run with --no-concepts leaves the concept file unread | accepted |
 # By group
 
 ## architecture
@@ -50,6 +51,9 @@
 * [PRS-0008](0008-one-file-per-rule.md) - A rule module exports its id, summary, check and optional fix, and a registry lists them in order
 * [PRS-0015](0015-a-rule-reads-one-shared-context.md) - Both halves of a rule read one RuleContext, so a check and its fix can never disagree about the document
 * [PRS-0016](0016-modules-group-by-what-a-function-takes.md) - Shared code sits in the layer whose data it reads, and the layers import strictly downwards
+## concepts
+
+* [PRS-0040](0040-a-run-can-leave-the-concept-file-unread.md) - The flag gives every document an empty concept model, so a glossary in another shape cannot stop the run
 ## config
 
 * [PRS-0018](0018-config-file-and-rule-control.md) - A config is checked against the loaded rules, and a rule that is off loses both its halves
@@ -251,6 +255,7 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0036 --extends--> PRS-0033
 * PRS-0036 --extends--> PRS-0018
 * PRS-0036 --extends--> PRS-0019
+* PRS-0036 --extended_by--> PRS-0040
 * PRS-0037 --extends--> PRS-0005
 * PRS-0037 --depends_on--> PRS-0009
 * PRS-0037 --see_also--> PRS-0035
@@ -259,3 +264,4 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0038 --depends_on--> PRS-0035
 * PRS-0038 --see_also--> PRS-0029
 * PRS-0039 --extends--> PRS-0033
+* PRS-0040 --extends--> PRS-0036

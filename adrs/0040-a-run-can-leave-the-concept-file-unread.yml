@@ -1,0 +1,35 @@
+id: PRS-0040
+slug: a-run-can-leave-the-concept-file-unread
+plan_id: null
+title: A run with --no-concepts leaves the concept file unread
+description: The flag gives every document an empty concept model, so a glossary in another shape cannot stop the run
+status: accepted
+accepted_on: 2026-10-24
+last_changed_on: 2026-10-24
+tags: [concepts, cli]
+
+provenance: A project whose GLOSSARY.md is not in the template had no way to run the gates short of moving or rewriting the file
+
+enforced_in:
+  - src/project.ts, whose setUp takes noConcepts and then never looks for the concept file
+  - src/cli.ts, which parses --no-concepts and passes it to setUp
+  - tests/concepts.test.ts, which runs a project with a bad glossary under the flag and expects exit 0
+
+relates_to:
+  - relation: extends
+    target: PRS-0036
+    note: the concept file stays read by default, and this flag is the way out its cons named
+
+decision:
+  given: a concept file at the project root is read on every run, and one in another shape stops the run
+  we_prefer: a --no-concepts flag that leaves the file unread, over a fixed name list or a rule to move the file
+  because: the glossary may serve readers in a shape the gates do not parse, and the run should not force it to change
+  unless: a project needs this on every run, which calls for a config key and a new record
+
+consequences:
+  pros:
+    - A repo with a free-form glossary can run every built-in rule today.
+    - The flag mirrors --no-plugins, so it reads as the same kind of switch.
+  cons:
+    - A concept rule under the flag sees no concepts, so it finds nothing rather than failing.
+    - The opt-out lives on the command line, so each caller has to pass it.

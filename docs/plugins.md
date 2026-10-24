@@ -216,6 +216,7 @@ It follows the glossary template this repo's own [GLOSSARY.md](../GLOSSARY.md) u
 - **"is a kind of" builds a hierarchy.** `LR -- is a kind of --> PL` makes every Local Rule a kind of Plugin.
 
 `doc.concepts` holds the model, read once per run.
+A run with `--no-concepts` leaves the file unread, so `doc.concepts` is empty and a bad file cannot stop the run.
 
 | Field | What it holds |
 |---|---|

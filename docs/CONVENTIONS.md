@@ -14,7 +14,8 @@ Agents and humans: consult this before creating, moving or renaming any doc.
 - **Decision Record ids:** prefixed `PRS-` in this repo, so a citation is unambiguous across bundles
 - **Generated paths:** `adrs/*.md`, `adrs/index.md`, `adrs/graph.md`, `adrs/graph.json`, `adrs/graph.html`, `docs/examples/*.md`
 - **Regenerate:** `make fix`, and `make ci` asserts the tree is clean afterwards
-- **Agent files:** `CLAUDE.md` at root, with no nested agent files
+- **Agent files:** `AGENTS.md` at root, with no nested agent files.
+  `CLAUDE.md` holds only `@AGENTS.md`, so Claude Code reads the same file
 - **Prose gates:** every markdown file is gated by `make docs-ci` using this repo's own source, generated output included
 - **Code fences:** a language, then only `key="value"` options such as `title="Before"`, so the site renders them, held by `tests/fences.test.ts`
 - **Changelog:** not used
@@ -27,8 +28,10 @@ Agents and humans: consult this before creating, moving or renaming any doc.
 | `README.md` | Orientation, usage and the rule categories | Consumers | Purpose, flags or rules change |
 | `RULES.md` | Every rule by category, with failing examples and their fixes, held true by a test | Both | A rule, its category or its fix behaviour changes |
 | `CONTRIBUTING.md` | Setup, the make targets, how a change is accepted | Contributors | The dev workflow changes |
-| `CLAUDE.md` | Agent invariants and pointers, no restated conventions | Agents | Commands or hard boundaries change |
+| `AGENTS.md` | Agent invariants and pointers, no restated conventions | Agents | Commands or hard boundaries change |
+| `CLAUDE.md` | The single line `@AGENTS.md`, nothing else | Agents | Never |
 | `GLOSSARY.md` | Ubiquitous language, one canonical term per concept | Both | A domain term enters code or conversation |
+| `TICKETING.md` | How work is ticketed in GitHub Issues: categories, deduplication, dependencies, branch and PR naming, cleanup | Both | The ticketing workflow changes |
 | `adrs/*.yml` | Immutable accepted decisions about how the tool works, authored as data | Both | A binding decision is made |
 | `adrs/*.md` | Generated reading surface for those records | Both | Never edited, only regenerated |
 | `docs/CONVENTIONS.md` | This dialect declaration | Both | A documentation convention changes |
@@ -67,8 +70,8 @@ Agents and humans: consult this before creating, moving or renaming any doc.
 
 ## Required cross-links
 
-- `CLAUDE.md` points here, and at the ADR surface with a check-before-you-ask instruction.
-- `CLAUDE.md` points at `GLOSSARY.md` with both standing instructions.
+- `AGENTS.md` points here, and at the ADR surface with a check-before-you-ask instruction.
+- `AGENTS.md` points at `GLOSSARY.md` with both standing instructions.
 - `README.md` points at `CONTRIBUTING.md`.
 
 ## Split and merge triggers

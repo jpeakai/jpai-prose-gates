@@ -21,6 +21,7 @@ generated: { by: human:maintainer, at: 2026-10-17T00:00:00Z }
 - Depends on [PRS-0009](0009-adversarial-and-property-tests-gate-fixes.md) (the adversarial test that reproduces the gap came before the fix)
 - See also [PRS-0035](0035-finding-messages-are-measured-by-agent-evals.md) (the eval sweep is how the gap was found)
 - Depends on [PRS-0002](0002-generated-markdown-is-gated.md) (generated record markdown failed the stricter check, so the template was fixed at its source)
+- See also [PRS-0041](0041-a-comma-run-of-code-spans-is-a-hidden-list.md) (list-comma-code-run reports runs its fix refuses, the other half of keeping check and fix in step)
 
 ## Decision
 

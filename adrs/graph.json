@@ -655,6 +655,19 @@
     },
     {
       "data": {
+        "id": "PRS-0041",
+        "label": "0041",
+        "parent": "group-rules",
+        "colour": "#0891b2",
+        "file": "0041-a-comma-run-of-code-spans-is-a-hidden-list.md",
+        "title": "A comma-joined run of three or more inline code spans is a hidden list, and plain words stay prose",
+        "description": "The check flags the run anywhere, and the fix promotes it only when it closes a sentence",
+        "status": "accepted",
+        "tags": "rules, list, fix"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0001-depended_on_by-PRS-0012",
         "source": "PRS-0001",
         "target": "PRS-0012",
@@ -761,6 +774,16 @@
         "label": "tested by",
         "relation": "tested_by",
         "note": "the refuses helper asserts untouched output"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0004-extended_by-PRS-0041",
+        "source": "PRS-0004",
+        "target": "PRS-0041",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "list-comma-code-run refuses a run without a lead-in, mid-sentence, or opening inside markup"
       }
     },
     {
@@ -1965,6 +1988,16 @@
     },
     {
       "data": {
+        "id": "PRS-0037-see_also-PRS-0041",
+        "source": "PRS-0037",
+        "target": "PRS-0041",
+        "label": "see also",
+        "relation": "see_also",
+        "note": "list-comma-code-run reports runs its fix refuses, the other half of keeping check and fix in step"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0038-extends-PRS-0002",
         "source": "PRS-0038",
         "target": "PRS-0002",
@@ -2011,6 +2044,26 @@
         "label": "extends",
         "relation": "extends",
         "note": "the concept file stays read by default, and this flag is the way out its cons named"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0041-extends-PRS-0004",
+        "source": "PRS-0041",
+        "target": "PRS-0004",
+        "label": "extends",
+        "relation": "extends",
+        "note": "a run mid-sentence, without a lead-in, or opening inside a link or emphasis is refused"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0041-see_also-PRS-0037",
+        "source": "PRS-0041",
+        "target": "PRS-0037",
+        "label": "see also",
+        "relation": "see_also",
+        "note": "the check reports runs the fix refuses, so a refused run stays reported rather than silently passing"
       }
     }
   ],

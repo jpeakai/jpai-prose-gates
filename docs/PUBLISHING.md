@@ -28,7 +28,11 @@ npm view @jpeakai/prose-gates version    # confirm the new version is live
 
 The workflow creates the tag and the GitHub release itself, so never tag by hand.
 A run started from any branch but main fails before it creates anything.
-A version containing `alpha`, `beta` or `rc` publishes under that npm dist-tag and is marked a prerelease.
+A prerelease version publishes under the npm dist-tag it contains, and is marked a prerelease:
+
+- `alpha`
+- `beta`
+- `rc`
 
 ## What the workflow does
 

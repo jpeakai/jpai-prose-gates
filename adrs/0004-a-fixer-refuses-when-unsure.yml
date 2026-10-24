@@ -23,6 +23,9 @@ relates_to:
   - relation: tested_by
     target: PRS-0009
     note: the refuses helper asserts untouched output
+  - relation: extended_by
+    target: PRS-0041
+    note: list-comma-code-run refuses a run without a lead-in, mid-sentence, or opening inside markup
 
 decision:
   given: a fixer cannot be sure its rewrite keeps the author's meaning

@@ -14,6 +14,7 @@ export const RULE = {
   INTERPUNCT_RUN: "list-interpunct-joined-run",
   INLINE_ENUM: "list-inline-enumeration-markers",
   LABELLED_RUN: "list-comma-labelled-run",
+  CODE_RUN: "list-comma-code-run",
   STACKED_RUNS: "list-stacked-interpunct-runs",
   PARAGRAPH_LENGTH: "paragraph-sentence-budget-exceeded",
 } as const;

@@ -44,6 +44,7 @@
 | [PRS-0038](0038-example-pages-are-rendered-from-fixtures-and-a-sweep-snapshot.md) | The Example Pages are rendered from the golden fixtures and a committed Sweep Snapshot | accepted |
 | [PRS-0039](0039-a-text-carries-a-lazy-language-view.md) | A text view carries the same lazy language view as a paragraph | accepted |
 | [PRS-0040](0040-a-run-can-leave-the-concept-file-unread.md) | A run with --no-concepts leaves the concept file unread | accepted |
+| [PRS-0041](0041-a-comma-run-of-code-spans-is-a-hidden-list.md) | A comma-joined run of three or more inline code spans is a hidden list, and plain words stay prose | accepted |
 # By group
 
 ## architecture
@@ -121,6 +122,7 @@
 * [PRS-0030](0030-paragraph-length-is-reported-with-topic-guidance.md) - A paragraph over 5 sentences fails, and it runs after the list rules, and names its topics and breaks
 * [PRS-0034](0034-clauses-count-verb-phrases-as-well-as-markers.md) - sentence-word-budget-exceeded counts clauses from punctuation and marker words, or from verbs, whichever finds more
 * [PRS-0037](0037-a-check-reports-every-line-its-fixer-changes.md) - A rule's check reports every paragraph its fixer would change, so a passing file is never rewritten by --fix
+* [PRS-0041](0041-a-comma-run-of-code-spans-is-a-hidden-list.md) - The check flags the run anywhere, and the fix promotes it only when it closes a sentence
 ## testing
 
 * [PRS-0009](0009-adversarial-and-property-tests-gate-fixes.md) - Fix behaviour is proven by exact fixtures, hostile inputs and generated documents, all without mocks
@@ -140,6 +142,7 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0004 --extended_by--> PRS-0005
 * PRS-0004 --depended_on_by--> PRS-0007
 * PRS-0004 --tested_by--> PRS-0009
+* PRS-0004 --extended_by--> PRS-0041
 * PRS-0005 --depends_on--> PRS-0003
 * PRS-0005 --extends--> PRS-0004
 * PRS-0005 --depended_on_by--> PRS-0006
@@ -260,8 +263,11 @@ The same edge set is rendered as prose in [graph.md](graph.md), and as data in [
 * PRS-0037 --depends_on--> PRS-0009
 * PRS-0037 --see_also--> PRS-0035
 * PRS-0037 --depends_on--> PRS-0002
+* PRS-0037 --see_also--> PRS-0041
 * PRS-0038 --extends--> PRS-0002
 * PRS-0038 --depends_on--> PRS-0035
 * PRS-0038 --see_also--> PRS-0029
 * PRS-0039 --extends--> PRS-0033
 * PRS-0040 --extends--> PRS-0036
+* PRS-0041 --extends--> PRS-0004
+* PRS-0041 --see_also--> PRS-0037

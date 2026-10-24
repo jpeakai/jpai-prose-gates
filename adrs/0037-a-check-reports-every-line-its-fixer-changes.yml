@@ -28,6 +28,9 @@ relates_to:
   - relation: depends_on
     target: PRS-0002
     note: generated record markdown failed the stricter check, so the template was fixed at its source
+  - relation: see_also
+    target: PRS-0041
+    note: list-comma-code-run reports runs its fix refuses, the other half of keeping check and fix in step
 
 decision:
   given: a check that reported only a sentence wrapped across lines, beside a fixer that splits every sentence onto its own line

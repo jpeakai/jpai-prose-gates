@@ -57,7 +57,14 @@ A check receives one context object.
 | `helpers` | `words`, `sentences` and `lengthMessage`, so a rule needs no import |
 | `runs` and `reported` | The interpunct runs, and the ones an enabled rule reports |
 
-A paragraph view has `raw`, `line`, `startOffset`, `endOffset` and `prose`, with code spans already removed from `prose`.
+A paragraph view has these fields:
+
+- `raw`
+- `line`
+- `startOffset`
+- `endOffset`
+- `prose`, with code spans already removed
+
 It also has `language`, its sentences and words, which [Language](#language) describes.
 [docs/engines.md](engines.md) shows what each view holds at every point of a check and a fix.
 [docs/DATA_MODEL.md](DATA_MODEL.md) is the full reference for the model.
@@ -105,7 +112,11 @@ It becomes a finding for that rule, and the other rules carry on.
 ## Categories
 
 The category is the first word of a rule key.
-`sentence`, `list` and `punctuation` are built in, and any rule may use them.
+Any rule may use the built-in categories:
+
+- `sentence`
+- `list`
+- `punctuation`
 
 A new word must be declared.
 A local file declares it by exporting `categories`.
@@ -138,7 +149,7 @@ A plugin rule reads it through `doc.frontmatter`, which is `null` or a list of e
 You can iterate the whole document in three ways.
 
 - **`scalars`.** Every string value at any depth, found by walking maps and lists in document order.
-- **`document`.** The `yaml` package's parsed `Document`, so you can call `visit`, `getIn`, `toJS` or read any node's range.
+- **`document`.** The `yaml` package's parsed `Document`, so you can read any node's range or call its methods, such as `visit` and `toJS`.
 - **`entries`.** The flat top-level case, kept because it is all most rules need.
 
 A scalar carries what a rule needs to report on it and to rewrite it.
@@ -200,7 +211,13 @@ export default {
 ```
 
 Tagging is the slowest step of a check, so a rule should filter on cheap fields such as `inTable` before it reads `language`.
-The tags are compromise's own, such as `Noun`, `Verb`, `Pronoun` and `Adverb`.
+The tags are compromise's own, such as:
+
+- `Noun`
+- `Verb`
+- `Pronoun`
+- `Adverb`
+
 [The language and concept models](language.md) shows how each field is built, with worked examples.
 
 ## Concepts
@@ -277,8 +294,14 @@ export default {
 };
 ```
 
-- **Name.** `prose-gates-plugin-name`, `@scope/prose-gates-plugin-name` or `@scope/prose-gates-plugin`, so it is found automatically.
-- **Dependency.** The project lists it in `dependencies`, `devDependencies` or `optionalDependencies`, because only declared packages are discovered.
+- **Name.** One of these, so it is found automatically:
+  - `prose-gates-plugin-name`
+  - `@scope/prose-gates-plugin-name`
+  - `@scope/prose-gates-plugin`
+- **Dependency.** The project declares it, because only declared packages are discovered:
+  - `dependencies`
+  - `devDependencies`
+  - `optionalDependencies`
 - **Namespace.** It comes from `meta.namespace`, not the package name, and `local` is reserved.
 - **Id.** A rule above is `acme/tone-no-hedging`.
 - **Version.** `apiVersion` is `1`, and any other number fails the load with both numbers in the message.
@@ -300,7 +323,13 @@ A rule declares the options it accepts and their types.
 options: { keys: "string[]", maxWords: "number" },
 ```
 
-A type is `number`, `string`, `boolean` or `string[]`.
+A type is:
+
+- `number`
+- `string`
+- `boolean`
+- `string[]`
+
 The config sets them, and a wrong name or type is a usage error with exit code 2.
 
 ```json
@@ -373,7 +402,11 @@ error[plugin-contract]: plugin .prose-gates/rules/no-todo.mjs: rule "no-todo" mu
 | `plugin-fixer` | `PluginFixerError` | A fixer threw or returned something that is not a list of edits |
 
 Every class extends `PluginLoadError`, except `PluginFixerError`, which is raised while a run is in progress.
-Each carries the fields a tool needs, such as `source`, `other` or `rule`.
+Each carries the fields a tool needs, such as:
+
+- `source`
+- `other`
+- `rule`
 
 ## Strict, lenient and validated loading
 
@@ -395,8 +428,17 @@ When two plugins clash, the first keeps the namespace and the later one is skipp
 
 `--validate-plugins` exits 0 when every source is valid and 1 when any fails.
 It also fails with exit 2 on a config problem, so it checks the whole setup.
-It takes no files, and no `--fix`, `--no-plugins` or `--list-rules`.
-Use `--json` for the same result as data, with `valid`, `plugins` and `failures`.
+It takes no files, and none of these flags:
+
+- `--fix`
+- `--no-plugins`
+- `--list-rules`
+
+Use `--json` for the same result as data, with these keys:
+
+- `valid`
+- `plugins`
+- `failures`
 
 ```text
 prose-gates: plugin validation failed, 2 of 3 sources

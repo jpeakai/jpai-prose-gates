@@ -14,7 +14,7 @@ Rules marked with a star in `--help` have a fixer.
 |---|---|---|
 | Sentence | sentence-one-per-line, sentence-word-budget-exceeded | How a sentence is laid out and how long it runs |
 | Paragraph | paragraph-sentence-budget-exceeded | How many sentences a paragraph holds before a break |
-| List | list-semicolon-delimited-run, list-interpunct-joined-run, list-inline-enumeration-markers, list-comma-labelled-run, list-comma-code-run, list-stacked-interpunct-runs | A list hidden in running prose, promoted to a real markdown list |
+| List | list-semicolon-delimited-run, list-interpunct-joined-run, list-inline-enumeration-markers, list-comma-labelled-run, list-comma-code-run, list-comma-plain-run, list-stacked-interpunct-runs | A list hidden in running prose, promoted to a real markdown list |
 | Punctuation | punctuation-em-dash-in-prose, punctuation-interpunct-in-prose | A glyph that reads as generated text |
 
 The list rules run before the punctuation rules, because a promotion needs the separators a glyph swap would erase.
@@ -188,6 +188,13 @@ Without a colon there is no lead-in to keep, so the fixer refuses.
 A release needs a signed tag; a changelog entry; a green build.
 ```
 
+It reports three items or more by default.
+The `minItems` option sets how many items make a list, and must be a whole number of at least 2:
+
+```json
+{ "rules": { "list-semicolon-delimited-run": ["error", { "minItems": 4 }] } }
+```
+
 ### list-interpunct-joined-run
 
 Items joined by interpuncts inside one paragraph.
@@ -203,6 +210,14 @@ Stack:
 - Bun
 - TypeScript
 - biome
+```
+
+It reports three items or more by default.
+A shorter run is no list, so punctuation-interpunct-in-prose reports its glyphs instead.
+The `minItems` option sets how many items make a list, and must be a whole number of at least 2:
+
+```json
+{ "rules": { "list-interpunct-joined-run": ["error", { "minItems": 2 }] } }
 ```
 
 ### list-inline-enumeration-markers
@@ -245,10 +260,16 @@ Targets:
 - `docs-ci` gates the prose
 ```
 
+The `minItems` option sets how many labelled items make a list, and must be a whole number of at least 2:
+
+```json
+{ "rules": { "list-comma-labelled-run": ["error", { "minItems": 4 }] } }
+```
+
 ### list-comma-code-run
 
 A run of three or more inline code spans joined by commas, with an optional "and" or "or" before the last.
-Each item is only its code span, so a series of plain words such as "parse, fix and verify" stays prose.
+Each item is only its code span, and a series of plain words is list-comma-plain-run's to report.
 The check reports a run anywhere in a sentence.
 The fix needs the run to close its sentence after a lead-in, and promotes it to a bullet list under that lead-in.
 Inside a list item, the run becomes a nested list.
@@ -264,6 +285,46 @@ The release touches:
 - `schema.json`
 - `Makefile`
 - `README.md`
+```
+
+The `minItems` option sets how many code spans make a list, and must be a whole number of at least 2:
+
+```json
+{ "rules": { "list-comma-code-run": ["error", { "minItems": 4 }] } }
+```
+
+### list-comma-plain-run
+
+A long run of short plain-word items that closes a sentence, joined by commas.
+An item is one to three plain words, so a code span, a number, a link or emphasis ends the run.
+The run needs a colon before it, or an "and" or "or" before its last item.
+It reports five items or more by default, because a short series such as "parse, fix and verify" is ordinary English.
+Without a colon there is no telling where the first item starts, so it is not counted and the fix refuses.
+
+```text title="Before"
+Tags: alpha, beta, rc, next, canary.
+```
+
+```text title="After --fix"
+Tags:
+
+- alpha
+- beta
+- rc
+- next
+- canary
+```
+
+This run counts five items after its first, so it is reported:
+
+```text title="Reported"
+It publishes alpha, beta, rc, next, nightly and canary.
+```
+
+The `minItems` option sets how many items make a list, and must be a whole number of at least 2:
+
+```json
+{ "rules": { "list-comma-plain-run": ["error", { "minItems": 4 }] } }
 ```
 
 ### list-stacked-interpunct-runs

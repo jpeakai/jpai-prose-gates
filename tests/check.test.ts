@@ -192,6 +192,28 @@ describe("list-comma-code-run comma-joined code spans", () => {
   ])("ignores %s", async (_, src) => expect(await codeRun(src)).toHaveLength(0));
 });
 
+describe("list-comma-plain-run comma-joined plain words", () => {
+  const plainRun = async (src: string) => (await rules(src)).filter((r) => r === "list-comma-plain-run");
+
+  test.each([
+    ["five items after a colon", "Tags: alpha, beta, rc, next, canary.\n"],
+    ["five items with a final and", "It ships red, green, blue, cyan, teal and magenta.\n"],
+    ["an Oxford comma", "Pick red, green, blue, cyan, teal, or magenta.\n"],
+    ["multi-word items", "Steps: a signed tag, unit tests, final review, sign off, a green build.\n"],
+  ])("flags %s", async (_, src) => expect(await plainRun(src)).toHaveLength(1));
+
+  test.each([
+    ["four items", "Tags: alpha, beta, rc, next.\n"],
+    ["a short series", "It parses, fixes and verifies the tree.\n"],
+    ["no colon and no joiner", "Then, after that, in turn, at last, at once, it stops.\n"],
+    ["an item of four words", "Tags: alpha, beta, rc, next, the very last one.\n"],
+    ["numbers", "Sizes: 1, 2, 4, 8, 16.\n"],
+    ["code spans", "Files: `a`, `b`, `c`, `d`, `e`.\n"],
+    ["a series that does not close the sentence", "Red, green, blue, cyan and magenta are colours.\n"],
+    ["the subject counted with the series", "One finding, with a file, a line, a rule and a message.\n"],
+  ])("ignores %s", async (_, src) => expect(await plainRun(src)).toHaveLength(0));
+});
+
 describe("list-stacked-interpunct-runs stacked interpunct runs", () => {
   test("runs stacked across lines replace list-interpunct-joined-run and ask for a nested list", async () => {
     const src =

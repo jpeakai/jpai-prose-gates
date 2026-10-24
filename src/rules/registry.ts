@@ -6,10 +6,18 @@
 import { type ConceptModel, NO_CONCEPTS } from "../concepts.ts";
 import type { Config } from "../config.ts";
 import { RuleOptionError, UnknownRuleError } from "../errors.ts";
-import { interpunctRuns, isFlat } from "../interpunct.ts";
+import {
+  DEFAULT_MIN_INTERPUNCT_ITEMS,
+  type InterpunctRun,
+  interpunctRuns,
+  isFlat,
+  isFlatList,
+  isStacked,
+} from "../interpunct.ts";
 import type { DocModel } from "../model.ts";
 import { sentences, words } from "../text.ts";
 import { FIX_ORDER, RULES } from "./index.ts";
+import { minItemsOf } from "./options.ts";
 import { lengthMessage } from "./sentence-word-budget-exceeded.ts";
 import {
   isPluginRuleId,
@@ -82,11 +90,22 @@ const checkOptions = (where: string, rule: Rule, options: RuleOptions): void => 
       throw new RuleOptionError(where, rule.id, name, `option "${name}" of "${rule.id}" must be a ${want}`);
     }
   }
+  checkBounds(where, rule, options);
+};
+
+// The values a type alone cannot rule out.
+const checkBounds = (where: string, rule: Rule, options: RuleOptions): void => {
   // A budget below one would fail every sentence or every paragraph.
   for (const budget of ["maxWords", "maxSentences"]) {
     if (budget in options && !((options[budget] as number) >= 1)) {
       throw new RuleOptionError(where, rule.id, budget, `option "${budget}" of "${rule.id}" must be at least 1`);
     }
+  }
+  // A list holds at least two items, and an item count is a whole number.
+  const minItems = options.minItems;
+  if (minItems !== undefined && !(Number.isInteger(minItems) && (minItems as number) >= 2)) {
+    const message = `option "minItems" of "${rule.id}" must be a whole number of at least 2`;
+    throw new RuleOptionError(where, rule.id, "minItems", message);
   }
 };
 
@@ -135,9 +154,15 @@ export const BUILTIN: Registry = buildRegistry({ rules: RULES, fixOrder: FIX_ORD
 // read by several rules, so computing them here keeps the fix engine from
 // rebuilding them once per rule on every pass of the fixpoint loop. A run is
 // owned by the flat or the stacked list rule, and it counts as reported only
-// while its owner is on.
+// while its owner is on and the run is long enough for it. A flat run below
+// the flat rule's minItems is no list, so its glyphs are stray interpuncts.
 export const ruleContext = (doc: DocModel, registry: Registry = BUILTIN): RuleContext => {
   const runs = interpunctRuns(doc);
-  const reported = runs.filter((run) => registry.enabled.has(isFlat(run) ? RULE.INTERPUNCT_RUN : RULE.STACKED_RUNS));
+  const minItems = minItemsOf(registry.options.get(RULE.INTERPUNCT_RUN) ?? {}, DEFAULT_MIN_INTERPUNCT_ITEMS);
+  const owned = (run: InterpunctRun): boolean =>
+    isFlat(run)
+      ? registry.enabled.has(RULE.INTERPUNCT_RUN) && isFlatList(run, minItems)
+      : registry.enabled.has(RULE.STACKED_RUNS) && isStacked(run);
+  const reported = runs.filter(owned);
   return { doc, runs, reported };
 };

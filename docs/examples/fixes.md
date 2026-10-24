@@ -323,6 +323,34 @@ After `--fix`:
   - `audit-log`
 ```
 
+### list-comma-plain-run
+
+#### Colon lead in
+
+The gate reports, from [`list-comma-plain-run-colon-lead-in`](https://github.com/jpeakai/jpai-prose-gates/tree/main/tests/fixtures/fix/list-comma-plain-run-colon-lead-in):
+
+```text
+input.md:1 list-comma-plain-run comma-joined run of 5 items; promote to a bullet list
+```
+
+Before:
+
+```text
+Supported channels: alpha, beta, rc, next, and canary.
+```
+
+After `--fix`:
+
+```text
+Supported channels:
+
+- alpha
+- beta
+- rc
+- next
+- canary
+```
+
 ### list-stacked-interpunct-runs
 
 #### Nested

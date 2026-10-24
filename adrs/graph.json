@@ -668,6 +668,19 @@
     },
     {
       "data": {
+        "id": "PRS-0042",
+        "label": "0042",
+        "parent": "group-rules",
+        "colour": "#0891b2",
+        "file": "0042-plain-word-runs-and-a-min-items-option.md",
+        "title": "A run of five or more plain-word items is a hidden list, and every run rule takes a minItems option",
+        "description": "list-comma-plain-run reports long plain series, and minItems sets each run rule's threshold",
+        "status": "accepted",
+        "tags": "rules, list, fix, config"
+      }
+    },
+    {
+      "data": {
         "id": "PRS-0001-depended_on_by-PRS-0012",
         "source": "PRS-0001",
         "target": "PRS-0012",
@@ -1324,6 +1337,16 @@
         "label": "extended by",
         "relation": "extended_by",
         "note": "a concept file at the project root also shapes a run, and fails it the way a bad config does"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0018-extended_by-PRS-0042",
+        "source": "PRS-0018",
+        "target": "PRS-0042",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "every list run rule takes a minItems option, checked at load"
       }
     },
     {
@@ -2064,6 +2087,36 @@
         "label": "see also",
         "relation": "see_also",
         "note": "the check reports runs the fix refuses, so a refused run stays reported rather than silently passing"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0041-extended_by-PRS-0042",
+        "source": "PRS-0041",
+        "target": "PRS-0042",
+        "label": "extended by",
+        "relation": "extended_by",
+        "note": "list-comma-plain-run reports long plain-word runs, and minItems tunes this rule's threshold"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0042-extends-PRS-0041",
+        "source": "PRS-0042",
+        "target": "PRS-0041",
+        "label": "extends",
+        "relation": "extends",
+        "note": "the plain-word list its unless clause left for a new record, told from a series by its length"
+      }
+    },
+    {
+      "data": {
+        "id": "PRS-0042-extends-PRS-0018",
+        "source": "PRS-0042",
+        "target": "PRS-0018",
+        "label": "extends",
+        "relation": "extends",
+        "note": "minItems is a rule option in the existing config, checked like maxWords and maxSentences"
       }
     }
   ],
